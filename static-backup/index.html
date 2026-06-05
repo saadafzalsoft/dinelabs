@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bartartine - Premium Stone-Baked Pizza & Bistro Ordering</title>
+  <meta name="description" content="Discover premium, freshly stone-baked pizzas, Flatzz, deals and gourmet sharing boxes from bartartine. Order online for hot home delivery.">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER SECTION
+       ========================================== -->
+  <header class="header">
+    <div class="header-container">
+      
+      <!-- Hamburger Menu toggle -->
+      <button class="hamburger-btn" id="menuToggle" aria-label="Open Navigation Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Brand Logo -->
+      <a href="#" class="logo">
+        bart<span>artine</span>
+      </a>
+
+      <!-- Header Controls -->
+      <div class="header-right">
+        
+        <!-- Language/Country Dropdown Selector -->
+        <div class="flag-selector" id="flagDropdown">
+          <div class="flag-icon">
+            <!-- Custom Georgian/English style red and white cross flag -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+              <rect width="24" height="24" fill="#ffffff"/>
+              <rect x="10" y="0" width="4" height="24" fill="#d11218"/>
+              <rect x="0" y="10" width="24" height="4" fill="#d11218"/>
+              <!-- Small accent marks/crosses to match flag patterns -->
+              <path d="M 4 4 L 6 6 M 6 4 L 4 6" stroke="#d11218" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M 18 4 L 20 6 M 20 4 L 18 6" stroke="#d11218" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M 4 18 L 6 20 M 6 18 L 4 20" stroke="#d11218" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M 18 18 L 20 20 M 20 18 L 18 20" stroke="#d11218" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <svg class="arrow-down-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==========================================
+       MAIN APP CONTAINER (2 COLUMNS)
+       ========================================== -->
+  <div class="main-wrapper">
+    
+    <!-- Left Column: Menu Items, Search, Categories -->
+    <main class="left-panel">
+      
+      <!-- Current Offers Header -->
+      <section class="section-header">
+        <h2 class="section-title">🔥 Current Offers</h2>
+        <div class="carousel-controls">
+          <button class="carousel-arrow" id="slideLeftBtn" aria-label="Scroll Offers Left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <button class="carousel-arrow" id="slideRightBtn" aria-label="Scroll Offers Right">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Offers Carousel row -->
+      <div class="offers-row" id="offersCarousel">
+        
+        <!-- Offer 1 -->
+        <div class="offer-card" data-pizza-id="101" data-pizza-name="Large Deal" data-pizza-price="25.50">
+          <div class="offer-image-wrapper">
+            <img src="assets/hero_pizza.png" alt="Large Deal Pizza and Drinks" class="offer-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <h3 class="offer-title">Large Deal</h3>
+          <p class="offer-price">$25,50</p>
+        </div>
+
+        <!-- Offer 2 -->
+        <div class="offer-card" data-pizza-id="102" data-pizza-name="2x Flatzz of choice" data-pizza-price="12.99">
+          <div class="offer-image-wrapper">
+            <img src="assets/flatzz.png" alt="Two Flatzz of your choice" class="offer-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <h3 class="offer-title">2x Flatzz of your choice</h3>
+          <p class="offer-price">$12,99</p>
+        </div>
+
+        <!-- Offer 3 -->
+        <div class="offer-card" data-pizza-id="103" data-pizza-name="Margherita Pan L" data-pizza-price="12.90">
+          <div class="offer-image-wrapper">
+            <img src="assets/cheese_pizza.png" alt="Margherita Pan Size L" class="offer-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <h3 class="offer-title">Margherita Pan L</h3>
+          <p class="offer-price">$12,90</p>
+        </div>
+
+        <!-- Offer 4 -->
+        <div class="offer-card" data-pizza-id="104" data-pizza-name="Salami Pan L" data-pizza-price="14.90">
+          <div class="offer-image-wrapper">
+            <img src="assets/pep_pizza.png" alt="Salami Pan Size L" class="offer-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <h3 class="offer-title">Salami Pan L</h3>
+          <p class="offer-price">$14,90</p>
+        </div>
+
+      </div>
+
+      <!-- Search Input Section -->
+      <div class="search-container">
+        <input type="text" placeholder="Search for an item" class="search-input" id="itemSearch">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+
+      <!-- Categories Navigation Pills -->
+      <div class="categories-row-wrapper">
+        <div class="categories-pills-list" id="categoryPillList">
+          <div class="category-pill active" data-filter="all">Deals</div>
+          <div class="category-pill" data-filter="korean-bbq">NEW - Korean BBQ</div>
+          <div class="category-pill" data-filter="flatzz">NEW - Crafted Flatzz</div>
+          <div class="category-pill" data-filter="deals">Deals</div>
+          <div class="category-pill" data-filter="cheesy-crust">Cheesy Crust Pizza</div>
+          <div class="category-pill" data-filter="pan-l">Pizza Pan L</div>
+          <div class="category-pill" data-filter="pan-m">Pizza Pan M</div>
+          <div class="category-pill" data-filter="classic-m">Classic Pizza M</div>
+          <div class="category-pill" data-filter="melts">Melts</div>
+        </div>
+        
+        <!-- Filter Toggle Slider Button -->
+        <button class="filter-sliders-btn" id="filterSettingsBtn" aria-label="Toggle Filter Options">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 2-Column Product Cards Grid -->
+      <section class="products-grid" id="productsMenuGrid">
+        
+        <!-- Item 1: Korean BBQ Chicken Cheezy Crust -->
+        <div class="product-card" data-category="korean-bbq cheesy-crust" data-id="1" data-name="Korean BBQ Chicken Cheezy Crust" data-price="16.90" data-price-lbp="1,350,000" data-desc="Pan crust (a1), baked, breaded chicken (4, a1), mozzarella (g), pepper mix, jalapeños, Korean BBQ sauce (f), chili flakes" data-img="assets/bbq_chicken_pizza.png">
+          <div class="product-image-container">
+            <img src="assets/bbq_chicken_pizza.png" alt="Korean BBQ Chicken Cheezy Crust" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Korean BBQ Chicken Cheezy Crust</h3>
+            <p class="product-desc">Pan crust (a1), baked, breaded chicken (4, a1), mozzarella (g), pepper mix, jalapeños, Korean BBQ sauce (f)...</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 1,350,000</span>
+              <span class="product-price-alt">$16,90</span>
+            </div>
+            <span class="popular-badge">Popular</span>
+          </div>
+        </div>
+
+        <!-- Item 2: Korean BBQ Chicken Classic M -->
+        <div class="product-card" data-category="korean-bbq classic-m" data-id="2" data-name="Korean BBQ Chicken Classic M" data-price="11.90" data-price-lbp="950,000" data-desc="Pan crust (a1), baked, breaded chicken (4, a1), mozzarella (g), pepper mix, jalapeños, Korean BBQ sauce (f), chili flakes" data-img="assets/bbq_chicken_pizza.png">
+          <div class="product-image-container">
+            <img src="assets/bbq_chicken_pizza.png" alt="Korean BBQ Chicken Classic M" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Korean BBQ Chicken Classic M</h3>
+            <p class="product-desc">Pan crust (a1), baked, breaded chicken (4, a1), mozzarella (g), pepper mix, jalapeños, Korean BBQ sauce (f)...</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 950,000</span>
+              <span class="product-price-alt">$11,90</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 3: Korean BBQ Chicken Sticks -->
+        <div class="product-card" data-category="deals" data-id="3" data-name="Korean BBQ Chicken Sticks (8 Pieces)" data-price="9.90" data-price-lbp="790,000" data-desc="Baked, breaded chicken (4, a1), Korean BBQ sauce (f), chili flakes, served golden brown in a basket" data-img="assets/chicken_sticks.png">
+          <div class="product-image-container">
+            <img src="assets/chicken_sticks.png" alt="Korean BBQ Chicken Sticks" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Korean BBQ Chicken Sticks (8 Pieces)</h3>
+            <p class="product-desc">Baked, breaded chicken (4, a1), Korean BBQ sauce (f), chili flakes</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 790,000</span>
+              <span class="product-price-alt">$9,90</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 4: Korean BBQ Chicken Wings -->
+        <div class="product-card" data-category="deals" data-id="4" data-name="Korean BBQ Chicken Wings (5 pieces)" data-price="6.90" data-price-lbp="550,000" data-desc="Baked chicken wings, seasoned liquid (4), Korean BBQ sauce (f), chili flakes" data-img="assets/chicken_sticks.png">
+          <div class="product-image-container">
+            <img src="assets/chicken_sticks.png" alt="Korean BBQ Chicken Wings" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Korean BBQ Chicken Wings (5 pieces)</h3>
+            <p class="product-desc">Baked chicken wings, seasoned liquid (4), Korean BBQ sauce (f), chili flakes</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 550,000</span>
+              <span class="product-price-alt">$6,90</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 5: 2x Flatzz of your choice -->
+        <div class="product-card" data-category="flatzz deals" data-id="5" data-name="2x Flatzz of your choice" data-price="12.99" data-price-lbp="1,030,000" data-desc="Choose your favorite Flatzz. Hand-tossed flatbread pizzas with custom fresh toppings of your choice." data-img="assets/flatzz.png">
+          <div class="product-image-container">
+            <img src="assets/flatzz.png" alt="2x Flatzz Choice" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">2x Flatzz of your choice</h3>
+            <p class="product-desc">Choose your favourite Flatzz</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 1,030,000</span>
+              <span class="product-price-alt">$12,99</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 6: 4x Flatzz of your choice -->
+        <div class="product-card" data-category="flatzz deals" data-id="6" data-name="4x Flatzz of your choice" data-price="22.99" data-price-lbp="1,830,000" data-desc="Choose your favorite Flatzz. Perfect for gatherings and groups." data-img="assets/flatzz.png">
+          <div class="product-image-container">
+            <img src="assets/flatzz.png" alt="4x Flatzz Choice" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">4x Flatzz of your choice</h3>
+            <p class="product-desc">Choose your favorite Flatzz</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 1,830,000</span>
+              <span class="product-price-alt">$22,99</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 7: Medium Deal -->
+        <div class="product-card" data-category="deals" data-id="7" data-name="Medium Deal" data-price="21.50" data-price-lbp="1,720,000" data-desc="2 Medium Pizzas of your choice: PAN M (26 cm) - crispy outside, soft inside" data-img="assets/hero_pizza.png">
+          <div class="product-image-container">
+            <img src="assets/hero_pizza.png" alt="Medium Deal" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Medium Deal</h3>
+            <p class="product-desc">2 Medium Pizzas of your choice: PAN M (26 cm) - crispy outside, soft inside</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 1,720,000</span>
+              <span class="product-price-alt">$21,50</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item 8: Share Box -->
+        <div class="product-card" data-category="deals" data-id="8" data-name="Share Box" data-price="22.99" data-price-lbp="1,830,000" data-desc="1 Large Pan or Classic Pizza of your choice with 4 toppings" data-img="assets/pep_pizza.png">
+          <div class="product-image-container">
+            <img src="assets/pep_pizza.png" alt="Share Box" class="product-img">
+            <div class="plus-overlay-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">Share Box</h3>
+            <p class="product-desc">1 Large Pan or Classic Pizza of your choice with 4 toppings</p>
+            <div class="product-price-row">
+              <span class="product-price">LBP 1,830,000</span>
+              <span class="product-price-alt">$22,99</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Right Column: Basket Panel -->
+    <aside class="right-panel" id="basketSidebar">
+      <h2 class="basket-title">Basket</h2>
+      
+      <!-- Delivery / Pickup toggle pill -->
+      <div class="delivery-toggle-wrapper">
+        <div class="toggle-option active" id="deliveryToggle">
+          <div class="toggle-header">
+            <!-- Scooter Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="5" cy="18" r="3"></circle>
+              <circle cx="19" cy="18" r="3"></circle>
+              <path d="M12 18V8a2 2 0 0 1 2-2h4"></path>
+              <polyline points="12 12 18 12"></polyline>
+              <path d="M7 6h3.5l1.5 5h-5.5z"></path>
+            </svg>
+            <span>Delivery</span>
+          </div>
+          <div class="toggle-desc">25-40 mins</div>
+        </div>
+        <div class="toggle-option" id="pickupToggle">
+          <div class="toggle-header">
+            <!-- Bag Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span>Pick up</span>
+          </div>
+          <div class="toggle-desc">In 20 mins</div>
+        </div>
+      </div>
+
+      <!-- Empty Basket State -->
+      <div class="basket-empty-state" id="basketEmptyState">
+        <div class="basket-empty-icon">
+          <!-- Big Basket Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <h3 class="basket-empty-title">Fill your basket</h3>
+        <p class="basket-empty-sub">Your basket is empty</p>
+      </div>
+
+      <!-- Active Basket Item List container -->
+      <div class="basket-items-list" id="basketItemsList" style="display: none;">
+        <!-- Dynamically injected items -->
+      </div>
+
+      <!-- Pricing Summary & Checkout Block -->
+      <div class="basket-footer" id="basketFooter" style="display: none;">
+        <div class="basket-summary-row">
+          <span>Subtotal</span>
+          <span id="basketSubtotal">$0,00</span>
+        </div>
+        <div class="basket-summary-row" id="basketDeliveryRow">
+          <span>Delivery Charge</span>
+          <span id="basketDelivery">$3,99</span>
+        </div>
+        <div class="basket-summary-row total">
+          <span>Total</span>
+          <span id="basketTotal">$0,00</span>
+        </div>
+        <button class="checkout-btn" id="basketCheckoutBtn">Confirm Order</button>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- ==========================================
+       STICKY BOTTOM VIEW-CART FLOATER (MOBILE)
+       ========================================== -->
+  <div class="mobile-cart-float" id="mobileCartFloat">
+    <div class="mobile-cart-left">
+      <div class="mobile-cart-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span class="mobile-cart-badge" id="mobileCartBadge">0</span>
+      </div>
+      <span class="mobile-cart-text">View Cart</span>
+    </div>
+    <span class="mobile-cart-price" id="mobileCartPrice">$0,00</span>
+  </div>
+
+
+
+  <!-- ==========================================
+       POPUP ITEMS SELECTION CUSTOMIZER MODAL
+       ========================================== -->
+  <div class="modal-overlay" id="customizationModal">
+    <div class="modal-card">
+      
+      <!-- Modal Header Banner (Solid Red Backdrop & Circular Close Button) -->
+      <div class="modal-image-wrapper">
+        <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close Customization Popup">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <img src="assets/bbq_chicken_pizza.png" alt="Customize Pizza" class="modal-pizza-img" id="modalPizzaImg">
+      </div>
+
+      <!-- Modal Body (Size options, ingredient checkboxes, price recalculations) -->
+      <div class="modal-body">
+        <h3 class="modal-title" id="modalTitle">Korean BBQ Chicken Cheezy Crust</h3>
+        <p class="modal-desc" id="modalDescription">Pan crust (a1), baked, breaded chicken (4, a1), mozzarella (g), pepper mix, jalapeños, Korean BBQ sauce (f), chili flakes</p>
+        <div class="modal-price" id="modalBasePrice">$16,90</div>
+
+        <!-- Size options list -->
+        <h4 class="modal-section-title">Choose Size</h4>
+        <div class="modal-options-list" id="modalSizesContainer">
+          <label class="option-row">
+            <div class="option-row-left">
+              <input type="radio" name="size-select" value="S" checked data-price-add="0">
+              <span>Small</span>
+            </div>
+            <span class="option-row-price"></span>
+          </label>
+          <label class="option-row">
+            <div class="option-row-left">
+              <input type="radio" name="size-select" value="M" data-price-add="3.90">
+              <span>Medium</span>
+            </div>
+            <span class="option-row-price">+ $3,90</span>
+          </label>
+          <label class="option-row">
+            <div class="option-row-left">
+              <input type="radio" name="size-select" value="L" data-price-add="4.90">
+              <span>Large</span>
+            </div>
+            <span class="option-row-price">+ $4,90</span>
+          </label>
+        </div>
+
+        <!-- Ingredients removal checkbox checklist -->
+        <h4 class="modal-section-title">Remove ingredients</h4>
+        <div class="modal-options-list" id="modalIngredientsContainer">
+          <label class="remove-option-row">
+            <div class="remove-option-left">
+              <input type="checkbox" value="Onions">
+              <span>Onions</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </label>
+          <label class="remove-option-row">
+            <div class="remove-option-left">
+              <input type="checkbox" value="Green Peppers">
+              <span>Green Peppers</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </label>
+          <label class="remove-option-row">
+            <div class="remove-option-left">
+              <input type="checkbox" value="Oregano">
+              <span>Oregano</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </label>
+        </div>
+
+        <!-- Modal Footer sticky counters and Add Button -->
+        <div class="modal-footer-bar">
+          <div class="modal-qty-selector">
+            <span class="modal-qty-btn" id="modalQtyDecrease">&minus;</span>
+            <span class="modal-qty-num" id="modalQtyNum">1</span>
+            <span class="modal-qty-btn" id="modalQtyIncrease">&plus;</span>
+          </div>
+          <button class="modal-add-btn" id="modalAddBtn">
+            <span>Add Item to Cart</span>
+            <span id="modalAddFinalPrice">$16,90</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JS Interactive Logic script -->
+  <script src="script.js"></script>
+
+</body>
+</html>
