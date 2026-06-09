@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Add-ons</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="catalog.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  /* type-specific helper text */
+  .nm-hint { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); line-height: 1.45; margin-bottom: 16px; }
+  .nm-hint .ic { width: 15px; height: 15px; color: var(--ink-3); flex: none; margin-top: 2px; }
+  .nm-hint b { font-weight: 700; color: var(--ink); }
+
+  /* options editor */
+  .opt-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .opt-list:empty + .opt-empty { display: block; }
+  .opt-empty { display: none; padding: 14px; text-align: center; font-size: 12.5px; color: var(--ink-3); border: 1px dashed var(--line-2); border-radius: 10px; margin-bottom: 10px; }
+  .opt-row { display: grid; align-items: center; gap: 8px; padding: 9px 11px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+  .opt-row[data-type="variations"], .opt-row[data-type="addons"] { grid-template-columns: 1fr auto auto; }
+  .opt-row[data-type="removals"] { grid-template-columns: 1fr auto; }
+  .opt-row .opt-name { font-size: 13.5px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opt-row .opt-price { font-size: 12.5px; font-weight: 700; color: var(--ink-2); background: var(--surface-2); padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .opt-row .opt-rm { width: 28px; height: 28px; border-radius: 8px; background: transparent; border: 1px solid transparent; color: var(--ink-3); cursor: pointer; display: grid; place-items: center; }
+  .opt-row .opt-rm:hover { background: var(--neg-bg); color: var(--neg); border-color: transparent; }
+  .opt-row .opt-rm .ic { width: 14px; height: 14px; }
+
+  .opt-add { display: grid; gap: 8px; }
+  .opt-add[data-type="removals"] { grid-template-columns: 1fr auto; }
+  .opt-add[data-type="variations"], .opt-add[data-type="addons"] { grid-template-columns: 1fr 120px auto; }
+  .opt-add .input { height: 38px; font-size: 13px; }
+  .opt-add .input-affix .pfx { font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .opt-add .btn { height: 38px; }
+</style>
+</head>
+<body data-page="addons">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Modifier Add-ons</h1>
+          <p class="page-sub">Create reusable modifier groups — sizes, add-ons and removals — to attach to your products.</p>
+        </div>
+        <button class="btn btn-primary" id="addModBtn"><i class="ic" data-lucide="plus"></i>Add-ons</button>
+      </div>
+
+      <section data-screen-label="Modifier Add-ons">
+        <div id="modList"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- new / edit modifier group drawer -->
+<div class="drawer-scrim" id="modScrim"></div>
+<aside class="drawer" id="modDrawer">
+  <div class="rail-head">
+    <i class="ic" id="modDrawerIcon" data-lucide="sliders-horizontal"></i>
+    <h3 id="modDrawerTitle">New modifier group</h3>
+    <button class="x" id="modDrawerClose" title="Close"><i class="ic" data-lucide="x"></i></button>
+  </div>
+  <div class="rail-body">
+    <div class="field"><label class="label">Group name</label><input class="input" id="nmName" placeholder="e.g. Choose Size" /></div>
+    <div class="field"><label class="label">Type</label>
+      <div class="type-picker" id="nmType">
+        <button type="button" class="type-card on" data-type="variations"><span class="tc-ic"><i class="ic" data-lucide="ruler"></i></span><span class="tc-lbl">Variations</span></button>
+        <button type="button" class="type-card" data-type="addons"><span class="tc-ic"><i class="ic" data-lucide="plus-circle"></i></span><span class="tc-lbl">Add-ons</span></button>
+        <button type="button" class="type-card" data-type="removals"><span class="tc-ic"><i class="ic" data-lucide="minus-circle"></i></span><span class="tc-lbl">Removals</span></button>
+      </div>
+    </div>
+
+    <div class="nm-hint" id="nmHint"><i class="ic" data-lucide="info"></i><span id="nmHintText"></span></div>
+
+    <div class="field">
+      <label class="label">Options <span class="opt" id="nmOptsCount">· 0</span></label>
+      <div class="opt-list" id="nmOpts"></div>
+      <div class="opt-empty" id="nmOptsEmpty">No options yet — add the first one below.</div>
+      <div class="opt-add" id="nmOptAdd" data-type="variations">
+        <input class="input" id="nmOptName" placeholder="e.g. Medium" />
+        <div class="input-affix" id="nmOptPriceWrap"><span class="pfx" id="nmOptPfx">$</span><input class="input" id="nmOptPrice" placeholder="0.00" inputmode="decimal" /></div>
+        <button type="button" class="btn btn-outline btn-sm" id="nmOptAddBtn"><i class="ic" data-lucide="plus"></i>Add</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-block btn-lg" id="nmCreate"><i class="ic" data-lucide="plus"></i>Create group</button>
+  </div>
+</aside>
+
+<script src="shell.js"></script>
+<script src="addons.js"></script>
+</body>
+</html>

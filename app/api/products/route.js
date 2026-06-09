@@ -55,7 +55,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, price, imageUrl, categories, modifierGroups } = await request.json();
+    const { name, description, price, imageUrl, categories, modifierGroups, isFeatured, variations, addons, removals } = await request.json();
 
     if (!name || !price) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -64,6 +64,29 @@ export async function POST(request) {
     // Auto translate text on creation
     const nameMap = await createTranslationMap(name);
     const descMap = await createTranslationMap(description || '');
+
+    const processOptionsWithTranslations = async (optionsList) => {
+      if (!optionsList || !Array.isArray(optionsList)) return [];
+      const processed = [];
+      for (const opt of optionsList) {
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        processed.push({
+          name: nameMap,
+          price: opt.price !== undefined ? parseFloat(opt.price) : 0
+        });
+      }
+      return processed;
+    };
+
+    const processRemovalsWithTranslations = async (removalsList) => {
+      if (!removalsList || !Array.isArray(removalsList)) return [];
+      const processed = [];
+      for (const opt of removalsList) {
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        processed.push({ name: nameMap });
+      }
+      return processed;
+    };
 
     const db = await getDb();
 
@@ -86,6 +109,10 @@ export async function POST(request) {
       categories: categories || [],
       modifierGroups: modifierGroups || [],
       isAvailable: true,
+      isFeatured: !!isFeatured,
+      variations: await processOptionsWithTranslations(variations),
+      addons: await processOptionsWithTranslations(addons),
+      removals: await processRemovalsWithTranslations(removals),
       order: 99,
       createdAt: new Date(),
     };
@@ -106,9 +133,21 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { id, isBulkAction, productIds, isAvailable, categories } = body;
+    const { id, isBulkAction, productIds, isAvailable, categories, reorderedIds } = body;
 
     const db = await getDb();
+
+    // Support drag and drop reordering of multiple products at once
+    if (reorderedIds && Array.isArray(reorderedIds)) {
+      const promises = reorderedIds.map((pId, idx) => {
+        return db.collection('products').updateOne(
+          { _id: pId.toString(), tenantId: tenantId.toString() },
+          { $set: { order: idx } }
+        );
+      });
+      await Promise.all(promises);
+      return NextResponse.json({ success: true });
+    }
 
     // Handle Bulk mutations
     if (isBulkAction && Array.isArray(productIds)) {
@@ -141,6 +180,29 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    const processOptionsWithTranslations = async (optionsList) => {
+      if (!optionsList || !Array.isArray(optionsList)) return [];
+      const processed = [];
+      for (const opt of optionsList) {
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        processed.push({
+          name: nameMap,
+          price: opt.price !== undefined ? parseFloat(opt.price) : 0
+        });
+      }
+      return processed;
+    };
+
+    const processRemovalsWithTranslations = async (removalsList) => {
+      if (!removalsList || !Array.isArray(removalsList)) return [];
+      const processed = [];
+      for (const opt of removalsList) {
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        processed.push({ name: nameMap });
+      }
+      return processed;
+    };
+
     const updateObj = {};
     if (body.name !== undefined) {
       updateObj.name = await createTranslationMap(body.name);
@@ -156,6 +218,18 @@ export async function PUT(request) {
     }
     if (body.isAvailable !== undefined) {
       updateObj.isAvailable = body.isAvailable;
+    }
+    if (body.isFeatured !== undefined) {
+      updateObj.isFeatured = !!body.isFeatured;
+    }
+    if (body.variations !== undefined) {
+      updateObj.variations = await processOptionsWithTranslations(body.variations);
+    }
+    if (body.addons !== undefined) {
+      updateObj.addons = await processOptionsWithTranslations(body.addons);
+    }
+    if (body.removals !== undefined) {
+      updateObj.removals = await processRemovalsWithTranslations(body.removals);
     }
     if (body.categories !== undefined) {
       updateObj.categories = body.categories;

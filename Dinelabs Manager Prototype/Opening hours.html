@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Opening hours</title>
+<link rel="stylesheet" href="theme.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .oh-row { display: grid; grid-template-columns: 240px 1fr auto; align-items: flex-start; gap: 18px; padding: 18px 22px; border-bottom: 1px solid var(--line); transition: background .1s; }
+  .oh-row:last-child { border-bottom: 0; }
+  .oh-row:hover { background: var(--surface-2); }
+  .oh-row.closed .oh-name { color: var(--ink-2); }
+
+  .oh-day { display: flex; align-items: center; gap: 13px; }
+  .oh-name { font-weight: 700; font-size: 15px; letter-spacing: -.01em; line-height: 1.2; }
+  .oh-status { font-size: 12px; color: var(--ink-3); font-weight: 600; margin-top: 2px; }
+
+  .oh-slots { display: flex; flex-direction: column; gap: 9px; padding-top: 1px; }
+  .oh-slot { display: flex; align-items: center; gap: 10px; }
+  .oh-time { height: 40px; width: 116px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; color: var(--ink); font-family: inherit; font-size: 14px; font-variant-numeric: tabular-nums; outline: none; transition: border-color .12s, box-shadow .12s; }
+  .oh-time:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(10,10,10,.07); }
+  .oh-time::-webkit-calendar-picker-indicator { opacity: .45; cursor: pointer; }
+  .oh-dash { color: var(--ink-3); font-weight: 700; }
+  .oh-add { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; color: var(--ink-2); font-family: inherit; font-weight: 700; font-size: 13px; padding: 4px 2px; cursor: pointer; width: fit-content; transition: color .12s; }
+  .oh-add:hover { color: var(--ink); }
+  .oh-add .ic { width: 15px; height: 15px; }
+  .oh-closed { color: var(--ink-3); font-weight: 600; font-style: italic; font-size: 13.5px; padding-top: 9px; }
+
+  .oh-rowact { display: flex; justify-content: flex-end; }
+  .oh-copy { opacity: 0; transition: opacity .12s; }
+  .oh-row:hover .oh-copy { opacity: 1; }
+  .iconbtn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; color: var(--ink-2); transition: all .12s; }
+  .iconbtn:hover { background: var(--surface-2); color: var(--ink); border-color: var(--line-strong); }
+  .iconbtn.del:hover { color: var(--neg); border-color: var(--neg); background: var(--neg-bg); }
+  .iconbtn .ic { width: 15px; height: 15px; }
+
+  .oh-foot { display: flex; align-items: center; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--line); background: var(--surface-2); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+  .oh-tz { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+  .oh-tz .ic { width: 15px; height: 15px; color: var(--ink-3); }
+
+  @media (max-width: 720px){
+    .oh-row { grid-template-columns: 1fr; gap: 12px; }
+    .oh-rowact { justify-content: flex-start; }
+    .oh-copy { opacity: 1; }
+  }
+</style>
+</head>
+<body data-page="hours">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Opening hours</h1>
+          <p class="page-sub">Set when your storefront accepts orders. Customers see these hours and ordering pauses automatically when you're closed.</p>
+        </div>
+        <button class="btn btn-primary" id="ohSave"><i class="ic" data-lucide="check"></i>Save changes</button>
+      </div>
+
+      <section data-screen-label="Opening hours">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="ic" data-lucide="calendar-clock"></i>Weekly schedule</div>
+          </div>
+          <div id="ohList"></div>
+          <div class="oh-foot">
+            <span class="oh-tz"><i class="ic" data-lucide="globe"></i>All times in store timezone · GMT+4 (Tbilisi)</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script src="opening-hours.js"></script>
+</body>
+</html>

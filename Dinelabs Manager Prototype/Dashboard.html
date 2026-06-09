@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Dashboard</title>
+<link rel="stylesheet" href="theme.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="image-slot.js"></script>
+<style>
+  /* ---- quick actions ---- */
+  .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .qa {
+    display: flex; align-items: center; gap: 13px; padding: 16px 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+    box-shadow: var(--sh-sm); transition: border-color .14s, box-shadow .14s, transform .06s;
+  }
+  .qa:hover { border-color: var(--line-strong); box-shadow: var(--sh-md); transform: translateY(-1px); }
+  .qa .qa-ic { width: 42px; height: 42px; border-radius: 11px; background: var(--ink); color: #fff; display: grid; place-items: center; flex: none; }
+  .qa .qa-ic .ic { width: 20px; height: 20px; }
+  .qa > span:not(.qa-ic) { flex: 1; min-width: 0; }
+  .qa .qa-t { font-weight: 700; font-size: 14px; letter-spacing: -.01em; display: block; }
+  .qa .qa-s { font-size: 12px; color: var(--ink-3); margin-top: 1px; display: block; }
+  .qa .qa-arrow { margin-left: auto; color: var(--ink-3); transition: transform .14s, color .14s; }
+  .qa:hover .qa-arrow { transform: translateX(2px); color: var(--ink); }
+
+  /* ---- KPI ---- */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 1080px){ .quick { grid-template-columns: repeat(2, 1fr); } .kpis { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px){ .quick, .kpis { grid-template-columns: 1fr; } }
+  .kpi { padding: 18px 20px; }
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi-label { font-size: 12.5px; font-weight: 700; color: var(--ink-2); letter-spacing: -.01em; }
+  .kpi-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--surface-2); color: var(--ink-2); display: grid; place-items: center; }
+  .kpi-ic .ic { width: 16px; height: 16px; }
+  .kpi-val { font-size: 30px; font-weight: 800; letter-spacing: -.035em; margin-top: 14px; line-height: 1; }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 4px; margin-top: 11px; font-size: 12.5px; font-weight: 700; }
+  .kpi-delta .ic { width: 14px; height: 14px; }
+  .kpi-delta.up { color: var(--pos); }
+  .kpi-delta.down { color: var(--neg); }
+  .kpi-delta span { color: var(--ink-3); font-weight: 500; margin-left: 2px; }
+
+  /* ---- main grid ---- */
+  .dash-grid { display: grid; grid-template-columns: 1fr 380px; gap: 16px; align-items: stretch; }
+  @media (max-width: 1180px){ .dash-grid { grid-template-columns: 1fr; } }
+
+  /* ---- chart ---- */
+  .chart-wrap { position: relative; padding: 8px 8px 4px; }
+  .chart-svg { width: 100%; display: block; overflow: visible; }
+  .chart-tip {
+    position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+    border-radius: 9px; padding: 8px 11px; font-size: 12px; font-weight: 600;
+    transform: translate(-50%, -118%); white-space: nowrap; opacity: 0; transition: opacity .1s;
+    box-shadow: var(--sh-md); z-index: 5;
+  }
+  .chart-tip b { font-size: 14px; font-weight: 800; display: block; letter-spacing: -.02em; }
+  .chart-tip .tip-k { color: rgba(255,255,255,.6); font-weight: 600; font-size: 11px; }
+
+  /* ---- channel donut ---- */
+  .donut-wrap { position: relative; width: 170px; height: 170px; margin: 2px auto 18px; }
+  #donut { transform: rotate(-90deg); }
+  #donut circle { transition: stroke-dasharray .6s cubic-bezier(.2,.8,.2,1); }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1px; }
+  .donut-val { font-size: 23px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+  .donut-lbl { font-size: 10.5px; color: var(--ink-3); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; line-height: 1; }
+  .lg-row { display: grid; grid-template-columns: auto 1fr auto; gap: 11px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+  .lg-ic { width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center; }
+  .lg-ic .ic { width: 16px; height: 16px; }
+  .lg-name { font-weight: 700; font-size: 13.5px; }
+  .lg-cnt { font-size: 11.5px; color: var(--ink-3); font-weight: 600; }
+  .lg-amt { font-weight: 800; font-size: 14px; letter-spacing: -.02em; }
+
+  /* ---- top sellers ---- */
+  .ts-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; }
+  .ts-row + .ts-row { border-top: 1px solid var(--line); }
+  .ts-rank { width: 18px; font-weight: 800; color: var(--ink-3); font-size: 13px; text-align: center; flex: none; }
+  .ts-thumb { width: 46px; height: 46px; border-radius: 11px; flex: none; display: grid; place-items: center; color: var(--ink); background: linear-gradient(135deg, #f4f4f4, #e7e7e7); border: 1px solid var(--line); }
+  .ts-thumb .ic { width: 20px; height: 20px; }
+  .ts-name { font-weight: 700; font-size: 13.5px; }
+  .ts-sub { font-size: 11.5px; color: var(--ink-3); }
+  .ts-right { text-align: right; margin-left: auto; }
+  .ts-cnt { font-weight: 800; font-size: 14px; letter-spacing: -.02em; }
+
+  /* ---- orders snapshot ---- */
+  .snap-row { display: flex; align-items: center; gap: 13px; padding: 14px 22px; border-bottom: 1px solid var(--line); transition: background .1s; }
+  .snap-row:last-child { border-bottom: 0; }
+  .snap-row:hover { background: var(--surface-2); }
+  .snap-ic { width: 38px; height: 38px; border-radius: 10px; background: var(--surface-2); color: var(--ink); display: grid; place-items: center; flex: none; }
+  .snap-ic .ic { width: 17px; height: 17px; }
+  .snap-main { min-width: 0; flex: 1; }
+  .snap-id { font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
+  .snap-sub { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .snap-right { text-align: right; flex: none; }
+  .snap-total { font-weight: 800; font-size: 14px; letter-spacing: -.02em; }
+  .snap-time { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+</style>
+</head>
+<body data-page="dashboard">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Welcome back, Pizza Hut</h1>
+          <p class="page-sub">Here's what's happening across your storefront today.</p>
+        </div>
+        <div class="seg" id="periodSeg">
+          <button data-p="today">Today</button>
+          <button data-p="week" class="active">Week</button>
+          <button data-p="month">Month</button>
+        </div>
+      </div>
+
+      <!-- quick actions -->
+      <div class="quick">
+        <a class="qa" href="Products.html">
+          <span class="qa-ic"><i data-lucide="utensils-crossed"></i></span>
+          <span><span class="qa-t">Add a product</span><span class="qa-s">New menu item</span></span>
+          <i class="ic qa-arrow" data-lucide="arrow-right"></i>
+        </a>
+        <a class="qa" href="Categories.html">
+          <span class="qa-ic"><i data-lucide="layers"></i></span>
+          <span><span class="qa-t">Manage categories</span><span class="qa-s">4 active</span></span>
+          <i class="ic qa-arrow" data-lucide="arrow-right"></i>
+        </a>
+        <a class="qa" href="Orders.html">
+          <span class="qa-ic"><i data-lucide="bell-ring"></i></span>
+          <span><span class="qa-t">Live orders</span><span class="qa-s" id="qaOrders">3 active right now</span></span>
+          <i class="ic qa-arrow" data-lucide="arrow-right"></i>
+        </a>
+        <a class="qa" href="Opening hours.html" id="qaHours">
+          <span class="qa-ic"><i data-lucide="clock"></i></span>
+          <span><span class="qa-t">Opening hours</span><span class="qa-s">Open · closes 11:00</span></span>
+          <i class="ic qa-arrow" data-lucide="arrow-right"></i>
+        </a>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpis" id="kpis"></div>
+
+      <!-- chart + channel -->
+      <div class="dash-grid">
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Total sales</div>
+              <div class="card-note" id="chartHeadline">—</div>
+            </div>
+            <span class="pill pill-soft"><i class="ic" data-lucide="trending-up" style="width:13px;height:13px"></i> <span id="chartTrend">—</span></span>
+          </div>
+          <div class="card-pad" style="padding-top:8px">
+            <div class="chart-wrap" id="chartWrap">
+              <svg class="chart-svg" id="chart" preserveAspectRatio="none"></svg>
+              <div class="chart-tip" id="chartTip"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="ic" data-lucide="git-fork"></i>Channel split</div>
+            <span class="card-note" id="chTotal">—</span>
+          </div>
+          <div class="card-pad" style="padding-top:12px;padding-bottom:18px">
+            <div class="donut-wrap">
+              <svg id="donut" viewBox="0 0 180 180" width="170" height="170"></svg>
+              <div class="donut-center"><div class="donut-val" id="donutVal">—</div><div class="donut-lbl">total sales</div></div>
+            </div>
+            <div id="channels"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- orders snapshot + top items -->
+      <div class="dash-grid" style="margin-top:16px">
+        <section class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="ic" data-lucide="bell-ring"></i>Live orders</div>
+            <a class="btn btn-ghost btn-sm" href="Orders.html">View board <i class="ic" data-lucide="arrow-right"></i></a>
+          </div>
+          <div id="snap"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="flame"></i>Top sellers</div><span class="card-note">This week</span></div>
+          <div class="card-pad" id="topItems" style="padding-top:8px;padding-bottom:10px"></div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script>
+/* ============================ DASHBOARD ============================ */
+const PERIOD_DATA = {
+  today: {
+    headline: 'Today · so far',
+    revenue: 486.20, orders: 28, avg: 17.36, views: 312,
+    d: { revenue: 8.2, orders: 6.0, avg: 2.1, views: 14 },
+    labels: ['11a','12p','1p','2p','3p','4p','5p','6p','7p','8p','9p'],
+    series: [14, 9, 26, 41, 32, 58, 44, 96, 130, 88, 47],
+    trend: '+8.2% vs yesterday',
+    channels: { delivery: [14, 214.50], pickup: [7, 108.00], dinein: [7, 163.70] },
+  },
+  week: {
+    headline: 'This week · Mon–Sun',
+    revenue: 3142.40, orders: 184, avg: 17.08, views: 2148,
+    d: { revenue: 12.4, orders: 9.1, avg: 3.0, views: 11 },
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    series: [372, 418, 506, 461, 568, 712, 605],
+    trend: '+12.4% vs last week',
+    channels: { delivery: [86, 1440.20], pickup: [52, 812.40], dinein: [46, 889.80] },
+  },
+  month: {
+    headline: 'This month · last 30 days',
+    revenue: 12980.60, orders: 742, avg: 17.49, views: 9430,
+    d: { revenue: 5.6, orders: 4.2, avg: 1.4, views: 6 },
+    labels: ['W1','W2','W3','W4','W5'],
+    series: [2820, 3140, 2960, 3380, 1680],
+    trend: '+5.6% vs last month',
+    channels: { delivery: [332, 5820.30], pickup: [214, 3402.10], dinein: [196, 3758.20] },
+  },
+};
+
+let period = store.get('dashPeriod', 'week');
+
+function renderKPIs(d) {
+  const cards = [
+    { label: 'Total revenue', icon: 'banknote', val: money(d.revenue), delta: d.d.revenue, suffix: { today:'vs yesterday', week:'vs last week', month:'vs last month' }[period] },
+    { label: 'Orders', icon: 'receipt-text', val: d.orders.toString(), delta: d.d.orders, suffix: { today:'vs yesterday', week:'vs last week', month:'vs last month' }[period] },
+    { label: 'Avg order value', icon: 'tag', val: money(d.avg), delta: d.d.avg, suffix: 'per order' },
+    { label: 'Menu views', icon: 'eye', val: d.views.toLocaleString('en-US'), delta: d.d.views, suffix: { today:'vs yesterday', week:'vs last week', month:'vs last month' }[period] },
+  ];
+  $('#kpis').innerHTML = cards.map(c => {
+    const up = c.delta >= 0;
+    const good = c.invert ? !up : up;
+    return `<div class="card kpi">
+      <div class="kpi-top"><span class="kpi-label">${c.label}</span><span class="kpi-ic"><i class="ic" data-lucide="${c.icon}"></i></span></div>
+      <div class="kpi-val tnum">${c.val}</div>
+      <div class="kpi-delta ${good ? 'up' : 'down'}"><i class="ic" data-lucide="${up ? 'arrow-up-right' : 'arrow-down-right'}"></i>${Math.abs(c.delta)}%<span>${c.suffix}</span></div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+/* ---- smooth area line chart ---- */
+function renderChart(d) {
+  const svg = $('#chart');
+  const wrap = $('#chartWrap');
+  const W = wrap.clientWidth - 16, H = 260;
+  const padL = 38, padR = 8, padT = 18, padB = 26;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+  svg.innerHTML = '';
+
+  const data = d.series, labels = d.labels;
+  const max = Math.max(...data) * 1.18;
+  const xstep = (W - padL - padR) / (data.length - 1);
+  const xAt = i => padL + i * xstep;
+  const yAt = v => padT + (1 - v / max) * (H - padT - padB);
+
+  // gridlines + y labels
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const v = (max / ticks) * i;
+    const y = yAt(v);
+    svg.appendChild(el('line', { x1: padL, x2: W - padR, y1: y, y2: y, stroke: '#f0f0f0', 'stroke-width': 1 }));
+    svg.appendChild(el('text', { x: padL - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: '#9a9a9a', 'font-family': 'Hanken Grotesk', 'font-weight': 600 },
+      document.createTextNode('$' + Math.round(v))));
+  }
+  // x labels
+  labels.forEach((lb, i) => {
+    svg.appendChild(el('text', { x: xAt(i), y: H - 6, 'text-anchor': 'middle', 'font-size': 11.5, fill: '#9a9a9a', 'font-family': 'Hanken Grotesk', 'font-weight': 600 },
+      document.createTextNode(lb)));
+  });
+
+  // smooth path
+  const pts = data.map((v, i) => [xAt(i), yAt(v)]);
+  const line = smooth(pts);
+  // area
+  const area = line + ` L ${xAt(data.length - 1)} ${H - padB} L ${padL} ${H - padB} Z`;
+  const grad = el('linearGradient', { id: 'ag', x1: 0, y1: 0, x2: 0, y2: 1 });
+  grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#0a0a0a', 'stop-opacity': 0.12 }));
+  grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#0a0a0a', 'stop-opacity': 0 }));
+  const defs = el('defs'); defs.appendChild(grad); svg.appendChild(defs);
+  svg.appendChild(el('path', { d: area, fill: 'url(#ag)' }));
+  svg.appendChild(el('path', { d: line, fill: 'none', stroke: '#0a0a0a', 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+
+  // hover layer
+  const guide = el('line', { x1: 0, x2: 0, y1: padT, y2: H - padB, stroke: '#0a0a0a', 'stroke-width': 1, 'stroke-dasharray': '4 4', opacity: 0 });
+  const dot = el('circle', { r: 5, fill: '#0a0a0a', stroke: '#fff', 'stroke-width': 2.5, opacity: 0 });
+  svg.appendChild(guide); svg.appendChild(dot);
+  const tip = $('#chartTip');
+
+  const hit = el('rect', { x: 0, y: 0, width: W, height: H, fill: 'transparent' });
+  svg.appendChild(hit);
+  function move(e) {
+    const r = svg.getBoundingClientRect();
+    const mx = (e.clientX - r.left) / r.width * W;
+    let i = Math.round((mx - padL) / xstep);
+    i = Math.max(0, Math.min(data.length - 1, i));
+    const x = xAt(i), y = yAt(data[i]);
+    guide.setAttribute('x1', x); guide.setAttribute('x2', x); guide.setAttribute('opacity', .5);
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('opacity', 1);
+    tip.style.opacity = 1;
+    tip.style.left = (x / W * 100) + '%';
+    tip.style.top = (y / H * 260) + 'px';
+    tip.innerHTML = `<span class="tip-k">${labels[i]}</span><b>${money(data[i])}</b>`;
+  }
+  function leave() { guide.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); tip.style.opacity = 0; }
+  hit.addEventListener('mousemove', move);
+  hit.addEventListener('mouseleave', leave);
+}
+function smooth(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+    const cx = (x0 + x1) / 2;
+    d += ` C ${cx} ${y0}, ${cx} ${y1}, ${x1} ${y1}`;
+  }
+  return d;
+}
+
+function renderChannels(d) {
+  const ch = d.channels;
+  const order = ['delivery', 'pickup', 'dinein'];
+  const shades = { delivery: '#C5DBF2', pickup: '#F5E1A0', dinein: '#C5E2D2' };
+  const chipBg = { delivery: '#C5DBF2', pickup: '#F5E1A0', dinein: '#C5E2D2' };
+  const iconCol = { delivery: '#3A6FB8', pickup: '#A87A1F', dinein: '#3E9466' };
+  const totalAmt = order.reduce((s, k) => s + ch[k][1], 0);
+  const totalCnt = order.reduce((s, k) => s + ch[k][0], 0);
+  $('#chTotal').textContent = totalCnt + ' orders';
+  $('#donutVal').textContent = '$' + Math.round(totalAmt).toLocaleString('en-US');
+
+  // donut
+  const r = 64, C = 2 * Math.PI * r, sw = 24;
+  const svg = $('#donut');
+  svg.innerHTML = '';
+  svg.appendChild(el('circle', { cx: 90, cy: 90, r, fill: 'none', stroke: '#f0f0f0', 'stroke-width': sw }));
+  let off = 0;
+  order.forEach(k => {
+    const frac = ch[k][1] / totalAmt;
+    const seg = el('circle', {
+      cx: 90, cy: 90, r, fill: 'none', stroke: shades[k], 'stroke-width': sw,
+      'stroke-dasharray': `0 ${C}`, 'stroke-dashoffset': -off * C,
+    });
+    svg.appendChild(seg);
+    const target = `${frac * C} ${C}`;
+    setTimeout(() => seg.setAttribute('stroke-dasharray', target), 60);
+    off += frac;
+  });
+
+  // legend
+  $('#channels').innerHTML = order.map(k => {
+    return `
+    <div class="lg-row">
+      <span class="lg-ic" style="background:${chipBg[k]};color:${iconCol[k]}"><i class="ic" data-lucide="${CHANNEL[k].icon}"></i></span>
+      <div>
+        <div class="lg-name">${CHANNEL[k].label}</div>
+        <div class="lg-cnt">${ch[k][0]} orders · ${Math.round(ch[k][1] / totalAmt * 100)}%</div>
+      </div>
+      <div class="lg-amt tnum">${money(ch[k][1])}</div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function renderTopItems() {
+  const ICONS = { 'Pepperoni Feast': 'pizza', 'Cheese Pizza': 'pizza', 'Korean BBQ Chicken': 'pizza', 'Garlic Flatzz': 'utensils', 'Vegetarian Supreme': 'pizza' };
+  const top = [
+    { name: 'Pepperoni Feast', cat: 'Classic Pizzas', sold: 64 },
+    { name: 'Cheese Pizza', cat: 'Classic Pizzas', sold: 51 },
+    { name: 'Korean BBQ Chicken', cat: 'Offers & Promotions', sold: 43 },
+    { name: 'Garlic Flatzz', cat: 'Sides & Appetizers', sold: 38 },
+    { name: 'Vegetarian Supreme', cat: 'Classic Pizzas', sold: 31 },
+  ];
+  $('#topItems').innerHTML = top.map((t, i) => `
+    <div class="ts-row">
+      <span class="ts-rank">${i + 1}</span>
+      <span class="ts-thumb"><i class="ic" data-lucide="${ICONS[t.name] || 'utensils'}"></i></span>
+      <div style="min-width:0">
+        <div class="ts-name">${t.name}</div>
+        <div class="ts-sub">${t.cat}</div>
+      </div>
+      <div class="ts-right"><div class="ts-cnt tnum">${t.sold}</div><div class="ts-sub">sold</div></div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function renderSnapshot() {
+  const orders = window.ORDERS_DATA.filter(o => o.status !== 'ready').slice(0, 4);
+  $('#snap').innerHTML = orders.map(o => {
+    const items = o.items.reduce((s, [, q]) => s + q, 0);
+    const st = STATUS[o.status];
+    return `<div class="snap-row">
+      <span class="snap-ic"><i class="ic" data-lucide="${CHANNEL[o.channel].icon}"></i></span>
+      <div class="snap-main">
+        <div class="snap-id">#${o.id} <span class="pill" style="height:21px"><span class="dot" style="background:${st.dot}"></span>${st.label}</span></div>
+        <div class="snap-sub">${o.customer} · ${items} item${items>1?'s':''} · ${CHANNEL[o.channel].label}</div>
+      </div>
+      <div class="snap-right"><div class="snap-total tnum">${money(o.total)}</div><div class="snap-time">${o.mins}m ago</div></div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function renderTopItems() {
+  const top = [
+    { name: 'Pepperoni Feast', sold: 64, rev: 1017.60 },
+    { name: 'Cheese Pizza', sold: 51, rev: 637.50 },
+    { name: 'Korean BBQ Chicken', sold: 43, rev: 726.70 },
+    { name: 'Garlic Flatzz', sold: 38, rev: 323.00 },
+  ];
+  const max = Math.max(...top.map(t => t.sold));
+  $('#topItems').innerHTML = top.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;${i?'border-top:1px solid var(--line)':''}">
+      <span style="width:22px;font-weight:800;color:var(--ink-3);font-size:13px">${i+1}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13.5px">${t.name}</div>
+        <div class="ch-bar" style="margin-top:6px"><span style="width:0%" data-w="${(t.sold/max*100).toFixed(0)}%"></span></div>
+      </div>
+      <div style="text-align:right"><div style="font-weight:800;font-size:13.5px" class="tnum">${t.sold}</div><div style="font-size:11px;color:var(--ink-3)">sold</div></div>
+    </div>`).join('');
+  setTimeout(() => $$('#topItems .ch-bar > span').forEach(s => s.style.width = s.dataset.w), 60);
+}
+
+function render() {
+  const d = PERIOD_DATA[period];
+  $('#chartHeadline').textContent = d.headline + ' · ' + money(d.revenue);
+  $('#chartTrend').textContent = d.trend;
+  renderKPIs(d);
+  renderChart(d);
+  renderChannels(d);
+}
+
+/* init */
+renderShell('dashboard');
+const nNew = window.ORDERS_DATA.filter(o => o.status === 'new').length;
+$('#qaOrders').textContent = nNew + ' active right now';
+$$('#periodSeg button').forEach(b => {
+  b.classList.toggle('active', b.dataset.p === period);
+  b.addEventListener('click', () => {
+    period = b.dataset.p; store.set('dashPeriod', period);
+    $$('#periodSeg button').forEach(x => x.classList.toggle('active', x === b));
+    render();
+  });
+});
+render();
+renderSnapshot();
+renderTopItems();
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => renderChart(PERIOD_DATA[period]), 150); });
+</script>
+</body>
+</html>

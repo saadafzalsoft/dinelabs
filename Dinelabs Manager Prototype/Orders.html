@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Live Orders</title>
+<link rel="stylesheet" href="theme.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .live-toggle { display: flex; align-items: center; gap: 9px; padding: 7px 13px 7px 11px; border: 1px solid var(--line-2); border-radius: var(--r-pill); background: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .live-toggle .pulse { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); }
+  .live-toggle.on { border-color: var(--ink); }
+  .live-toggle.on .pulse { background: var(--pos); box-shadow: 0 0 0 0 rgba(19,138,82,.5); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(19,138,82,.45)} 70%{box-shadow:0 0 0 7px rgba(19,138,82,0)} 100%{box-shadow:0 0 0 0 rgba(19,138,82,0)} }
+
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 1100px){ .stats { grid-template-columns: repeat(2,1fr); } }
+  .stat { display: flex; align-items: center; gap: 13px; padding: 15px 18px; }
+  .stat-ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex: none; background: var(--surface-2); }
+  .stat-ic .ic { width: 19px; height: 19px; }
+  .stat-v { font-size: 24px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+  .stat-l { font-size: 12.5px; color: var(--ink-2); font-weight: 600; margin-top: 3px; }
+
+  .chips { display: flex; gap: 7px; }
+  .chip { height: 34px; padding: 0 14px; border-radius: var(--r-pill); border: 1px solid var(--line-2); background: #fff; font-weight: 700; font-size: 13px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 7px; cursor: pointer; transition: all .12s; }
+  .chip .ic { width: 15px; height: 15px; }
+  .chip:hover { border-color: var(--line-strong); color: var(--ink); }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  @media (max-width: 900px){ .board { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 280px; overflow-x: auto; padding-bottom: 10px; } }
+  .col { background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; }
+  .col-head { display: flex; align-items: center; gap: 9px; padding: 13px 15px; }
+  .col-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .col-title { font-weight: 800; font-size: 13.5px; letter-spacing: -.01em; }
+  .col-count { margin-left: auto; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+  .col-body { padding: 4px 10px 12px; display: flex; flex-direction: column; gap: 10px; min-height: 70px; }
+  .col-empty { text-align: center; color: var(--ink-3); font-size: 12.5px; font-weight: 600; padding: 22px 8px; }
+
+  .ocard { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; box-shadow: var(--sh-sm); transition: box-shadow .14s, transform .14s, border-color .14s; cursor: pointer; }
+  .ocard:hover { box-shadow: var(--sh-md); border-color: var(--line-strong); }
+  .oc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .oc-id { font-weight: 800; font-size: 14px; letter-spacing: -.02em; }
+  .oc-ch { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--ink-2); background: var(--surface-2); padding: 3px 8px; border-radius: 99px; }
+  .oc-ch .ic { width: 13px; height: 13px; }
+  /* per-channel light pills */
+  .ch-delivery { background: #eaf1fb; color: #2b5cb8; }
+  .ch-pickup { background: var(--warn-bg); color: var(--warn); }
+  .ch-dinein { background: #e9f3ec; color: var(--pos); }
+  .oc-time { margin-left: auto; font-size: 11.5px; color: var(--ink-3); font-weight: 600; white-space: nowrap; }
+  .oc-cust { font-size: 12.5px; color: var(--ink-2); font-weight: 600; margin-bottom: 10px; }
+  .oc-items { font-size: 13px; line-height: 1.55; margin-bottom: 11px; }
+  .oc-items .qty { display: inline-grid; place-items: center; min-width: 18px; height: 18px; background: var(--surface-2); border-radius: 5px; font-size: 11px; font-weight: 800; margin-right: 6px; }
+  .oc-foot { display: flex; align-items: center; gap: 8px; padding-top: 11px; border-top: 1px solid var(--line); }
+  .oc-total { font-weight: 800; font-size: 15px; letter-spacing: -.02em; }
+  .oc-actions { margin-left: auto; display: flex; gap: 6px; }
+  .removing { animation: cardOut .26s ease forwards; }
+  @keyframes cardOut { to { opacity: 0; transform: translateY(-6px) scale(.97); height: 0; padding: 0; margin: 0; } }
+
+  /* ----- order details modal ----- */
+  .od-scrim { position: fixed; inset: 0; background: rgba(10,10,10,.46); backdrop-filter: blur(2px); z-index: 60; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .od-scrim.open { opacity: 1; pointer-events: auto; }
+  .order-modal { position: fixed; z-index: 61; top: 50%; left: 50%; width: min(1080px, 95vw); max-width: 95vw; max-height: 90vh; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--sh-lg); display: flex; flex-direction: column; overflow: hidden;
+    transform: translate(-50%, -46%) scale(.97); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s cubic-bezier(.2,.85,.25,1); }
+  .order-modal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+  .om-bar { display: flex; align-items: center; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+  .om-bar h3 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; }
+  .om-bar h3 .ic { width: 18px; height: 18px; }
+  .om-bar .x { margin-left: auto; width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line-2); background: #fff; display: grid; place-items: center; color: var(--ink-2); cursor: pointer; transition: background .12s, color .12s; }
+  .om-bar .x:hover { background: var(--surface-2); color: var(--ink); }
+  .om-bar .x .ic { width: 16px; height: 16px; }
+  #odBody { overflow-y: auto; padding: 18px; }
+
+  .od-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .od-id { font-size: 19px; font-weight: 800; letter-spacing: -.03em; }
+  .od-status { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ink-2); background: var(--surface-2); padding: 4px 10px; border-radius: 99px; }
+  .od-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .od-meta { display: flex; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .od-time { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+  .od-time .ic { width: 13px; height: 13px; }
+
+  .od-sec { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .od-sec-t { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 11px; }
+  .od-info { display: flex; flex-direction: column; gap: 9px; }
+  .od-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .od-row .ic { width: 16px; height: 16px; color: var(--ink-3); flex: none; }
+  .od-link:hover { color: var(--info); text-decoration: underline; }
+  .od-mut { color: var(--ink-3); font-weight: 600; }
+
+  /* horizontal layout for tablet portal */
+  .od-grid { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; gap: 0 28px; }
+  .od-grid > .od-col { display: flex; flex-direction: column; min-width: 0; }
+  .od-grid > .od-col + .od-col { border-left: 1px solid var(--line); padding-left: 28px; }
+  .od-grid .od-sec { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .od-grid .od-col > .od-sec:last-child { border-bottom: 0; }
+  @media (max-width: 760px) {
+    .od-grid { grid-template-columns: 1fr; }
+    .od-grid > .od-col + .od-col { border-left: 0; padding-left: 0; }
+    .od-grid > .od-col + .od-col .od-sec:first-child { border-top: 1px solid var(--line); }
+    .od-grid .od-col > .od-sec:last-child { border-bottom: 1px solid var(--line); }
+  }
+
+  .od-items { display: flex; flex-direction: column; gap: 12px; }
+  .od-item { display: flex; gap: 12px; align-items: flex-start; }
+  .od-thumb { flex: none; width: 46px; height: 46px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); overflow: hidden; }
+  .od-thumb .ic { width: 22px; height: 22px; }
+  .od-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .od-item-main { flex: 1; min-width: 0; }
+  .od-item-top { display: flex; align-items: center; gap: 10px; }
+  .od-q { display: inline-grid; place-items: center; min-width: 22px; height: 22px; background: var(--surface-2); border-radius: 6px; font-size: 11.5px; font-weight: 800; flex: none; }
+  .od-n { font-weight: 700; font-size: 13.5px; letter-spacing: -.01em; }
+  .od-p { margin-left: auto; font-weight: 800; color: var(--ink); font-size: 13.5px; }
+  .od-addons { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .od-addon { font-size: 11.5px; font-weight: 700; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); padding: 2px 9px; border-radius: 99px; }
+  .od-addon.rem { color: var(--neg); background: var(--neg-bg); border-color: transparent; }
+  .od-note { display: flex; align-items: center; gap: 7px; margin-top: 7px; font-size: 12px; font-weight: 600; font-style: italic; color: var(--ink-2); background: var(--warn-bg); border-radius: 8px; padding: 6px 10px; }
+  .od-note .ic { width: 13px; height: 13px; color: var(--warn); flex: none; }
+  .od-total { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--line-2); font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+  .od-foot { display: flex; gap: 10px; padding-top: 18px; margin-top: 4px; border-top: 1px solid var(--line); justify-content: flex-end; }
+  .od-cancel { flex: 0 0 auto; min-width: 140px; padding: 0 18px; }
+  .od-primary { flex: 0 0 auto; min-width: 220px; }
+</style>
+</head>
+<body data-page="orders">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Live orders</h1>
+          <p class="page-sub">Incoming orders update in real time. Advance each through the kitchen flow.</p>
+        </div>
+        <div class="row gap10">
+          <button class="live-toggle on" id="liveBtn"><span class="pulse"></span>Live</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="row between wrap gap12" style="margin-bottom:18px">
+        <div class="chips" id="chips">
+          <button class="chip on" data-ch=""><i class="ic" data-lucide="layout-grid"></i>All channels</button>
+          <button class="chip" data-ch="delivery"><i class="ic" data-lucide="bike"></i>Delivery</button>
+          <button class="chip" data-ch="pickup"><i class="ic" data-lucide="shopping-bag"></i>Pick-up</button>
+          <button class="chip" data-ch="dinein"><i class="ic" data-lucide="utensils"></i>Dine-in</button>
+        </div>
+        <span class="card-note" id="liveNote">Auto-refresh on</span>
+      </div>
+
+      <div class="board" id="board"></div>
+
+    </main>
+  </div>
+</div>
+
+<!-- order details modal -->
+<div class="od-scrim" id="odScrim"></div>
+<div class="order-modal" id="orderModal" role="dialog" aria-modal="true">
+  <div class="om-bar">
+    <h3><i class="ic" data-lucide="receipt-text"></i>Order details</h3>
+    <button class="x" id="odClose" title="Close"><i class="ic" data-lucide="x"></i></button>
+  </div>
+  <div id="odBody"></div>
+</div>
+
+<script src="shell.js"></script>
+<script src="orders.js"></script>
+</body>
+</html>

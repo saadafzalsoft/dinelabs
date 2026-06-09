@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Store profile</title>
+<link rel="stylesheet" href="theme.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  /* ----- Store profile layout ----- */
+  .sp-grid { display: flex; flex-direction: column; gap: 18px; }
+
+  .sp-section-head { padding: 22px 22px 0; }
+  .sp-section-title { font-size: 13px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); margin: 0; }
+  .sp-section-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
+
+  /* identity */
+  .sp-identity { display: grid; grid-template-columns: 200px 1fr; gap: 28px; padding: 22px; align-items: flex-start; }
+  .sp-logo-col { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .sp-logo-col image-slot { box-shadow: var(--sh-sm); border-radius: 18px; background: #fff; }
+  .sp-logo-hint { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; max-width: 160px; }
+  .sp-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
+  .sp-fields .field { margin: 0; }
+  .sp-fields .field-wide { grid-column: 1 / -1; }
+
+  /* language blocks */
+  .sp-lang-block { padding: 22px; border-top: 1px solid var(--line); }
+  .sp-lang-block:first-child { border-top: 0; }
+  .sp-lang-block .blk-title { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+  .sp-lang-block .blk-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+  .sp-lang-block .blk-head { margin-bottom: 14px; }
+  .sp-lang-block .blk-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); font-weight: 600; margin-top: 8px; }
+
+  /* language chip grid */
+  .lang-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .lang-chip {
+    display: flex; align-items: center; gap: 11px;
+    padding: 11px 14px; border-radius: 12px;
+    border: 1px solid var(--line-2); background: #fff;
+    cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+    font-family: inherit; text-align: left; color: var(--ink);
+  }
+  .lang-chip:hover { border-color: var(--line-strong); background: var(--surface-2); }
+  .lang-chip .flag-circle { width: 22px; height: 22px; flex: none; }
+  .lang-chip .name { font-size: 13.5px; font-weight: 600; line-height: 1.2; }
+  .lang-chip .sub { font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  .lang-chip .meta { display: flex; flex-direction: column; min-width: 0; }
+  .lang-chip .check-ic { margin-left: auto; width: 16px; height: 16px; color: var(--ink); opacity: 0; flex: none; }
+  .lang-chip.on { border-color: var(--ink); background: var(--surface-2); }
+  .lang-chip.on .check-ic { opacity: 1; }
+  .lang-chip.main { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .lang-chip.main .sub { color: rgba(255,255,255,.6); }
+  .lang-chip.main .check-ic { color: #fff; opacity: 1; }
+  .lang-chip[disabled] { opacity: .55; cursor: not-allowed; }
+  .lang-chip[disabled]:hover { border-color: var(--line-2); background: #fff; }
+
+  /* socials */
+  .sp-social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; padding: 22px; }
+  .sp-social-row { display: flex; flex-direction: column; gap: 8px; }
+  .sp-social-row .lbl { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+  .sp-social-row .lbl .ic { width: 15px; height: 15px; color: var(--ink-2); }
+  .sp-input-pfx { position: relative; }
+  .sp-input-pfx .pfx { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-weight: 600; font-size: 13.5px; pointer-events: none; }
+  .sp-input-pfx .input { padding-left: 0; }
+  .sp-input-pfx[data-pfx] .input { padding-left: var(--pfx-pad, 28px); }
+
+  @media (max-width: 820px) {
+    .sp-identity { grid-template-columns: 1fr; }
+    .sp-fields, .sp-social-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-page="profile">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Store profile</h1>
+          <p class="page-sub">Identity, languages and social presence shown across your Dinelabs storefront.</p>
+        </div>
+        <button class="btn btn-primary" id="spSave"><i class="ic" data-lucide="check"></i>Save changes</button>
+      </div>
+
+      <div class="sp-grid">
+
+        <!-- Identity -->
+        <section data-screen-label="Store identity">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="ic" data-lucide="store"></i>Store identity</div>
+            </div>
+            <div class="sp-identity">
+              <div class="sp-logo-col">
+                <span class="label" style="margin-bottom:0">Logo</span>
+                <image-slot id="sp-logo" style="width:160px;height:160px" shape="rounded" radius="18" fit="contain" src="assets/pizza-hut-logo.jpg" placeholder="Drop logo"></image-slot>
+                <p class="sp-logo-hint">PNG, JPG or SVG · 512 × 512 minimum. Shown on receipts, storefront header and social cards.</p>
+              </div>
+              <div class="sp-fields">
+                <div class="field">
+                  <label class="label" for="spCountry">Country</label>
+                  <select class="select" id="spCountry"></select>
+                </div>
+                <div class="field">
+                  <label class="label" for="spCurrency">Currency</label>
+                  <select class="select" id="spCurrency"></select>
+                </div>
+                <div class="field field-wide">
+                  <label class="label" for="spLocation">Store location</label>
+                  <input class="input" id="spLocation" placeholder="Street, city" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Storefront languages -->
+        <section data-screen-label="Storefront languages">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="ic" data-lucide="languages"></i>Storefront languages</div>
+              <span class="card-note">Customer-facing</span>
+            </div>
+
+            <div class="sp-lang-block">
+              <div class="blk-head">
+                <div class="blk-title">Main language</div>
+                <div class="blk-sub">The default storefront language. Used when a visitor's browser has no preferred match.</div>
+              </div>
+              <div class="lang-grid" id="spMainLang"></div>
+            </div>
+
+            <div class="sp-lang-block">
+              <div class="blk-head">
+                <div class="blk-title">Translated into</div>
+                <div class="blk-sub">Customers can switch to any of these from the storefront language picker.</div>
+              </div>
+              <div class="lang-grid" id="spTransLang"></div>
+              <div class="blk-meta"><i class="ic" data-lucide="info" style="width:13px;height:13px"></i><span id="spTransCount">—</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Manager language -->
+        <section data-screen-label="Manager language">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="ic" data-lucide="monitor-cog"></i>Dinelabs Manager language</div>
+              <span class="card-note">For you and your staff</span>
+            </div>
+            <div class="sp-lang-block" style="border-top:0">
+              <div class="lang-grid" id="spMgrLang"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Social links -->
+        <section data-screen-label="Social links">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><i class="ic" data-lucide="link"></i>Social links</div>
+              <span class="card-note">Leave blank to hide</span>
+            </div>
+            <div class="sp-social-grid" id="spSocial"></div>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script src="image-slot.js"></script>
+<script src="store-profile.js"></script>
+</body>
+</html>

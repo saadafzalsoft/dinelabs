@@ -85,6 +85,7 @@ export async function PUT(request) {
     if (languages !== undefined) updateObj.languages = languages;
     if (defaultLanguage !== undefined) updateObj.defaultLanguage = defaultLanguage;
     if (address !== undefined) updateObj.address = address;
+    if (body.googleMapsLink !== undefined) updateObj.googleMapsLink = body.googleMapsLink;
     if (notifications !== undefined) updateObj.notifications = notifications;
     
     // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin

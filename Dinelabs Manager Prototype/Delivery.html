@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Delivery</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="service.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="delivery">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Delivery</h1>
+          <p class="page-sub">Turn delivery on, set the wait time customers see, and the rules that gate every delivery order.</p>
+        </div>
+        <button class="btn btn-primary" id="dlSave"><i class="ic" data-lucide="check"></i>Save changes</button>
+      </div>
+
+      <section data-screen-label="Delivery settings">
+        <div class="card">
+
+          <div class="svc-status" id="dlStatus">
+            <div class="svc-ic"><i class="ic" data-lucide="bike"></i></div>
+            <div>
+              <div class="svc-h">
+                <span>Accepting delivery orders</span>
+                <span class="svc-pill" id="dlPill"><span class="dot"></span><span id="dlPillTxt"></span></span>
+              </div>
+              <div class="svc-sub" id="dlStatusSub">When off, the delivery option is hidden from the storefront and existing baskets switch to pick-up.</div>
+            </div>
+            <div class="svc-act">
+              <label class="switch"><input type="checkbox" id="dlToggle" /><span class="track"></span></label>
+            </div>
+          </div>
+
+          <!-- Timing -->
+          <div class="svc-section" id="dlSecTiming">
+            <div class="svc-section-head">
+              <div class="svc-section-title">Estimated delivery time</div>
+              <div class="svc-section-sub">A range shown on the storefront and in the order confirmation. Keep it honest — customers compare it to actual delivery time in reviews.</div>
+            </div>
+            <div class="svc-fields">
+              <div class="field field-wide">
+                <label class="label">Door-to-door window</label>
+                <div class="range-input">
+                  <input type="number" min="5" max="180" step="5" id="dlEtaFrom" aria-label="Minimum delivery time" />
+                  <span class="dash">–</span>
+                  <input type="number" min="5" max="240" step="5" id="dlEtaTo" aria-label="Maximum delivery time" />
+                  <span class="suffix">minutes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pricing rules -->
+          <div class="svc-section" id="dlSecPricing">
+            <div class="svc-section-head">
+              <div class="svc-section-title">Pricing rules</div>
+              <div class="svc-section-sub">Set the smallest order you'll deliver and the fee added at checkout.</div>
+            </div>
+            <div class="svc-fields">
+              <div class="field">
+                <label class="label" for="dlMin">Minimum order value</label>
+                <div class="money-input">
+                  <span class="pfx" id="dlMinPfx">$</span>
+                  <input class="input" type="number" min="0" step="0.5" id="dlMin" placeholder="0.00" />
+                </div>
+                <p class="hint" style="font-size:11.5px;color:var(--ink-3);margin-top:6px;line-height:1.4">Orders below this can't check out for delivery.</p>
+              </div>
+              <div class="field">
+                <label class="label" for="dlFee">Delivery fee</label>
+                <div class="money-input">
+                  <span class="pfx" id="dlFeePfx">$</span>
+                  <input class="input" type="number" min="0" step="0.5" id="dlFee" placeholder="0.00" />
+                </div>
+                <p class="hint" style="font-size:11.5px;color:var(--ink-3);margin-top:6px;line-height:1.4">A flat fee added to every delivery basket.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-preview" id="dlPreview"></div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script src="delivery.js"></script>
+</body>
+</html>

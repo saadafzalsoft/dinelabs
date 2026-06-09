@@ -1,74 +1,100 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  BellRing,
+  Bike,
+  ShoppingBag,
+  Utensils,
+  LayoutGrid,
+  Clock,
+  ReceiptText,
+  User,
+  Phone,
+  Mail,
+  Info,
+  X,
+  Check,
+  ArrowRight,
+  Inbox,
+  ChefHat,
+  PackageCheck,
+  CheckCheck,
+  StickyNote,
+  AlertCircle
+} from 'lucide-react';
 
-export default function ManagerLiveOrdersPage() {
+function LiveOrdersPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'accepted' | 'completed' | 'declined'
+  const [channelFilter, setChannelFilter] = useState(''); // '' | 'delivery' | 'pickup' | 'dine-in'
   
+  // Local storage cleared completed orders ids to keep Kanban board clean
+  const [dismissedIds, setDismissedIds] = useState([]);
+  
+  // Selected order for details modal popup
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   // Audio Notification references
   const audioContextRef = useRef(null);
   const soundIntervalRef = useRef(null);
 
-  // Poll orders list every 5 seconds for real-time order queuing
+  // Load dismissed orders from localStorage on mount
   useEffect(() => {
-    async function fetchOrders() {
+    if (typeof window !== 'undefined') {
       try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-          const data = await res.json();
-          setOrders(data);
+        const saved = localStorage.getItem('dl_dismissed_orders');
+        if (saved) {
+          setDismissedIds(JSON.parse(saved));
         }
-      } catch (err) {
-        console.error('Failed fetching live orders queue', err);
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error('Failed loading dismissed orders list', e);
       }
     }
+  }, []);
 
+  // Fetch orders and poll every 5 seconds for real-time order queuing
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (err) {
+      console.error('Failed fetching live orders queue', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Check if there is an orderNo query scanning parameter to highlight & auto-tab
+  // Check if there is an orderNo query scanning parameter to highlight & auto-open
   useEffect(() => {
-    if (typeof window !== 'undefined' && orders.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const scannedOrderNo = params.get('orderNo');
+    if (orders.length > 0 && typeof window !== 'undefined') {
+      const scannedOrderNo = searchParams.get('orderNo');
       if (scannedOrderNo) {
         const targetOrder = orders.find(o => o.orderNo.toString() === scannedOrderNo.toString());
         if (targetOrder) {
-          // Switch to the correct tab for this order's status
-          setActiveTab(targetOrder.status);
-          
-          // Scroll and apply highly polished focus highlights
-          setTimeout(() => {
-            const el = document.getElementById(`order-row-${targetOrder._id}`);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              
-              // Apply glowing highlight style to the table row
-              el.style.outline = '3px solid #10b981';
-              el.style.outlineOffset = '-3px';
-              el.style.backgroundColor = '#f0fdf4';
-              el.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-              
-              // Clean search query from URL to avoid locked redirects on manual reloads
-              const cleanUrl = window.location.pathname;
-              window.history.replaceState({}, document.title, cleanUrl);
-            }
-          }, 350);
+          setSelectedOrder(targetOrder);
+          // Clean search query from URL to avoid locked redirects on manual reloads
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
         }
       }
     }
-  }, [orders]);
+  }, [orders, searchParams]);
 
-  // Filter orders by active tab
-  const filteredOrders = orders.filter(o => o.status === activeTab);
-
-  // Core persistent audio alert loop for Pending orders
+  // Persistent audio alert loop for Pending orders
   const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
 
   useEffect(() => {
@@ -77,7 +103,6 @@ export default function ManagerLiveOrdersPage() {
     } else {
       stopNotificationSound();
     }
-
     return () => stopNotificationSound();
   }, [pendingOrdersCount]);
 
@@ -129,6 +154,20 @@ export default function ManagerLiveOrdersPage() {
     }
   };
 
+  const triggerAlertSoundToggle = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    audioContextRef.current.resume();
+    
+    // Add custom transient notification toast
+    const el = document.createElement('div');
+    el.className = 'toast-wrap';
+    el.innerHTML = `<div class="toast"><span class="ic">🔔</span><span>Audio notification ring path connected!</span></div>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  };
+
   // Mutates order status
   const handleModifyStatus = async (orderId, newStatus) => {
     try {
@@ -140,7 +179,21 @@ export default function ManagerLiveOrdersPage() {
 
       if (res.ok) {
         // Optimistic UI state update
-        setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+        
+        // Update selected order in state if it's currently open
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+        }
+
+        // Add custom visual alert toast
+        const label = newStatus === 'accepted' ? 'Order accepted!' : newStatus === 'completed' ? 'Order marked ready!' : 'Order declined';
+        const icon = newStatus === 'accepted' ? 'chef-hat' : newStatus === 'completed' ? 'package-check' : 'x';
+        const el = document.createElement('div');
+        el.className = 'toast-wrap';
+        el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>${label}</span></div>`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2000);
       } else {
         alert('Failed modifying order status');
       }
@@ -149,22 +202,89 @@ export default function ManagerLiveOrdersPage() {
     }
   };
 
-  const formatPrice = (amount) => {
-    return '$' + parseFloat(amount).toFixed(2).replace('.', ',');
+  // Dismiss / Clear completed order from active Kanban board
+  const handleDismissOrder = (orderId) => {
+    const updatedDismissed = [...dismissedIds, orderId];
+    setDismissedIds(updatedDismissed);
+    localStorage.setItem('dl_dismissed_orders', JSON.stringify(updatedDismissed));
+    
+    if (selectedOrder?._id === orderId) {
+      setSelectedOrder(null);
+    }
+
+    // Trigger visual toast
+    const el = document.createElement('div');
+    el.className = 'toast-wrap';
+    el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>Order cleared from active board</span></div>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  };
+
+  // 7. Get calculated counts for status stats headers
+  const getStats = () => {
+    const c = (status) => orders.filter(o => o.status === status).length;
+    // Completed counts are completed orders that haven't been dismissed
+    const readyActive = orders.filter(o => o.status === 'completed' && !dismissedIds.includes(o._id)).length;
+    const completedTotalCount = orders.filter(o => o.status === 'completed').length;
+    
+    return {
+      new: c('pending'),
+      preparing: c('accepted'),
+      ready: readyActive,
+      completedToday: completedTotalCount
+    };
+  };
+
+  const stats = getStats();
+
+  // Kanban Columns definition
+  const columns = [
+    { key: 'pending', title: 'New', dot: 'var(--neg)' },
+    { key: 'accepted', title: 'In progress', dot: 'var(--info)' },
+    { key: 'completed', title: 'Ready', dot: 'var(--pos)' }
+  ];
+
+  const channelIcons = {
+    'dine-in': Utensils,
+    pickup: ShoppingBag,
+    delivery: Bike
+  };
+
+  const channelLabels = {
+    'dine-in': 'Dine-in',
+    pickup: 'Pick-up',
+    delivery: 'Delivery'
+  };
+
+  const getFulfillmentInfo = (o) => {
+    if (o.type === 'dine-in') {
+      return {
+        label: 'Dine-in table',
+        value: `Table ${o.customer?.tableNo || 'N/A'}`,
+        extra: 'Indoor Seating'
+      };
+    }
+    if (o.type === 'delivery') {
+      return {
+        label: 'Delivery address',
+        value: o.customer?.address || 'N/A',
+        extra: ''
+      };
+    }
+    return {
+      label: 'Pick-up info',
+      value: 'Counter collection',
+      extra: `Ready in ${o.customer?.phone ? '20 min' : '15 min'}`
+    };
   };
 
   return (
-    <div>
+    <div className="fade-in">
+      
       {/* Autoplay prompt header */}
       {pendingOrdersCount > 0 && (
         <div 
-          onClick={() => {
-            // Force initialize audio context on click to satisfy browser security policies
-            if (!audioContextRef.current) {
-              audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            audioContextRef.current.resume();
-          }}
+          onClick={triggerAlertSoundToggle}
           style={{ 
             backgroundColor: '#fee2e2', 
             color: '#ef4444', 
@@ -177,232 +297,430 @@ export default function ManagerLiveOrdersPage() {
             alignItems: 'center', 
             justifyContent: 'space-between',
             boxShadow: '0 4px 10px rgba(239, 68, 68, 0.05)',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontFamily: 'var(--font)'
           }}
         >
-          <span>🚨 YOU HAVE {pendingOrdersCount} NEW PENDING ORDER(S). TAP HERE TO ENSURE PERSISTENT AUDIBLE SOUND RINGING IS ENGAGED.</span>
-          <span style={{ textDecoration: 'underline' }}>Enable Chime</span>
+          <span>🚨 YOU HAVE {pendingOrdersCount} NEW PENDING ORDER(S). CLICK HERE TO CONNECT THE WEB AUDIO ALERT CHIMES.</span>
+          <span style={{ textDecoration: 'underline' }}>Enable Alert Sound</span>
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', marginBottom: '28px' }}>
-        {[
-          { id: 'pending', name: '🔔 Pending', count: orders.filter(o => o.status === 'pending').length },
-          { id: 'accepted', name: '🍳 In Preparation', count: orders.filter(o => o.status === 'accepted').length },
-          { id: 'completed', name: '✓ Completed', count: orders.filter(o => o.status === 'completed').length },
-          { id: 'declined', name: '✕ Declined', count: orders.filter(o => o.status === 'declined').length }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: 'inherit',
-              fontSize: '0.9rem',
-              fontWeight: '700',
-              padding: '12px 24px',
-              cursor: 'pointer',
-              color: activeTab === tab.id ? 'var(--text-main)' : 'var(--text-muted)',
-              borderBottom: activeTab === tab.id ? '3px solid var(--brand-red)' : '3px solid transparent',
-              transition: 'var(--transition-smooth)'
-            }}
+      {/* Title */}
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Live orders</h1>
+          <p className="page-sub">Incoming orders update in real time. Advance each through the kitchen flow.</p>
+        </div>
+        <div className="row gap10">
+          <button 
+            className={`live-toggle ${pendingOrdersCount > 0 ? 'on' : ''}`}
+            onClick={triggerAlertSoundToggle}
           >
-            {tab.name} ({tab.count})
+            <span className="pulse"></span>Live Monitor
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* Queue Table Area */}
-      {loading ? (
-        <h3>Loading incoming orders queue...</h3>
-      ) : filteredOrders.length === 0 ? (
-        <div style={{ padding: '60px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid var(--border-light)' }}>
-          <span style={{ fontSize: '48px' }}>😴</span>
-          <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', marginTop: '12px', fontWeight: '800' }}>Queue is empty</h4>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No orders currently in this status.</p>
+      {/* Stats row */}
+      <div className="stats">
+        <div className="card stat">
+          <span className="stat-ic" style={{ backgroundColor: 'var(--neg-bg)', color: 'var(--neg)' }}><Inbox className="ic" /></span>
+          <div>
+            <div className="stat-v tnum">{stats.new}</div>
+            <div className="stat-l">New orders</div>
+          </div>
         </div>
-      ) : (
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-light)' }}>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)' }}>Order ID</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)' }}>Time</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)' }}>Type</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)' }}>Customer Info</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)' }}>Order Details / Items</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)', textAlign: 'right' }}>Total</th>
-                <th style={{ padding: '16px 20px', fontWeight: '700', color: 'var(--text-muted)', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map(order => (
-                <tr 
-                  key={order._id}
-                  id={`order-row-${order._id}`}
-                  style={{ 
-                    borderBottom: '1px solid var(--border-light)',
-                    transition: 'background-color 0.2s ease'
-                  }}
-                >
-                  {/* Order ID */}
-                  <td style={{ padding: '20px', fontWeight: '800', fontFamily: 'var(--font-heading)', fontSize: '0.95rem' }}>
-                    #{order.orderNo}
-                  </td>
-                  
-                  {/* Time */}
-                  <td style={{ padding: '20px', color: 'var(--text-muted)', fontWeight: '600' }}>
-                    {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </td>
 
-                  {/* Type Badge */}
-                  <td style={{ padding: '20px' }}>
-                    {order.type === 'dine-in' ? (
-                      <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '12px', backgroundColor: '#d1fae5', color: '#065f46', fontWeight: '700', fontSize: '0.75rem' }}>
-                        🍽️ Dine-in
-                      </span>
-                    ) : order.type === 'pickup' ? (
-                      <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '12px', backgroundColor: '#e0f2fe', color: '#0369a1', fontWeight: '700', fontSize: '0.75rem' }}>
-                        🛍️ Pickup
-                      </span>
-                    ) : (
-                      <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: '12px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '700', fontSize: '0.75rem' }}>
-                        🛵 Delivery
-                      </span>
-                    )}
-                  </td>
+        <div className="card stat">
+          <span className="stat-ic" style={{ backgroundColor: 'var(--warn-bg)', color: 'var(--warn)' }}><ChefHat className="ic" /></span>
+          <div>
+            <div className="stat-v tnum">{stats.preparing}</div>
+            <div className="stat-l">Preparing</div>
+          </div>
+        </div>
 
-                  {/* Customer Info */}
-                  <td style={{ padding: '20px', maxWidth: '220px' }}>
-                    {order.type === 'dine-in' ? (
-                      <div>
-                        <div style={{ fontWeight: '700' }}>{order.customer?.name || 'Guest Diner'}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                          📍 Table: {order.customer?.tableNo || 'N/A'}
+        <div className="card stat">
+          <span className="stat-ic" style={{ backgroundColor: 'var(--pos-bg)', color: 'var(--pos)' }}><PackageCheck className="ic" /></span>
+          <div>
+            <div className="stat-v tnum">{stats.ready}</div>
+            <div className="stat-l">Ready to go</div>
+          </div>
+        </div>
+
+        <div className="card stat">
+          <span className="stat-ic" style={{ backgroundColor: 'var(--surface-2)', color: 'var(--ink)' }}><CheckCheck className="ic" /></span>
+          <div>
+            <div className="stat-v tnum">{stats.completedToday}</div>
+            <div className="stat-l">Completed today</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters bar */}
+      <div className="row between wrap gap12" style={{ marginBottom: '18px' }}>
+        <div className="chips">
+          <button 
+            className={`chip ${channelFilter === '' ? 'on' : ''}`}
+            onClick={() => setChannelFilter('')}
+          >
+            <LayoutGrid className="ic" />
+            <span>All channels</span>
+          </button>
+          
+          <button 
+            className={`chip ${channelFilter === 'delivery' ? 'on' : ''}`}
+            onClick={() => setChannelFilter('delivery')}
+          >
+            <Bike className="ic" />
+            <span>Delivery</span>
+          </button>
+          
+          <button 
+            className={`chip ${channelFilter === 'pickup' ? 'on' : ''}`}
+            onClick={() => setChannelFilter('pickup')}
+          >
+            <ShoppingBag className="ic" />
+            <span>Pick-up</span>
+          </button>
+
+          <button 
+            className={`chip ${channelFilter === 'dine-in' ? 'on' : ''}`}
+            onClick={() => setChannelFilter('dine-in')}
+          >
+            <Utensils className="ic" />
+            <span>Dine-in</span>
+          </button>
+        </div>
+        <span className="card-note">Auto-refresh on &bull; SSE Polling</span>
+      </div>
+
+      {/* Kanban Board Grid */}
+      <div className="board">
+        {columns.map(col => {
+          // Filter orders belonging to this column status
+          let list = orders.filter(o => o.status === col.key);
+          
+          // Exclude dismissed completed orders from third column
+          if (col.key === 'completed') {
+            list = list.filter(o => !dismissedIds.includes(o._id));
+          }
+
+          // Apply channels filter if set
+          if (channelFilter) {
+            list = list.filter(o => o.type === channelFilter);
+          }
+
+          return (
+            <div key={col.key} className="col">
+              <div className="col-head">
+                <span className="col-dot" style={{ backgroundColor: col.dot }}></span>
+                <span className="col-title">{col.title}</span>
+                <span className="col-count">{list.length}</span>
+              </div>
+
+              <div className="col-body">
+                {list.length === 0 ? (
+                  <div className="col-empty">No orders</div>
+                ) : (
+                  list.map(order => {
+                    const itemsCount = order.items.reduce((s, it) => s + it.quantity, 0);
+                    const ChannelIcon = channelIcons[order.type] || ShoppingBag;
+                    
+                    const durationMins = Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60));
+                    const timeLabel = durationMins <= 0 ? 'Just now' : `${durationMins}m ago`;
+
+                    const subtext = order.type === 'dine-in' 
+                      ? `${order.customer?.name || 'Guest Diner'} · Table ${order.customer?.tableNo || 'N/A'}`
+                      : order.type === 'delivery'
+                        ? `${order.customer?.name || 'Guest'} · ${order.customer?.address?.substring(0, 24)}...`
+                        : `${order.customer?.name || 'Guest'} · Pick-up`;
+
+                    return (
+                      <div 
+                        key={order._id} 
+                        className="ocard"
+                        onClick={() => setSelectedOrder(order)}
+                      >
+                        <div className="oc-top">
+                          <span className="oc-id">#{order.orderNo}</span>
+                          <span className={`oc-ch ch-${order.type === 'dine-in' ? 'dinein' : order.type}`}>
+                            <ChannelIcon className="ic" style={{ width: '13px', height: '13px' }} />
+                            {channelLabels[order.type] || order.type}
+                          </span>
+                          <span className="oc-time">{timeLabel}</span>
                         </div>
-                        {order.customer?.phone && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📞 {order.customer.phone}</div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <div style={{ fontWeight: '700' }}>{order.customer?.name || 'Guest'}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>📞 {order.customer?.phone}</div>
-                        {order.type === 'delivery' && order.customer?.address && (
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.2' }} title={order.customer.address}>
-                            🏠 {order.customer.address}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </td>
 
-                  {/* Order Details / Items */}
-                  <td style={{ padding: '20px', maxWidth: '300px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {order.items.map((item, idx) => (
-                        <div key={idx} style={{ fontSize: '0.82rem', lineHeight: '1.3' }}>
-                          <span style={{ fontWeight: '700' }}>{item.quantity}x</span> {item.name}
-                          <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', paddingLeft: '18px' }}>
-                            {item.size && <span>📐 {item.size}</span>}
-                            {item.addons && item.addons.length > 0 && (
-                              <span style={{ display: 'block' }}>➕ {item.addons.join(', ')}</span>
+                        <div className="oc-cust" style={{ fontWeight: '600', fontSize: '0.85rem' }}>{subtext}</div>
+                        
+                        <div className="oc-items" style={{ margin: '8px 0', fontSize: '0.82rem' }}>
+                          {order.items.slice(0, 3).map((it, idx) => (
+                            <div key={idx} style={{ marginBottom: '3px' }}>
+                              <span className="qty">{it.quantity}</span>
+                              <span>{it.name}</span>
+                            </div>
+                          ))}
+                          {order.items.length > 3 && (
+                            <div style={{ color: 'var(--ink-3)', paddingLeft: '24px', fontSize: '0.78rem' }}>
+                              + {order.items.length - 3} more items...
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="oc-foot">
+                          <span className="oc-total tnum" style={{ fontWeight: '800' }}>
+                            ${parseFloat(order.total).toFixed(2)}
+                          </span>
+                          <span className="oc-actions" onClick={e => e.stopPropagation()}>
+                            <button 
+                              className="btn btn-outline btn-sm"
+                              onClick={() => setSelectedOrder(order)}
+                            >
+                              <ReceiptText className="ic" style={{ width: '13px', height: '13px' }} />
+                              <span>Details</span>
+                            </button>
+
+                            {order.status === 'pending' && (
+                              <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleModifyStatus(order._id, 'accepted')}
+                              >
+                                <span>Accept</span>
+                                <ArrowRight className="ic" style={{ width: '13px', height: '13px' }} />
+                              </button>
                             )}
-                            {item.removedIngredients && item.removedIngredients.length > 0 && (
-                              <span style={{ display: 'block', color: '#ef4444' }}>🚫 No {item.removedIngredients.join(', ')}</span>
+
+                            {order.status === 'accepted' && (
+                              <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleModifyStatus(order._id, 'completed')}
+                              >
+                                <Check className="ic" style={{ width: '13px', height: '13px' }} />
+                                <span>Ready</span>
+                              </button>
+                            )}
+
+                            {order.status === 'completed' && (
+                              <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleDismissOrder(order._id)}
+                              >
+                                <Check className="ic" style={{ width: '13px', height: '13px' }} />
+                                <span>Done</span>
+                              </button>
                             )}
                           </span>
                         </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Order Details dialog modal */}
+      {selectedOrder && (
+        <>
+          <div className="od-scrim open" onClick={() => setSelectedOrder(null)}></div>
+          <div className="order-modal open" role="dialog" aria-modal="true">
+            <div className="om-bar">
+              <h3>
+                <ReceiptText className="ic" />
+                <span>Order details</span>
+              </h3>
+              <button 
+                className="x" 
+                onClick={() => setSelectedOrder(null)} 
+                title="Close"
+              >
+                <X className="ic" />
+              </button>
+            </div>
+            
+            <div id="odBody">
+              <div className="od-grid">
+                
+                {/* Left meta column */}
+                <div className="od-col">
+                  <div className="od-head">
+                    <div className="od-id">Order #{selectedOrder.orderNo}</div>
+                    <span className="od-status">
+                      <span 
+                        className="od-dot" 
+                        style={{ 
+                          backgroundColor: selectedOrder.status === 'pending' ? 'var(--neg)' : selectedOrder.status === 'accepted' ? 'var(--warn)' : 'var(--pos)' 
+                        }}
+                      ></span>
+                      {selectedOrder.status === 'pending' ? 'New' : selectedOrder.status === 'accepted' ? 'In progress' : 'Ready'}
+                    </span>
+                  </div>
+
+                  <div className="od-meta">
+                    <span className={`oc-ch ch-${selectedOrder.type === 'dine-in' ? 'dinein' : selectedOrder.type}`}>
+                      <Info className="ic" />
+                      {channelLabels[selectedOrder.type] || selectedOrder.type}
+                    </span>
+                    <span className="od-time">
+                      <Clock className="ic" />
+                      <span>Placed {new Date(selectedOrder.createdAt).toLocaleTimeString()}</span>
+                    </span>
+                  </div>
+
+                  {/* Customer Details */}
+                  <div className="od-sec">
+                    <div className="od-sec-t">Customer</div>
+                    <div className="od-info">
+                      <div className="od-row">
+                        <User className="ic" />
+                        <span>{selectedOrder.customer?.name || 'Walk-in Guest'}</span>
+                      </div>
+                      
+                      {selectedOrder.customer?.phone && (
+                        <a className="od-row od-link" href={`tel:${selectedOrder.customer.phone}`}>
+                          <Phone className="ic" />
+                          <span>{selectedOrder.customer.phone}</span>
+                        </a>
+                      )}
+
+                      {selectedOrder.customer?.email && (
+                        <a className="od-row od-link" href={`mailto:${selectedOrder.customer.email}`}>
+                          <Mail className="ic" />
+                          <span>{selectedOrder.customer.email}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fulfillment details */}
+                  <div className="od-sec">
+                    <div className="od-sec-t">{getFulfillmentInfo(selectedOrder).label}</div>
+                    <div className="od-info">
+                      <div className="od-row">
+                        <Info className="ic" />
+                        <span>{getFulfillmentInfo(selectedOrder).value}</span>
+                      </div>
+                      {getFulfillmentInfo(selectedOrder).extra && (
+                        <div className="od-row od-mut">
+                          <Info className="ic" />
+                          <span>{getFulfillmentInfo(selectedOrder).extra}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right items column */}
+                <div className="od-col">
+                  <div className="od-sec">
+                    <div className="od-sec-t">
+                      Items &bull; {selectedOrder.items.reduce((s, it) => s + it.quantity, 0)}
+                    </div>
+                    
+                    <div className="od-items" style={{ marginTop: '12px' }}>
+                      {selectedOrder.items.map((item, idx) => (
+                        <div key={idx} className="od-item">
+                          <span className="od-thumb">
+                            <ReceiptText className="ic" />
+                          </span>
+                          <div className="od-item-main">
+                            <div className="od-item-top">
+                              <span className="od-q">{item.quantity}</span>
+                              <span className="od-n" style={{ fontWeight: '700' }}>{item.name}</span>
+                              <span className="od-p tnum">
+                                ${parseFloat(item.priceCalculated || item.price || 0).toFixed(2)}
+                              </span>
+                            </div>
+                            
+                            {/* Addon details mapping */}
+                            <div className="od-addons" style={{ marginTop: '6px' }}>
+                              {item.size && (
+                                <span className="od-addon">Size: {item.size}</span>
+                              )}
+                              {item.addons?.map((add, aIdx) => (
+                                <span key={aIdx} className="od-addon">+{add}</span>
+                              ))}
+                              {item.removedIngredients?.map((rem, rIdx) => (
+                                <span key={rIdx} className="od-addon rem">No {rem}</span>
+                              ))}
+                            </div>
+
+                            {item.notes && (
+                              <div className="od-note" style={{ marginTop: '6px' }}>
+                                <StickyNote className="ic" />
+                                <span>{item.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </td>
 
-                  {/* Total */}
-                  <td style={{ padding: '20px', fontWeight: '800', textAlign: 'right', fontFamily: 'var(--font-heading)', fontSize: '0.95rem' }}>
-                    {formatPrice(order.total)}
-                  </td>
-
-                  {/* Action Buttons */}
-                  <td style={{ padding: '20px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                      {order.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleModifyStatus(order._id, 'declined')}
-                            style={{ 
-                              padding: '8px 14px', 
-                              borderRadius: '8px', 
-                              border: '1px solid #d1d5db', 
-                              backgroundColor: '#ffffff', 
-                              color: '#ef4444', 
-                              fontWeight: '700', 
-                              cursor: 'pointer', 
-                              fontSize: '0.75rem',
-                              transition: 'var(--transition-smooth)'
-                            }}
-                          >
-                            Decline
-                          </button>
-                          <button
-                            onClick={() => handleModifyStatus(order._id, 'accepted')}
-                            style={{ 
-                              padding: '8px 14px', 
-                              borderRadius: '8px', 
-                              border: 'none', 
-                              backgroundColor: '#10b981', 
-                              color: '#ffffff', 
-                              fontWeight: '700', 
-                              cursor: 'pointer', 
-                              fontSize: '0.75rem',
-                              transition: 'var(--transition-smooth)'
-                            }}
-                          >
-                            Accept
-                          </button>
-                        </>
-                      )}
-
-                      {order.status === 'accepted' && (
-                        <button
-                          onClick={() => handleModifyStatus(order._id, 'completed')}
-                          style={{ 
-                            width: '120px', 
-                            padding: '8px 14px', 
-                            borderRadius: '8px', 
-                            border: 'none', 
-                            backgroundColor: 'var(--text-main)', 
-                            color: '#ffffff', 
-                            fontWeight: '700', 
-                            cursor: 'pointer', 
-                            fontSize: '0.75rem',
-                            transition: 'var(--transition-smooth)'
-                          }}
-                        >
-                          Complete ✓
-                        </button>
-                      )}
-
-                      {order.status === 'completed' && (
-                        <div style={{ width: '120px', textAlign: 'center', color: '#10b981', fontWeight: '700', fontSize: '0.75rem', backgroundColor: '#d1fae5', padding: '6px', borderRadius: '8px' }}>
-                          Fulfilled
-                        </div>
-                      )}
-
-                      {order.status === 'declined' && (
-                        <div style={{ width: '120px', textAlign: 'center', color: '#ef4444', fontWeight: '700', fontSize: '0.75rem', backgroundColor: '#fee2e2', padding: '6px', borderRadius: '8px' }}>
-                          Rejected
-                        </div>
-                      )}
+                    <div className="od-total">
+                      <span>Total</span>
+                      <span className="tnum">${parseFloat(selectedOrder.total).toFixed(2)}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Action buttons footer */}
+              <div className="od-foot">
+                {selectedOrder.status === 'pending' && (
+                  <>
+                    <button 
+                      className="btn btn-danger btn-lg od-cancel"
+                      onClick={() => handleModifyStatus(selectedOrder._id, 'declined')}
+                    >
+                      Decline
+                    </button>
+                    <button 
+                      className="btn btn-primary btn-lg od-primary"
+                      onClick={() => handleModifyStatus(selectedOrder._id, 'accepted')}
+                    >
+                      Accept order
+                      <ArrowRight className="ic" />
+                    </button>
+                  </>
+                )}
+
+                {selectedOrder.status === 'accepted' && (
+                  <button 
+                    className="btn btn-primary btn-lg od-primary"
+                    onClick={() => handleModifyStatus(selectedOrder._id, 'completed')}
+                  >
+                    Mark Ready
+                    <Check className="ic" />
+                  </button>
+                )}
+
+                {selectedOrder.status === 'completed' && (
+                  <button 
+                    className="btn btn-primary btn-lg od-primary"
+                    onClick={() => handleDismissOrder(selectedOrder._id)}
+                  >
+                    Fulfill order
+                    <Check className="ic" />
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </>
       )}
+
     </div>
+  );
+}
+
+export default function ManagerLiveOrdersPage() {
+  return (
+    <Suspense fallback={<h3 className="mut3">Loading live orders...</h3>}>
+      <LiveOrdersPageContent />
+    </Suspense>
   );
 }

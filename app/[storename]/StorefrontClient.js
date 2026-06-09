@@ -10,7 +10,16 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
   // State
   const [lang, setLang] = useState(tenant.defaultLanguage || 'en');
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const LANGUAGES = {
+    en: { label: 'English', flag: '🇬🇧', code: 'EN' },
+    ar: { label: 'العربية', flag: '🇱🇧', code: 'AR' },
+    ru: { label: 'Русский', flag: '🇷🇺', code: 'RU' },
+    es: { label: 'Español', flag: '🇪🇸', code: 'ES' },
+    fr: { label: 'Français', flag: '🇫🇷', code: 'FR' },
+  };
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [mode, setMode] = useState('dine-in'); // 'dine-in' | 'pickup' | 'delivery'
@@ -138,6 +147,90 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       tableNoPlaceholder: "تم تسجيل رقم الطاولة تلقائياً",
       free: "مجاني",
       noFooter: "يمنع تذييل الصفحة"
+    },
+    ru: {
+      searchPlaceholder: "Поиск пиццы, гарниров, напитков...",
+      all: "Все",
+      offers: "Акции и рекомендации",
+      add: "В корзину",
+      emptyTitle: "Ваша корзина пуста",
+      emptySub: "Выберите вкусные блюда из меню, чтобы создать заказ.",
+      subtotal: "Подытог",
+      deliveryFee: "Доставка",
+      total: "Итого",
+      checkout: "Перейти к оплате",
+      dineIn: "В заведении",
+      dineInDesc: "Столик",
+      pickup: "Самовывоз",
+      pickupDesc: "15 мин",
+      delivery: "Доставка",
+      deliveryDesc: "45 мин",
+      outOfStock: "Нет в наличии",
+      warningSuspended: "Сервис временно недоступен (аккаунт приостановлен)",
+      sizeLabel: "Выберите размер",
+      addonLabel: "Добавки",
+      removalLabel: "Исключить ингредиенты",
+      chooseMandatory: "Обязательный выбор",
+      addedToCart: "Добавлено в корзину!",
+      tableNoPlaceholder: "Столик отсканирован",
+      free: "Бесплатно",
+      noFooter: "Без футера"
+    },
+    es: {
+      searchPlaceholder: "Buscar pizzas, guarniciones, bebidas...",
+      all: "Todo",
+      offers: "Ofertas y destacados",
+      add: "Añadir al carrito",
+      emptyTitle: "Tu cesta está vacía",
+      emptySub: "Elige deliciosos platos del menú para armar tu pedido.",
+      subtotal: "Subtotal",
+      deliveryFee: "Costo de entrega",
+      total: "Total",
+      checkout: "Proceder al pago",
+      dineIn: "En el local",
+      dineInDesc: "Mesa",
+      pickup: "Para llevar",
+      pickupDesc: "15 min",
+      delivery: "Entrega",
+      deliveryDesc: "45 min",
+      outOfStock: "Agotado",
+      warningSuspended: "Servicio temporalmente no disponible (cuenta suspendida)",
+      sizeLabel: "Elegir tamaño",
+      addonLabel: "Extras premium",
+      removalLabel: "Quitar ingredientes",
+      chooseMandatory: "Selección obligatoria",
+      addedToCart: "¡Añadido al carrito!",
+      tableNoPlaceholder: "Mesa auto-escaneada",
+      free: "Gratis",
+      noFooter: "Sin pie de página"
+    },
+    fr: {
+      searchPlaceholder: "Rechercher des pizzas, accompagnements, boissons...",
+      all: "Tout",
+      offers: "Offres et sélections",
+      add: "Ajouter au panier",
+      emptyTitle: "Votre panier est vide",
+      emptySub: "Choisissez de délicieux articles dans le menu pour composer votre commande.",
+      subtotal: "Sous-total",
+      deliveryFee: "Frais de livraison",
+      total: "Total",
+      checkout: "Passer à la caisse",
+      dineIn: "Sur place",
+      dineInDesc: "Table",
+      pickup: "À emporter",
+      pickupDesc: "15 min",
+      delivery: "Livraison",
+      deliveryDesc: "45 min",
+      outOfStock: "Épuisé",
+      warningSuspended: "Service temporairement indisponible (compte suspendu)",
+      sizeLabel: "Choisir la taille",
+      addonLabel: "Suppléments premium",
+      removalLabel: "Retirer des ingrédients",
+      chooseMandatory: "Sélection obligatoire",
+      addedToCart: "Ajouté au panier !",
+      tableNoPlaceholder: "Table auto-scannée",
+      free: "Gratuit",
+      noFooter: "Sans pied de page"
     }
   };
 
@@ -290,25 +383,98 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             )}
           </Link>
 
-          {/* Right Header: Languages switcher */}
-          <div className="header-right">
-            {tenant.languages.map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={`flag-selector ${lang === l ? 'active' : ''}`}
-                style={{
-                  backgroundColor: lang === l ? 'var(--bg-secondary)' : 'transparent',
-                  padding: '6px 12px',
-                  borderRadius: '20px'
-                }}
-              >
-                <span className="flag-icon" style={{ fontSize: '18px' }}>
-                  {l === 'en' ? '🇬🇧' : '🇱🇧'}
-                </span>
-                <span>{l === 'en' ? 'EN' : 'AR'}</span>
-              </button>
-            ))}
+          {/* Right Header: Languages switcher dropdown */}
+          <div className="header-right" style={{ position: 'relative' }}>
+            {tenant.languages && tenant.languages.length > 1 && (
+              <>
+                <button
+                  onClick={() => setLangMenuOpen(!langMenuOpen)}
+                  className="flag-selector"
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    padding: '8px 12px',
+                    borderRadius: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    border: '1px solid var(--line-2)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'var(--text-main)'
+                  }}
+                >
+                  <span style={{ fontSize: '18px', display: 'flex', alignItems: 'center' }}>
+                    {LANGUAGES[lang]?.flag || '🌐'}
+                  </span>
+                  <span>{LANGUAGES[lang]?.code || lang.toUpperCase()}</span>
+                  <span style={{ fontSize: '10px', opacity: 0.6 }}>▼</span>
+                </button>
+
+                {langMenuOpen && (
+                  <>
+                    <div 
+                      onClick={() => setLangMenuOpen(false)}
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 999
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: '8px',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid var(--line-2)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000,
+                        minWidth: '160px',
+                        padding: '6px 0',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      {tenant.languages.map((l) => (
+                        <button
+                          key={l}
+                          onClick={() => {
+                            setLang(l);
+                            setLangMenuOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '10px 16px',
+                            border: 'none',
+                            background: lang === l ? 'var(--bg-secondary)' : 'transparent',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                            fontFamily: 'inherit',
+                            fontSize: '14px',
+                            fontWeight: lang === l ? '700' : '500',
+                            color: 'var(--text-main)',
+                            transition: 'background 0.2s'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>{LANGUAGES[l]?.flag || '🌐'}</span>
+                          <span>{LANGUAGES[l]?.label || l.toUpperCase()}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       </header>

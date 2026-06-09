@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Products</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="catalog.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="products">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Products catalog</h1>
+          <p class="page-sub">Manage your menu items, prices, modifiers and availability.</p>
+        </div>
+      </div>
+
+      <!-- ============ CATALOG ============ -->
+      <section data-screen-label="Products catalog">
+          <div class="card">
+            <div class="toolbar">
+              <div class="tb-search"><i class="ic" data-lucide="search"></i><input id="pSearch" placeholder="Search products…" /></div>
+              <select class="select-mini" id="pCat" style="height:38px">
+                <option value="">All categories</option>
+              </select>
+              <select class="select-mini" id="pAvail" style="height:38px">
+                <option value="">All availability</option>
+                <option value="in">In stock</option>
+                <option value="out">Out of stock</option>
+              </select>
+              <button class="btn btn-outline btn-sm" id="bulkUploadBtn" style="margin-left:auto"><i class="ic" data-lucide="upload"></i>Bulk upload</button>
+              <button class="btn btn-primary btn-sm" id="addProductBtn"><i class="ic" data-lucide="plus"></i>Add product</button>
+            </div>
+            <div class="reorder-hint" id="reorderHint">
+              <i class="ic" data-lucide="move-vertical"></i>
+              <span>Drag the <span class="grip-chip"><i class="ic" data-lucide="grip-vertical"></i></span> handle on any row to reorder your products.</span>
+              <button class="x" id="reorderHintX" title="Got it"><i class="ic" data-lucide="x"></i></button>
+            </div>
+            <div class="bulkbar" id="bulkbar">
+              <span class="bb-count" id="bbCount">0 selected</span>
+              <div class="topbar-spacer" style="flex:1"></div>
+              <select class="select-mini" id="bulkAction">
+                <option value="">Bulk action…</option>
+                <option value="in">Mark in stock</option>
+                <option value="out">Mark out of stock</option>
+                <option value="del">Delete</option>
+              </select>
+              <button class="btn btn-primary btn-sm" id="bulkApply">Apply</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="tbl" style="min-width:720px">
+                <thead>
+                  <tr>
+                    <th class="drag-col" title="Drag rows to reorder"><i class="ic" data-lucide="arrow-up-down" style="width:14px;height:14px;color:var(--ink-3)"></i></th>
+                    <th style="width:42px"><span class="check" id="checkAll"><i class="ic" data-lucide="check"></i></span></th>
+                    <th>Product</th>
+                    <th>Modifiers</th>
+                    <th>Price</th>
+                    <th>Availability</th>
+                    <th style="text-align:right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pBody"></tbody>
+              </table>
+            </div>
+            <div id="pEmpty" class="hide" style="padding:48px;text-align:center;color:var(--ink-3)">
+              <i class="ic" data-lucide="search-x" style="width:26px;height:26px"></i>
+              <div style="margin-top:8px;font-weight:600">No products match your filters.</div>
+            </div>
+          </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- add / edit product drawer -->
+<div class="drawer-scrim" id="drawerScrim"></div>
+<aside class="drawer" id="prodDrawer">
+  <div class="rail-head">
+    <i class="ic" id="drawerIcon" data-lucide="plus-circle"></i>
+    <h3 id="drawerTitle">Add new product</h3>
+    <button class="x" id="drawerClose" title="Close"><i class="ic" data-lucide="x"></i></button>
+  </div>
+  <div class="rail-body">
+    <div class="field">
+      <label class="label">Product name</label>
+      <input class="input" id="npName" placeholder="e.g. Pepperoni Feast" />
+    </div>
+    <div class="field">
+      <label class="label">Base price</label>
+      <div class="input-affix"><span class="pfx">$</span><input class="input" id="npPrice" placeholder="14.99" inputmode="decimal" /></div>
+    </div>
+    <div class="field">
+      <label class="label">Categories</label>
+      <div class="checklist" id="npCats"></div>
+    </div>
+    <div class="field">
+      <label class="label">Modifier groups <span class="opt">· optional</span></label>
+      <div class="checklist" id="npMods"></div>
+    </div>
+    <div class="field">
+      <label class="label">Product image <span class="opt">· optional</span></label>
+      <div class="dropzone" id="npDrop"><i class="ic" data-lucide="image-up"></i>Drag an image or click to upload</div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="npCreate"><i class="ic" data-lucide="plus"></i>Create product</button>
+  </div>
+</aside>
+
+<!-- bulk upload drawer -->
+<div class="drawer-scrim" id="bulkScrim"></div>
+<aside class="drawer" id="bulkDrawer">
+  <div class="rail-head">
+    <i class="ic" data-lucide="upload-cloud"></i>
+    <h3>Bulk upload products</h3>
+    <button class="x" id="bulkClose" title="Close"><i class="ic" data-lucide="x"></i></button>
+  </div>
+  <div class="rail-body">
+    <div class="field">
+      <label class="label">Step 1 · Download the template</label>
+      <p class="opt" style="margin:0 0 10px">A CSV with the right columns: name, category, price, sku, availability, modifiers.</p>
+      <button class="btn btn-outline btn-sm" id="bulkTemplate"><i class="ic" data-lucide="file-down"></i>Download CSV template</button>
+    </div>
+    <div class="field">
+      <label class="label">Step 2 · Upload your file</label>
+      <div class="dropzone" id="bulkDrop">
+        <i class="ic" data-lucide="file-spreadsheet"></i>
+        <span id="bulkDropLabel">Drag a .csv or .xlsx file here, or click to browse</span>
+      </div>
+      <input type="file" id="bulkFile" accept=".csv,.xlsx" hidden />
+    </div>
+    <div class="field" id="bulkPreviewWrap" style="display:none">
+      <label class="label">Preview <span class="opt" id="bulkRowsLabel">· 0 rows</span></label>
+      <div style="border:1px solid var(--line);border-radius:10px;overflow:hidden">
+        <table class="tbl" style="margin:0">
+          <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>SKU</th></tr></thead>
+          <tbody id="bulkPreview"></tbody>
+        </table>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="bulkImport" disabled><i class="ic" data-lucide="upload"></i>Import products</button>
+  </div>
+</aside>
+
+<script src="shell.js"></script>
+<script src="products.js"></script>
+</body>
+</html>

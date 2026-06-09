@@ -1,7 +1,33 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  Search,
+  Upload,
+  Plus,
+  Layers,
+  MoveVertical,
+  GripVertical,
+  ArrowUpDown,
+  Check,
+  Pencil,
+  Trash2,
+  PlusCircle,
+  X,
+  ImageUp,
+  UploadCloud,
+  FileDown,
+  FileSpreadsheet,
+  SearchX,
+  Save,
+  FolderPlus,
+  SlidersHorizontal,
+  Star,
+  Ruler,
+  MinusCircle,
+  Info
+} from 'lucide-react';
 
 function ProductsPageContent() {
   const router = useRouter();
@@ -13,80 +39,123 @@ function ProductsPageContent() {
   const [modifierGroups, setModifierGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Filters state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCatFilter, setSelectedCatFilter] = useState('');
+  const [selectedAvailFilter, setSelectedAvailFilter] = useState('');
+
   // Selection / Bulk state
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
 
-  // Editing state
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [editingGroup, setEditingGroup] = useState(null);
+  // Drawers Open State
+  const [isProductOpen, setIsProductOpen] = useState(false);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isModifierOpen, setIsModifierOpen] = useState(false);
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
+
+  // Reorder hint display
+  const [showReorderHint, setShowReorderHint] = useState(true);
 
   // Form states: Product
+  const [editingProduct, setEditingProduct] = useState(null);
   const [prodName, setProdName] = useState('');
   const [prodPrice, setProdPrice] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodCatIds, setProdCatIds] = useState([]);
   const [prodImage, setProdImage] = useState('');
   const [prodModGroups, setProdModGroups] = useState([]);
+  const [prodIsFeatured, setProdIsFeatured] = useState(false);
+  const [prodVariations, setProdVariations] = useState([]);
+  const [prodAddons, setProdAddons] = useState([]);
+  const [prodRemovals, setProdRemovals] = useState([]);
   const [savingProduct, setSavingProduct] = useState(false);
 
   // Form states: Category
+  const [editingCategory, setEditingCategory] = useState(null);
   const [catName, setCatName] = useState('');
   const [savingCategory, setSavingCategory] = useState(false);
 
   // Form states: Modifier Group
+  const [editingGroup, setEditingGroup] = useState(null);
   const [groupName, setGroupName] = useState('');
   const [groupType, setGroupType] = useState('variations'); // 'variations' | 'addons' | 'removals'
   const [groupOptions, setGroupOptions] = useState([{ name: '', price: '0.00' }]);
   const [savingGroup, setSavingGroup] = useState(false);
 
-  // Inline modifier creation form states
-  const [showInlineMod, setShowInlineMod] = useState(false);
-  const [inlineModName, setInlineModName] = useState('');
-  const [inlineModType, setInlineModType] = useState('variations');
-  const [inlineModOptions, setInlineModOptions] = useState([{ name: '', price: '0.00' }]);
-  const [creatingInlineMod, setCreatingInlineMod] = useState(false);
+  // Bulk file parser states
+  const [bulkFileRows, setBulkFileRows] = useState([]);
+  const [bulkFileName, setBulkFileName] = useState('');
+  const fileInputRef = useRef(null);
 
-  const handleCreateInlineMod = async (e) => {
+  // Drag and drop states
+  const [draggedId, setDraggedId] = useState(null);
+  const [draggedType, setDraggedType] = useState(null);
+
+  const handleDragStart = (e, id, type) => {
+    setDraggedId(id);
+    setDraggedType(type);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, id, type) => {
+    if (draggedType !== type) return;
     e.preventDefault();
-    if (!inlineModName || inlineModOptions.length === 0 || creatingInlineMod) return;
+  };
 
-    const filteredOptions = inlineModOptions.filter(o => o.name.trim() !== '');
-    if (filteredOptions.length === 0) {
-      alert('Must include at least one option.');
-      return;
-    }
+  const handleDrop = async (e, targetId, type) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId || draggedType !== type) return;
 
-    setCreatingInlineMod(true);
-    try {
-      const res = await fetch('/api/modifier-groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: inlineModName,
-          type: inlineModType,
-          options: filteredOptions
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setModifierGroups([...modifierGroups, data.modifierGroup]);
-        setProdModGroups([...prodModGroups, data.modifierGroup._id]);
-        
-        // Clear fields
-        setInlineModName('');
-        setInlineModType('variations');
-        setInlineModOptions([{ name: '', price: '0.00' }]);
-        setShowInlineMod(false);
-      } else {
-        alert(data.error || 'Failed creating inline modifier group');
+    if (type === 'category') {
+      const fromIndex = categories.findIndex(c => c._id === draggedId);
+      const toIndex = categories.findIndex(c => c._id === targetId);
+      if (fromIndex !== -1 && toIndex !== -1) {
+        const updated = [...categories];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+        setCategories(updated);
+
+        try {
+          const reorderedIds = updated.map(c => c._id);
+          const res = await fetch('/api/categories', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reorderedIds })
+          });
+          if (res.ok) {
+            triggerToast('Categories reordered successfully');
+          }
+        } catch (err) {
+          console.error(err);
+        }
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCreatingInlineMod(false);
+    } else if (type === 'product') {
+      const fromIndex = products.findIndex(p => p._id === draggedId);
+      const toIndex = products.findIndex(p => p._id === targetId);
+      if (fromIndex !== -1 && toIndex !== -1) {
+        const updated = [...products];
+        const [moved] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, moved);
+        setProducts(updated);
+
+        try {
+          const reorderedIds = updated.map(p => p._id);
+          const res = await fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reorderedIds })
+          });
+          if (res.ok) {
+            triggerToast('Products reordered successfully');
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
+    setDraggedId(null);
+    setDraggedType(null);
   };
 
   // Load all catalog data
@@ -112,40 +181,59 @@ function ProductsPageContent() {
     fetchCatalogData();
   }, []);
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedIds(products.map(p => p._id));
+  const triggerToast = (msg, icon) => {
+    const el = document.createElement('div');
+    el.className = 'toast-wrap';
+    el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>${msg}</span></div>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  };
+
+  // Selection / Bulk handlers
+  const handleSelectAll = () => {
+    const filteredIds = getFilteredProducts().map(p => p._id);
+    const allSelected = filteredIds.every(id => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds(prev => prev.filter(id => !filteredIds.includes(id)));
     } else {
-      setSelectedIds([]);
+      setSelectedIds(prev => [...new Set([...prev, ...filteredIds])]);
     }
   };
 
-  const handleSelectOne = (id, checked) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
+  const handleSelectOne = (id) => {
+    if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter(x => x !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUploadClick = () => {
+    // Hidden file input trigger for catalog image uploading
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Image file size is too large. Please select an image under 3MB.');
-      return;
-    }
+      if (file.size > 3 * 1024 * 1024) {
+        alert('Image file size is too large. Please select an image under 3MB.');
+        return;
+      }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProdImage(reader.result); // base64 string
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProdImage(reader.result); // base64 string
+        triggerToast('Image uploaded successfully!', 'image');
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+    input.click();
   };
 
-  // Bulk mutations
-  const handleBulkAction = async () => {
+  // Bulk actions
+  const handleBulkApply = async () => {
     if (selectedIds.length === 0 || !bulkAction) return;
 
     try {
@@ -158,9 +246,6 @@ function ProductsPageContent() {
         payload.isAvailable = true;
       } else if (bulkAction === 'stock-out') {
         payload.isAvailable = false;
-      } else if (bulkAction.startsWith('cat-')) {
-        const catId = bulkAction.substring(4);
-        payload.categories = [catId];
       } else if (bulkAction === 'delete') {
         const delRes = await fetch('/api/products', {
           method: 'DELETE',
@@ -171,6 +256,7 @@ function ProductsPageContent() {
           setProducts(products.filter(p => !selectedIds.includes(p._id)));
           setSelectedIds([]);
           setBulkAction('');
+          triggerToast('Deleted selected products');
         }
         return;
       }
@@ -186,13 +272,13 @@ function ProductsPageContent() {
           if (selectedIds.includes(p._id)) {
             const updated = { ...p };
             if (payload.isAvailable !== undefined) updated.isAvailable = payload.isAvailable;
-            if (payload.categories !== undefined) updated.categories = payload.categories;
             return updated;
           }
           return p;
         }));
         setSelectedIds([]);
         setBulkAction('');
+        triggerToast(`Updated ${selectedIds.length} items`);
       } else {
         alert('Failed performing bulk action');
       }
@@ -202,27 +288,110 @@ function ProductsPageContent() {
   };
 
   const handleToggleStock = async (product) => {
+    const nextStockState = !product.isAvailable;
+    // Optimistic UI update
+    setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: nextStockState } : p));
+    triggerToast(`${product.name?.en || 'Product'} marked ${nextStockState ? 'in stock' : 'out of stock'}`);
+
     try {
       const res = await fetch('/api/products', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: product._id, isAvailable: !product.isAvailable })
+        body: JSON.stringify({ id: product._id, isAvailable: nextStockState })
       });
-      if (res.ok) {
-        setProducts(products.map(p => p._id === product._id ? { ...p, isAvailable: !p.isAvailable } : p));
+      if (!res.ok) {
+        // Rollback
+        setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: !nextStockState } : p));
+        triggerToast('Failed to update stock state');
       }
     } catch (e) {
       console.error(e);
+      // Rollback
+      setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: !nextStockState } : p));
+      triggerToast('Failed to update stock state');
     }
   };
 
+  const handleToggleFeatured = async (product) => {
+    const nextFeaturedState = !product.isFeatured;
+    // Optimistic UI update
+    setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: nextFeaturedState } : p));
+    triggerToast(`${product.name?.en || 'Product'} ${nextFeaturedState ? 'marked as featured' : 'removed from featured'}`);
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: product._id, isFeatured: nextFeaturedState })
+      });
+      if (!res.ok) {
+        // Rollback
+        setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: !nextFeaturedState } : p));
+        triggerToast('Failed to update featured state');
+      }
+    } catch (e) {
+      console.error(e);
+      // Rollback
+      setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: !nextFeaturedState } : p));
+      triggerToast('Failed to update featured state');
+    }
+  };
+
+  // Product variations state helpers
+  const handleAddVariationRow = () => {
+    setProdVariations([...prodVariations, { name: '', price: '0.00' }]);
+  };
+  const handleRemoveVariationRow = (index) => {
+    setProdVariations(prodVariations.filter((_, idx) => idx !== index));
+  };
+  const handleVariationChange = (index, field, value) => {
+    setProdVariations(prodVariations.map((v, idx) => idx === index ? { ...v, [field]: value } : v));
+  };
+
+  // Product addons state helpers
+  const handleAddAddonRow = () => {
+    setProdAddons([...prodAddons, { name: '', price: '0.00' }]);
+  };
+  const handleRemoveAddonRow = (index) => {
+    setProdAddons(prodAddons.filter((_, idx) => idx !== index));
+  };
+  const handleAddonChange = (index, field, value) => {
+    setProdAddons(prodAddons.map((a, idx) => idx === index ? { ...a, [field]: value } : a));
+  };
+
+  // Product removals state helpers
+  const handleAddRemovalRow = () => {
+    setProdRemovals([...prodRemovals, { name: '' }]);
+  };
+  const handleRemoveRemovalRow = (index) => {
+    setProdRemovals(prodRemovals.filter((_, idx) => idx !== index));
+  };
+  const handleRemovalChange = (index, value) => {
+    setProdRemovals(prodRemovals.map((r, idx) => idx === index ? { ...r, name: value } : r));
+  };
+
   // Product submission
-  const handleProductSubmit = async (e) => {
-    e.preventDefault();
-    if (!prodName || !prodPrice || savingProduct) return;
+  const handleProductSubmit = async () => {
+    if (!prodName || !prodPrice || savingProduct) {
+      alert('Please fill out name and price.');
+      return;
+    }
 
     setSavingProduct(true);
     try {
+      const payload = {
+        name: prodName,
+        price: parseFloat(prodPrice),
+        description: prodDesc,
+        categories: prodCatIds,
+        imageUrl: prodImage || '/assets/cheese_pizza.png',
+        modifierGroups: prodModGroups,
+        isFeatured: prodIsFeatured,
+        variations: prodVariations.filter(v => v.name.trim() !== ''),
+        addons: prodAddons.filter(a => a.name.trim() !== ''),
+        removals: prodRemovals.filter(r => r.name.trim() !== '')
+      };
+
       if (editingProduct) {
         // Edit product
         const res = await fetch('/api/products', {
@@ -230,18 +399,14 @@ function ProductsPageContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: editingProduct._id,
-            name: prodName,
-            price: parseFloat(prodPrice),
-            description: prodDesc,
-            categories: prodCatIds,
-            imageUrl: prodImage || '/assets/cheese_pizza.png',
-            modifierGroups: prodModGroups
+            ...payload
           })
         });
 
         if (res.ok) {
           fetchCatalogData();
-          clearProductForm();
+          closeProductDrawer();
+          triggerToast(`Saved "${prodName}"`);
         } else {
           alert('Failed saving changes');
         }
@@ -250,20 +415,14 @@ function ProductsPageContent() {
         const res = await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: prodName,
-            price: parseFloat(prodPrice),
-            description: prodDesc,
-            categories: prodCatIds,
-            imageUrl: prodImage || '/assets/cheese_pizza.png',
-            modifierGroups: prodModGroups
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
         if (res.ok) {
-          setProducts([...products, data.product]);
-          clearProductForm();
+          setProducts([data.product, ...products]);
+          closeProductDrawer();
+          triggerToast(`Created "${prodName}"`);
         } else {
           alert(data.error || 'Failed adding product');
         }
@@ -286,6 +445,7 @@ function ProductsPageContent() {
       });
       if (res.ok) {
         setProducts(products.filter(p => p._id !== id));
+        triggerToast(`Deleted "${name}"`);
       } else {
         alert('Failed deleting product');
       }
@@ -302,9 +462,28 @@ function ProductsPageContent() {
     setProdCatIds(product.categories || []);
     setProdImage(product.imageUrl || '');
     setProdModGroups(product.modifierGroups || []);
+    setProdIsFeatured(product.isFeatured || false);
+    setProdVariations(
+      (product.variations || []).map(v => ({
+        name: typeof v.name === 'object' ? (v.name.en || '') : (v.name || ''),
+        price: v.price?.toString() || '0.00'
+      }))
+    );
+    setProdAddons(
+      (product.addons || []).map(a => ({
+        name: typeof a.name === 'object' ? (a.name.en || '') : (a.name || ''),
+        price: a.price?.toString() || '0.00'
+      }))
+    );
+    setProdRemovals(
+      (product.removals || []).map(r => ({
+        name: typeof r.name === 'object' ? (r.name.en || '') : (r.name || '')
+      }))
+    );
+    setIsProductOpen(true);
   };
 
-  const clearProductForm = () => {
+  const closeProductDrawer = () => {
     setEditingProduct(null);
     setProdName('');
     setProdPrice('');
@@ -312,11 +491,15 @@ function ProductsPageContent() {
     setProdCatIds([]);
     setProdImage('');
     setProdModGroups([]);
+    setProdIsFeatured(false);
+    setProdVariations([]);
+    setProdAddons([]);
+    setProdRemovals([]);
+    setIsProductOpen(false);
   };
 
   // Category submission
-  const handleCategorySubmit = async (e) => {
-    e.preventDefault();
+  const handleCategorySubmit = async () => {
     if (!catName || savingCategory) return;
 
     setSavingCategory(true);
@@ -333,7 +516,8 @@ function ProductsPageContent() {
         });
         if (res.ok) {
           fetchCatalogData();
-          clearCategoryForm();
+          closeCategoryDrawer();
+          triggerToast(`Saved "${catName}"`);
         } else {
           alert('Failed saving category changes');
         }
@@ -347,7 +531,8 @@ function ProductsPageContent() {
         const data = await res.json();
         if (res.ok) {
           setCategories([...categories, data.category]);
-          clearCategoryForm();
+          closeCategoryDrawer();
+          triggerToast(`Created "${catName}"`);
         } else {
           alert(data.error || 'Failed adding category');
         }
@@ -374,10 +559,11 @@ function ProductsPageContent() {
             return { ...c, isPinned: newPinnedState };
           }
           if (newPinnedState === true) {
-            return { ...c, isPinned: false };
+            return { ...c, isPinned: false }; // only one categories can be pinned main storefront top
           }
           return c;
         }));
+        triggerToast(newPinnedState ? 'Category pinned storefront!' : 'Category unpinned');
       }
     } catch (e) {
       console.error(e);
@@ -396,6 +582,7 @@ function ProductsPageContent() {
       if (res.ok) {
         setCategories(categories.filter(c => c._id !== id));
         fetchCatalogData(); // reload products to reflect pulled categories
+        triggerToast(`Deleted "${name}"`);
       } else {
         alert('Failed deleting category');
       }
@@ -407,16 +594,17 @@ function ProductsPageContent() {
   const loadCategoryForEdit = (category) => {
     setEditingCategory(category);
     setCatName(category.name.en || '');
+    setIsCategoryOpen(true);
   };
 
-  const clearCategoryForm = () => {
+  const closeCategoryDrawer = () => {
     setEditingCategory(null);
     setCatName('');
+    setIsCategoryOpen(false);
   };
 
-  // Addons submission (Modifier Groups)
-  const handleGroupSubmit = async (e) => {
-    e.preventDefault();
+  // Modifier Groups submission
+  const handleGroupSubmit = async () => {
     if (!groupName || groupOptions.length === 0 || savingGroup) return;
 
     const filteredOptions = groupOptions.filter(o => o.name.trim() !== '');
@@ -427,6 +615,12 @@ function ProductsPageContent() {
 
     setSavingGroup(true);
     try {
+      const payload = {
+        name: groupName,
+        type: groupType,
+        options: filteredOptions
+      };
+
       if (editingGroup) {
         // Edit modifier group
         const res = await fetch('/api/modifier-groups', {
@@ -434,15 +628,14 @@ function ProductsPageContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: editingGroup._id,
-            name: groupName,
-            type: groupType,
-            options: filteredOptions
+            ...payload
           })
         });
 
         if (res.ok) {
           fetchCatalogData();
-          clearGroupForm();
+          closeModifierDrawer();
+          triggerToast(`Saved "${groupName}"`);
         } else {
           alert('Failed saving modifier group changes');
         }
@@ -451,17 +644,14 @@ function ProductsPageContent() {
         const res = await fetch('/api/modifier-groups', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: groupName,
-            type: groupType,
-            options: filteredOptions
-          })
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
         if (res.ok) {
           setModifierGroups([...modifierGroups, data.modifierGroup]);
-          clearGroupForm();
+          closeModifierDrawer();
+          triggerToast(`Created "${groupName}"`);
         } else {
           alert(data.error || 'Failed creating modifier group');
         }
@@ -485,6 +675,7 @@ function ProductsPageContent() {
       if (res.ok) {
         setModifierGroups(modifierGroups.filter(g => g._id !== id));
         fetchCatalogData(); // reload products to reflect pulled modifier groups references
+        triggerToast(`Deleted "${name}"`);
       } else {
         alert('Failed deleting modifier group');
       }
@@ -504,13 +695,15 @@ function ProductsPageContent() {
       price: o.price.toString()
     }));
     setGroupOptions(optionsForForm);
+    setIsModifierOpen(true);
   };
 
-  const clearGroupForm = () => {
+  const closeModifierDrawer = () => {
     setEditingGroup(null);
     setGroupName('');
     setGroupType('variations');
     setGroupOptions([{ name: '', price: '0.00' }]);
+    setIsModifierOpen(false);
   };
 
   const handleAddOptionRow = () => {
@@ -530,724 +723,1296 @@ function ProductsPageContent() {
     }));
   };
 
-  const formatPrice = (amount) => {
-    return '$' + parseFloat(amount).toFixed(2).replace('.', ',');
+  // Bulk Upload File Handler
+  const handleBulkFileTemplate = () => {
+    const csv = 'name,category,price,sku,availability,modifiers\nMargherita,Classic Pizzas,12.50,PZ-001,in,Crust;Toppings\nCaesar Salad,Sides & Appetizers,8.00,SD-014,in,Dressing\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'product-template.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    triggerToast('Template CSV downloaded!', 'file-down');
   };
+
+  const handleBulkFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBulkFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = reader.result;
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        const head = lines.shift().split(',').map(s => s.trim().toLowerCase());
+        
+        const parsed = lines.map(line => {
+          const cells = line.split(',').map(s => s.trim());
+          const row = {};
+          head.forEach((h, i) => {
+            row[h] = cells[i] || '';
+          });
+          return row;
+        });
+        
+        setBulkFileRows(parsed);
+      } catch (err) {
+        alert('Could not parse template CSV file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBulkImport = async () => {
+    if (bulkFileRows.length === 0) return;
+
+    let successCount = 0;
+    try {
+      for (const row of bulkFileRows) {
+        if (!row.name) continue;
+        
+        // Find mapped category IDs or create temporary ones, or match by name
+        let matchedCatIds = [];
+        if (row.category) {
+          const match = categories.find(c => c.name.en.toLowerCase() === row.category.toLowerCase());
+          if (match) matchedCatIds.push(match._id);
+        }
+
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: row.name,
+            price: parseFloat(row.price) || 0,
+            description: `${row.name} imported via spreadsheet.`,
+            categories: matchedCatIds,
+            imageUrl: '/assets/cheese_pizza.png',
+            modifierGroups: [],
+            isAvailable: (row.availability || 'in').toLowerCase() !== 'out'
+          })
+        });
+        successCount++;
+      }
+
+      fetchCatalogData();
+      closeBulkDrawer();
+      triggerToast(`Imported ${successCount} products!`);
+    } catch (e) {
+      console.error(e);
+      alert('Error importing file rows');
+    }
+  };
+
+  const closeBulkDrawer = () => {
+    setBulkFileRows([]);
+    setBulkFileName('');
+    setIsBulkOpen(false);
+  };
+
+  // Products filtering logic
+  const getFilteredProducts = () => {
+    return products.filter(p => {
+      const nameMatch = searchQuery === '' || p.name.en?.toLowerCase().includes(searchQuery.toLowerCase());
+      const catMatch = selectedCatFilter === '' || p.categories?.includes(selectedCatFilter);
+      const availMatch = selectedAvailFilter === '' || 
+        (selectedAvailFilter === 'in' ? p.isAvailable : !p.isAvailable);
+
+      return nameMatch && catMatch && availMatch;
+    });
+  };
+
+  const getProductsGroupedByCategory = () => {
+    const list = getFilteredProducts();
+    const groups = {};
+
+    categories.forEach(c => {
+      groups[c.name.en] = {
+        categoryName: c.name.en,
+        arabicName: c.name.ar,
+        list: []
+      };
+    });
+    
+    groups['Uncategorized'] = {
+      categoryName: 'Uncategorized',
+      list: []
+    };
+
+    list.forEach(p => {
+      if (!p.categories || p.categories.length === 0) {
+        groups['Uncategorized'].list.push(p);
+      } else {
+        p.categories.forEach(catId => {
+          const match = categories.find(c => c._id === catId);
+          if (match && groups[match.name.en]) {
+            // Avoid adding same product twice to the same group list
+            if (!groups[match.name.en].list.some(x => x._id === p._id)) {
+              groups[match.name.en].list.push(p);
+            }
+          }
+        });
+      }
+    });
+
+    return Object.values(groups).filter(g => g.list.length > 0);
+  };
+
+  const groupedCategoryData = getProductsGroupedByCategory();
 
   const switchTab = (newTab) => {
     router.push(`/manager/products?tab=${newTab}`);
   };
 
-  if (loading) {
-    return <h3>Loading catalog details...</h3>;
-  }
+  const renderSkeletonTable = () => (
+    <div className="card">
+      <div className="toolbar" style={{ height: '48px', opacity: 0.5 }}>
+        <div className="skeleton" style={{ width: '200px', height: '36px', borderRadius: '8px' }}></div>
+        <div className="skeleton" style={{ width: '150px', height: '36px', borderRadius: '8px', marginLeft: '12px' }}></div>
+        <div className="skeleton" style={{ width: '150px', height: '36px', borderRadius: '8px', marginLeft: '12px' }}></div>
+        <div className="skeleton" style={{ width: '120px', height: '36px', borderRadius: '8px', marginLeft: 'auto' }}></div>
+      </div>
+      <div style={{ overflowX: 'auto', marginTop: '16px' }}>
+        <table className="tbl" style={{ minWidth: '720px' }}>
+          <thead>
+            <tr>
+              <th style={{ width: '40px' }}></th>
+              <th style={{ width: '40px' }}></th>
+              <th>Product</th>
+              <th>Modifiers</th>
+              <th>Price</th>
+              <th>Availability</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5].map(i => (
+              <tr key={i}>
+                <td><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }}></div></td>
+                <td><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }}></div></td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '8px' }}></div>
+                    <div>
+                      <div className="skeleton" style={{ width: '140px', height: '16px', borderRadius: '4px', marginBottom: '6px' }}></div>
+                      <div className="skeleton" style={{ width: '220px', height: '12px', borderRadius: '4px' }}></div>
+                    </div>
+                  </div>
+                </td>
+                <td><div className="skeleton" style={{ width: '80px', height: '18px', borderRadius: '12px' }}></div></td>
+                <td><div className="skeleton" style={{ width: '50px', height: '16px', borderRadius: '4px' }}></div></td>
+                <td><div className="skeleton" style={{ width: '70px', height: '22px', borderRadius: '12px' }}></div></td>
+                <td style={{ textAlign: 'right' }}>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                    <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
-  return (
-    <div>
-      {/* Top Tab Bar switcher */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-light)', marginBottom: '28px' }}>
-        {[
-          { id: 'products', name: '🍕 Products catalog' },
-          { id: 'categories', name: '📋 Categories & Starred' },
-          { id: 'addons', name: '➕ Modifier Add-ons' }
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => switchTab(t.id)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: 'inherit',
-              fontSize: '0.9rem',
-              fontWeight: '700',
-              padding: '12px 24px',
-              cursor: 'pointer',
-              color: tab === t.id ? 'var(--text-main)' : 'var(--text-muted)',
-              borderBottom: tab === t.id ? '3px solid var(--brand-red)' : '3px solid transparent',
-              transition: 'var(--transition-smooth)',
-              marginRight: '8px'
-            }}
-          >
-            {t.name}
-          </button>
+  const renderSkeletonCategories = () => (
+    <div className="card">
+      <div className="toolbar" style={{ justifyContent: 'space-between', opacity: 0.5 }}>
+        <div className="skeleton" style={{ width: '120px', height: '24px', borderRadius: '4px' }}></div>
+        <div className="skeleton" style={{ width: '120px', height: '36px', borderRadius: '8px' }}></div>
+      </div>
+      <table className="tbl">
+        <thead>
+          <tr>
+            <th style={{ width: '60px' }}>Order</th>
+            <th>Category</th>
+            <th style={{ textAlign: 'center', width: '120px' }}>Promoted</th>
+            <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[1, 2, 3].map(i => (
+            <tr key={i}>
+              <td><div className="skeleton" style={{ width: '20px', height: '16px', borderRadius: '4px' }}></div></td>
+              <td>
+                <div className="skeleton" style={{ width: '120px', height: '16px', borderRadius: '4px', marginBottom: '6px' }}></div>
+                <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }}></div>
+              </td>
+              <td><div style={{ display: 'flex', justifyContent: 'center' }}><div className="skeleton" style={{ width: '24px', height: '24px', borderRadius: '50%' }}></div></div></td>
+              <td style={{ textAlign: 'right' }}>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                  <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderSkeletonModifiers = () => (
+    <div className="card">
+      <div className="toolbar" style={{ justifyContent: 'space-between', opacity: 0.5 }}>
+        <div className="skeleton" style={{ width: '150px', height: '24px', borderRadius: '4px' }}></div>
+        <div className="skeleton" style={{ width: '120px', height: '36px', borderRadius: '8px' }}></div>
+      </div>
+      <div className="card-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', backgroundColor: 'var(--bg)' }}>
+        {[1, 2, 3].map(i => (
+          <div key={i} className="mod-card" style={{ opacity: 0.7 }}>
+            <div className="mod-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="skeleton" style={{ width: '100px', height: '16px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ width: '60px', height: '18px', borderRadius: '12px' }}></div>
+            </div>
+            <div className="mod-opts" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+              <div className="skeleton" style={{ width: '60px', height: '20px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ width: '80px', height: '20px', borderRadius: '4px' }}></div>
+              <div className="skeleton" style={{ width: '50px', height: '20px', borderRadius: '4px' }}></div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
+              <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+              <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+            </div>
+          </div>
         ))}
       </div>
+    </div>
+  );
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '32px' }}>
-        
-        {/* ============================================================
-            TAB 1: PRODUCTS LIST
-            ============================================================ */}
-        {tab === 'products' && (
-          <>
-            {/* Left Products Table */}
-            <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)' }}>
+  return (
+    <div className="fade-in">
+      
+      {/* Title */}
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">Products catalog</h1>
+          <p className="page-sub">Manage your menu items, prices, modifiers and availability.</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="tabs">
+        <button 
+          onClick={() => switchTab('products')} 
+          className={`tab ${tab === 'products' ? 'active' : ''}`}
+        >
+          🍕 Products catalog
+        </button>
+        <button 
+          onClick={() => switchTab('categories')} 
+          className={`tab ${tab === 'categories' ? 'active' : ''}`}
+        >
+          📋 Categories
+        </button>
+        <button 
+          onClick={() => switchTab('addons')} 
+          className={`tab ${tab === 'addons' ? 'active' : ''}`}
+        >
+          ➕ Modifier Add-ons
+        </button>
+      </div>
+
+      {/* ============================================================
+          TAB 1: PRODUCTS LIST
+          ============================================================ */}
+      {tab === 'products' && (
+        <section>
+          {loading ? (
+            renderSkeletonTable()
+          ) : (
+            <div className="card">
               
-              {/* Bulk Controls */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', backgroundColor: 'var(--bg-secondary)', padding: '16px', borderRadius: '16px' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: '700' }}>
-                  {selectedIds.length} items selected
+              {/* Toolbar */}
+              <div className="toolbar">
+                <div className="tb-search">
+                  <Search className="ic" />
+                  <input 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search products…" 
+                  />
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <select 
-                    value={bulkAction} 
-                    onChange={(e) => setBulkAction(e.target.value)}
-                    className="form-control"
-                    style={{ padding: '8px 12px', fontSize: '0.8rem', width: '200px' }}
-                  >
-                    <option value="">-- Choose Bulk Action --</option>
-                    <option value="stock-in">Mark In Stock</option>
-                    <option value="stock-out">Mark Out Of Stock</option>
-                    <option value="delete">Delete Selected</option>
-                    <optgroup label="Mass Assign Category">
-                      {categories.map(c => (
-                        <option key={c._id} value={`cat-${c._id}`}>{c.name.en}</option>
-                      ))}
-                    </optgroup>
-                  </select>
+
+                {/* Category filter select */}
+                <select 
+                  className="select-mini"
+                  value={selectedCatFilter}
+                  onChange={(e) => setSelectedCatFilter(e.target.value)}
+                  style={{ height: '38px' }}
+                >
+                  <option value="">All categories</option>
+                  {categories.map(c => (
+                    <option key={c._id} value={c._id}>{c.name.en}</option>
+                  ))}
+                </select>
+
+                {/* Availability filter select */}
+                <select 
+                  className="select-mini"
+                  value={selectedAvailFilter}
+                  onChange={(e) => setSelectedAvailFilter(e.target.value)}
+                  style={{ height: '38px' }}
+                >
+                  <option value="">All availability</option>
+                  <option value="in">In stock</option>
+                  <option value="out">Out of stock</option>
+                </select>
+
+                {/* Buttons */}
+                <button 
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setIsBulkOpen(true)}
+                  style={{ marginLeft: 'auto' }}
+                >
+                  <Upload className="ic" />
+                  <span>Bulk upload</span>
+                </button>
+                
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    resetRail();
+                    setIsProductOpen(true);
+                  }}
+                >
+                  <Plus className="ic" />
+                  <span>Add product</span>
+                </button>
+              </div>
+
+              {/* Reorder hint strip */}
+              {showReorderHint && (
+                <div className="reorder-hint">
+                  <MoveVertical className="ic" />
+                  <span>Drag the <span className="grip-chip"><GripVertical className="ic" /></span> handle on any row to reorder your products.</span>
                   <button 
-                    onClick={handleBulkAction}
-                    disabled={selectedIds.length === 0 || !bulkAction}
-                    style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', backgroundColor: 'var(--text-main)', color: '#ffffff', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem', opacity: (selectedIds.length === 0 || !bulkAction) ? 0.5 : 1 }}
+                    className="x" 
+                    onClick={() => setShowReorderHint(false)}
+                    title="Got it"
+                  >
+                    <X className="ic" />
+                  </button>
+                </div>
+              )}
+
+              {/* Bulk Toolbar overlay */}
+              {selectedIds.length > 0 && (
+                <div className="bulkbar armed">
+                  <span className="bb-count">{selectedIds.length} selected</span>
+                  <div style={{ flex: 1 }}></div>
+                  
+                  <select 
+                    className="select-mini"
+                    value={bulkAction}
+                    onChange={(e) => setBulkAction(e.target.value)}
+                  >
+                    <option value="">Bulk action…</option>
+                    <option value="stock-in">Mark in stock</option>
+                    <option value="stock-out">Mark out of stock</option>
+                    <option value="delete">Delete selected</option>
+                  </select>
+
+                  <button 
+                    className="btn btn-primary btn-sm"
+                    onClick={handleBulkApply}
+                    disabled={!bulkAction}
                   >
                     Apply
                   </button>
                 </div>
+              )}
+
+              {/* Catalog Grid Table */}
+              <div style={{ overflowX: 'auto' }}>
+                <table className="tbl" style={{ minWidth: '720px' }}>
+                  <thead>
+                    <tr>
+                      <th className="drag-col" title="Drag rows to reorder">
+                        <ArrowUpDown style={{ width: '14px', height: '14px', color: 'var(--ink-3)' }} />
+                      </th>
+                      <th style={{ width: '42px' }}>
+                        <span 
+                          className={`check ${getFilteredProducts().length > 0 && getFilteredProducts().every(p => selectedIds.includes(p._id)) ? 'on' : ''}`}
+                          onClick={handleSelectAll}
+                        >
+                          <Check className="ic" />
+                        </span>
+                      </th>
+                      <th>Product</th>
+                      <th>Modifiers</th>
+                      <th>Price</th>
+                      <th>Availability</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupedCategoryData.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={{ padding: '48px', textAlign: 'center', color: 'var(--ink-3)' }}>
+                          <SearchX style={{ width: '26px', height: '26px', display: 'block', margin: '0 auto 8px' }} />
+                          <div style={{ fontWeight: 600 }}>No products match your filters.</div>
+                        </td>
+                      </tr>
+                    ) : (
+                      groupedCategoryData.map(group => (
+                        <React.Fragment key={group.categoryName}>
+                          {/* Category Row header in table */}
+                          <tr className="cat-row">
+                            <td colSpan="7">
+                              <div className="cat-row-inner">
+                                <span className="cat-name">{group.categoryName}</span>
+                                <span className="cat-count">
+                                  {group.list.length} product{group.list.length === 1 ? '' : 's'}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* Product Rows list */}
+                          {group.list.map(p => {
+                            const isSelected = selectedIds.includes(p._id);
+                            return (
+                              <tr 
+                                key={p._id}
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(e, p._id, 'product')}
+                                onDragOver={(e) => handleDragOver(e, p._id, 'product')}
+                                onDrop={(e) => handleDrop(e, p._id, 'product')}
+                                className={draggedId === p._id ? 'dragging' : ''}
+                              >
+                                <td className="drag-col">
+                                  <span className="drag-handle" title="Drag to reorder">
+                                    <GripVertical className="ic" />
+                                  </span>
+                                </td>
+                                
+                                <td>
+                                  <span 
+                                    className={`check ${isSelected ? 'on' : ''}`}
+                                    onClick={() => handleSelectOne(p._id)}
+                                  >
+                                    <Check className="ic" />
+                                  </span>
+                                </td>
+
+                                <td>
+                                  <div className="p-cell">
+                                    <span className="thumb">
+                                      <img src={p.imageUrl} alt={p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </span>
+                                    <div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div className="p-name">{p.name.en}</div>
+                                        <button 
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleFeatured(p);
+                                          }}
+                                          title={p.isFeatured ? 'Featured item (starred at top of storefront)' : 'Mark as featured'}
+                                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0 4px', display: 'inline-flex', alignItems: 'center' }}
+                                        >
+                                          <Star className="ic" style={{ color: p.isFeatured ? '#eab308' : '#cbd5e1', fill: p.isFeatured ? '#eab308' : 'none', width: '13px', height: '13px' }} />
+                                        </button>
+                                      </div>
+                                      <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.en || 'No description'}</div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', maxWidth: '240px' }}>
+                                    {p.modifierGroups?.length > 0 ? (
+                                      p.modifierGroups.map(grpId => {
+                                        const matchedGrp = modifierGroups.find(g => g._id === grpId);
+                                        return matchedGrp ? (
+                                          <span key={grpId} className="tag">{matchedGrp.name.en}</span>
+                                        ) : null;
+                                      })
+                                    ) : (
+                                      <span className="mut3">None</span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                <td>
+                                  <span className="price tnum">${parseFloat(p.price).toFixed(2)}</span>
+                                </td>
+
+                                <td>
+                                  <div className="avail-cell">
+                                    <label className="switch">
+                                      <input 
+                                        type="checkbox"
+                                        checked={p.isAvailable}
+                                        onChange={() => handleToggleStock(p)}
+                                      />
+                                      <span className="track"></span>
+                                    </label>
+                                    <span className={`pill ${p.isAvailable ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px' }}>
+                                      <span className="dot"></span>
+                                      {p.isAvailable ? 'In stock' : 'Out'}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td>
+                                  <div className="row gap8" style={{ justifyContent: 'flex-end' }}>
+                                    <button 
+                                      className="iconbtn" 
+                                      onClick={() => loadProductForEdit(p)}
+                                      title="Edit"
+                                    >
+                                      <Pencil className="ic" />
+                                    </button>
+                                    <button 
+                                      className="iconbtn del" 
+                                      onClick={() => handleDeleteProduct(p._id, p.name.en)}
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="ic" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </React.Fragment>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Products Grid Table */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ============================================================
+          TAB 2: CATEGORIES LIST
+          ============================================================ */}
+      {tab === 'categories' && (
+        <section>
+          {loading ? (
+            renderSkeletonCategories()
+          ) : (
+            <div className="card">
+              
+              {/* Header toolbar */}
+              <div className="toolbar" style={{ justifyContent: 'space-between' }}>
+                <div className="card-title">
+                  <Layers className="ic" style={{ marginRight: '7px' }} />
+                  <span>Categories</span>
+                </div>
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setCatName('');
+                    setIsCategoryOpen(true);
+                  }}
+                >
+                  <Plus className="ic" />
+                  <span>Add category</span>
+                </button>
+              </div>
+
+              {/* Categories list table */}
+              <table className="tbl">
                 <thead>
-                  <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>
-                    <th style={{ padding: '12px' }}>
-                      <input 
-                        type="checkbox"
-                        checked={products.length > 0 && selectedIds.length === products.length}
-                        onChange={handleSelectAll}
-                        style={{ width: '16px', height: '16px' }}
-                      />
-                    </th>
-                    <th style={{ padding: '12px' }}>Product</th>
-                    <th style={{ padding: '12px' }}>Categories</th>
-                    <th style={{ padding: '12px' }}>Modifiers Mapping</th>
-                    <th style={{ padding: '12px' }}>Base Price</th>
-                    <th style={{ padding: '12px' }}>Availability</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
+                  <tr>
+                    <th style={{ width: '60px' }}>Order</th>
+                    <th>Category</th>
+                    <th style={{ textAlign: 'center', width: '120px' }}>Promoted</th>
+                    <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map(product => (
-                    <tr key={product._id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '12px' }}>
-                        <input 
-                          type="checkbox"
-                          checked={selectedIds.includes(product._id)}
-                          onChange={(e) => handleSelectOne(product._id, e.target.checked)}
-                          style={{ width: '16px', height: '16px' }}
-                        />
-                      </td>
-                      <td style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src={product.imageUrl} alt={product.name?.en} style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
-                        <div>
-                          <div style={{ fontWeight: '700' }}>{product.name?.en}</div>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{product.name?.ar}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {product.categories?.map(cId => {
-                          const cat = categories.find(c => c._id === cId);
-                          return cat ? (
-                            <span key={cId} style={{ backgroundColor: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold', marginRight: '4px' }}>
-                              {cat.name?.en}
-                            </span>
-                          ) : null;
-                        })}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {product.modifierGroups?.map(mId => {
-                          const grp = modifierGroups.find(g => g._id === mId);
-                          return grp ? (
-                            <span key={mId} style={{ display: 'inline-block', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold', marginRight: '4px', marginBottom: '2px' }}>
-                              {grp.name?.en}
-                            </span>
-                          ) : null;
-                        })}
-                        {(!product.modifierGroups || product.modifierGroups.length === 0) && (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>None</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px', fontWeight: '700' }}>{formatPrice(product.price)}</td>
-                      <td style={{ padding: '12px' }}>
-                        <button
-                          onClick={() => handleToggleStock(product)}
-                          style={{
-                            border: 'none',
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            fontSize: '0.72rem',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            backgroundColor: product.isAvailable ? '#d1fae5' : '#fee2e2',
-                            color: product.isAvailable ? '#10b981' : '#ef4444'
-                          }}
-                        >
-                          {product.isAvailable ? 'In Stock' : 'Out of Stock'}
-                        </button>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => loadProductForEdit(product)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Edit Product"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product._id, product.name?.en)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Delete Product"
-                          >
-                            🗑️
-                          </button>
-                        </div>
+                  {categories.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '48px', textAlign: 'center', color: 'var(--ink-3)' }}>
+                        No categories found. Click add category to start.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    categories.map((c, idx) => (
+                      <tr 
+                        key={c._id}
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, c._id, 'category')}
+                        onDragOver={(e) => handleDragOver(e, c._id, 'category')}
+                        onDrop={(e) => handleDrop(e, c._id, 'category')}
+                        className={draggedId === c._id ? 'dragging' : ''}
+                      >
+                        <td style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'grab' }}>
+                          <GripVertical style={{ width: '12px', height: '12px', color: 'var(--ink-3)' }} />
+                          <span>{c.order !== undefined ? c.order : idx + 1}</span>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: '700' }}>{c.name.en}</div>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--ink-3)' }}>{c.name.ar}</span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button 
+                            className={`star ${c.isPinned ? 'on' : ''}`}
+                            onClick={() => handleTogglePinCategory(c)}
+                            title={c.isPinned ? 'Pinned Main storefront' : 'Pin to storefront header'}
+                          >
+                            <Check className="ic" />
+                          </button>
+                        </td>
+                        <td>
+                          <div className="row gap8" style={{ justifyContent: 'flex-end' }}>
+                            <button 
+                              className="iconbtn" 
+                              onClick={() => loadCategoryForEdit(c)}
+                              title="Edit"
+                            >
+                              <Pencil className="ic" />
+                            </button>
+                            <button 
+                              className="iconbtn del" 
+                              onClick={() => handleDeleteCategory(c._id, c.name.en)}
+                              title="Delete"
+                            >
+                              <Trash2 className="ic" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-            </div>
 
-            {/* Right Product Form */}
-            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', height: 'fit-content' }}>
-              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.05rem', fontWeight: '800', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{editingProduct ? '✏️ Edit Product' : '🍕 Add New Product'}</span>
-                {editingProduct && (
-                  <button onClick={clearProductForm} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer' }}>
-                    Cancel
-                  </button>
-                )}
-              </h4>
-              <form onSubmit={handleProductSubmit}>
-                <div className="form-group">
-                  <label className="form-label">English Name</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="e.g. Pepperoni Feast"
-                    value={prodName}
-                    onChange={(e) => setProdName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Price ($)</label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    className="form-control" 
-                    placeholder="14.99"
-                    value={prodPrice}
-                    onChange={(e) => setProdPrice(e.target.value)}
-                    required
-                  />
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ============================================================
+          TAB 3: MODIFIER ADD-ONS LIST
+          ============================================================ */}
+      {tab === 'addons' && (
+        <section>
+          {loading ? (
+            renderSkeletonModifiers()
+          ) : (
+            <div className="card">
+              
+              {/* Header toolbar */}
+              <div className="toolbar" style={{ justifyContent: 'space-between' }}>
+                <div className="card-title">
+                  <SlidersHorizontal className="ic" style={{ marginRight: '7px' }} />
+                  <span>Modifier Groups</span>
                 </div>
                 
-                {/* Categories Checkboxes mapping */}
-                <div className="form-group">
-                  <label className="form-label">Product Categories</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', border: '1px solid #d1d5db', padding: '10px', borderRadius: '10px', backgroundColor: 'var(--bg-secondary)' }}>
-                    {categories.map(cat => (
-                      <label key={cat._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox"
-                          checked={prodCatIds.includes(cat._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setProdCatIds([...prodCatIds, cat._id]);
-                            } else {
-                              setProdCatIds(prodCatIds.filter(x => x !== cat._id));
-                            }
-                          }}
-                        />
-                        <span>{cat.name?.en}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => {
+                    clearGroupForm();
+                    setIsModifierOpen(true);
+                  }}
+                >
+                  <Plus className="ic" />
+                  <span>Add group</span>
+                </button>
+              </div>
 
-                {/* Modifier Groups Checkboxes mapping */}
-                <div className="form-group">
-                  <label className="form-label">Add-on Modifier Groups</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', border: '1px solid #d1d5db', padding: '10px', borderRadius: '10px', backgroundColor: 'var(--bg-secondary)', marginBottom: '8px' }}>
-                    {modifierGroups.map(grp => (
-                      <label key={grp._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', cursor: 'pointer' }}>
-                        <input 
-                          type="checkbox"
-                          checked={prodModGroups.includes(grp._id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setProdModGroups([...prodModGroups, grp._id]);
-                            } else {
-                              setProdModGroups(prodModGroups.filter(x => x !== grp._id));
-                            }
-                          }}
-                        />
-                        <span>{grp.name?.en} ({grp.type})</span>
-                      </label>
-                    ))}
+              {/* Modifiers List mapping cards */}
+              <div className="card-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', backgroundColor: 'var(--bg)' }}>
+                {modifierGroups.length === 0 ? (
+                  <div style={{ padding: '40px', textAlign: 'center', gridColumn: '1 / -1' }} className="mut3">
+                    No modifier groups created yet.
                   </div>
+                ) : (
+                  modifierGroups.map(grp => (
+                    <div key={grp._id} className="mod-card">
+                      <div className="mod-top">
+                        <span className="mod-title">{grp.name.en}</span>
+                        <span className="pill pill-soft" style={{ marginLeft: 'auto', fontSize: '11px' }}>
+                          {grp.type === 'variations' ? 'Sizes' : grp.type === 'addons' ? 'Add-on' : 'Removal'}
+                        </span>
+                      </div>
 
-                  {/* Toggle inline modifier creator */}
-                  {!showInlineMod ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowInlineMod(true)}
-                      style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}
-                    >
-                      ⚡ Create Modifier Inline
-                    </button>
-                  ) : (
-                    <div style={{ border: '1px dashed var(--brand-red)', borderRadius: '12px', padding: '12px', marginTop: '10px', backgroundColor: '#fffdfd' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <strong style={{ fontSize: '0.78rem', color: 'var(--brand-red)' }}>Create Modifier Inline</strong>
-                        <button
-                          type="button"
-                          onClick={() => setShowInlineMod(false)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer' }}
+                      <div className="mod-opts">
+                        {grp.options?.map((opt, oIdx) => {
+                          const nameLabel = typeof opt.name === 'object' ? opt.name.en : opt.name;
+                          return (
+                            <span key={oIdx} className="tag">
+                              {nameLabel} {parseFloat(opt.price) > 0 ? `(+$${parseFloat(opt.price).toFixed(2)})` : ''}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                      <div className="row gap8" style={{ justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
+                        <button 
+                          className="iconbtn" 
+                          onClick={() => loadGroupForEdit(grp)}
+                          title="Edit"
                         >
-                          ✕
+                          <Pencil className="ic" />
+                        </button>
+                        <button 
+                          className="iconbtn del" 
+                          onClick={() => handleDeleteGroup(grp._id, grp.name.en)}
+                          title="Delete"
+                        >
+                          <Trash2 className="ic" />
                         </button>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
 
-                      <div className="form-group" style={{ marginBottom: '8px' }}>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Group Name (e.g. Choose Size)"
-                          value={inlineModName}
-                          onChange={(e) => setInlineModName(e.target.value)}
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                        />
-                      </div>
+            </div>
+          )}
+        </section>
+      )}
 
-                      <div className="form-group" style={{ marginBottom: '8px' }}>
-                        <select
-                          className="form-control"
-                          value={inlineModType}
-                          onChange={(e) => setInlineModType(e.target.value)}
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                        >
-                          <option value="variations">Variations (Mandatory Size/Price)</option>
-                          <option value="addons">Addons (Optional Extra Price)</option>
-                          <option value="removals">Remove Ingredients (Optional Free)</option>
-                        </select>
-                      </div>
+      {/* ============================================================
+          SLIDE DRAWER: ADD / EDIT PRODUCT
+          ============================================================ */}
+      <div className={`drawer-scrim ${isProductOpen ? 'open' : ''}`} onClick={closeProductDrawer}></div>
+      <aside className={`drawer ${isProductOpen ? 'open' : ''}`}>
+        <div className="rail-head">
+          <PlusCircle className="ic" />
+          <h3>{editingProduct ? 'Edit product' : 'Add new product'}</h3>
+          <button className="x" onClick={closeProductDrawer} title="Close">
+            <X className="ic" />
+          </button>
+        </div>
+        
+        <div className="rail-body">
+          <div className="field">
+            <label className="label">Product name (English)</label>
+            <input 
+              className="input" 
+              value={prodName}
+              onChange={(e) => setProdName(e.target.value)}
+              placeholder="e.g. Pepperoni Feast" 
+            />
+          </div>
 
-                      {/* Options list for inline modifier */}
-                      <div style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>Options</span>
-                          <button
-                            type="button"
-                            onClick={() => setInlineModOptions([...inlineModOptions, { name: '', price: '0.00' }])}
-                            style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.72rem', cursor: 'pointer' }}
-                          >
-                            + Add Option
-                          </button>
-                        </div>
+          <div className="field">
+            <label className="label">Base price</label>
+            <div className="input-affix">
+              <span className="pfx">$</span>
+              <input 
+                className="input" 
+                value={prodPrice}
+                onChange={(e) => setProdPrice(e.target.value)}
+                placeholder="14.99" 
+                type="number"
+                step="0.01"
+              />
+            </div>
+          </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {inlineModOptions.map((opt, idx) => (
-                            <div key={idx} style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="e.g. Medium"
-                                value={opt.name}
-                                onChange={(e) => {
-                                  setInlineModOptions(inlineModOptions.map((o, i) => i === idx ? { ...o, name: e.target.value } : o));
-                                }}
-                                style={{ padding: '4px 8px', fontSize: '0.72rem', flex: 2 }}
-                              />
-                              {inlineModType !== 'removals' && (
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  className="form-control"
-                                  placeholder="0.00"
-                                  value={opt.price}
-                                  onChange={(e) => {
-                                    setInlineModOptions(inlineModOptions.map((o, i) => i === idx ? { ...o, price: e.target.value } : o));
-                                  }}
-                                  style={{ padding: '4px 8px', fontSize: '0.72rem', flex: 1 }}
-                                />
-                              )}
-                              {inlineModOptions.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => setInlineModOptions(inlineModOptions.filter((_, i) => i !== idx))}
-                                  style={{ border: 'none', background: 'none', color: '#ef4444', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
-                                >
-                                  ✕
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+          <div className="field">
+            <label className="label">Categories</label>
+            <div className="checklist" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+              {categories.map(c => (
+                <label key={c._id} className="chk">
+                  <span 
+                    className={`check ${prodCatIds.includes(c._id) ? 'on' : ''}`}
+                    onClick={() => {
+                      if (prodCatIds.includes(c._id)) {
+                        setProdCatIds(prodCatIds.filter(x => x !== c._id));
+                      } else {
+                        setProdCatIds([...prodCatIds, c._id]);
+                      }
+                    }}
+                  >
+                    <Check className="ic" />
+                  </span>
+                  <span>{c.name.en}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-                      <button
-                        type="button"
-                        onClick={handleCreateInlineMod}
-                        disabled={creatingInlineMod}
-                        className="checkout-btn"
-                        style={{ fontSize: '0.72rem', padding: '6px 12px', height: 'auto', width: 'auto' }}
-                      >
-                        {creatingInlineMod ? 'Creating...' : '✓ Create & Map'}
-                      </button>
+          <div className="field">
+            <label className="label">Modifier groups <span className="opt">&middot; optional</span></label>
+            <div className="checklist" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+              {modifierGroups.map(grp => (
+                <label key={grp._id} className="chk">
+                  <span 
+                    className={`check ${prodModGroups.includes(grp._id) ? 'on' : ''}`}
+                    onClick={() => {
+                      if (prodModGroups.includes(grp._id)) {
+                        setProdModGroups(prodModGroups.filter(x => x !== grp._id));
+                      } else {
+                        setProdModGroups([...prodModGroups, grp._id]);
+                      }
+                    }}
+                  >
+                    <Check className="ic" />
+                  </span>
+                  <span>{grp.name.en}</span>
+                  <span className="meta">{grp.type}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="label">Product image <span className="opt">&middot; optional</span></label>
+            <div className="dropzone" onClick={handleImageUploadClick}>
+              <ImageUp className="ic" />
+              <span>{prodImage ? 'Image uploaded!' : 'Click to choose image file'}</span>
+            </div>
+            {prodImage && (
+              <div style={{ marginTop: '10px', position: 'relative', width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--line-2)' }}>
+                <img src={prodImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button 
+                  onClick={() => setProdImage('')}
+                  style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', padding: '2px' }}
+                >
+                  <X style={{ width: '12px', height: '12px' }} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="field">
+            <label className="label">Description <span className="opt">&middot; optional</span></label>
+            <textarea 
+              className="input" 
+              rows="3"
+              value={prodDesc}
+              onChange={(e) => setProdDesc(e.target.value)}
+              placeholder="e.g. Loaded with spicy beef pepperoni..."
+            />
+          </div>
+
+          <div className="field" style={{ marginTop: '16px' }}>
+            <label className="chk" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={prodIsFeatured} 
+                onChange={(e) => setProdIsFeatured(e.target.checked)} 
+              />
+              <span style={{ fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Star style={{ width: '14px', height: '14px', fill: prodIsFeatured ? '#eab308' : 'none', color: prodIsFeatured ? '#eab308' : 'currentColor' }} />
+                Promote as Featured Item
+              </span>
+            </label>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginTop: '4px', marginLeft: '22px' }}>
+              Featured products appear in a premium slider at the top of the storefront menu.
+            </span>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--line-2)', margin: '20px 0' }} />
+
+          {/* Product variations */}
+          <div className="field">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Variations (e.g. Sizes)</label>
+              <button 
+                type="button" 
+                onClick={handleAddVariationRow}
+                style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                + Add Size/Price
+              </button>
+            </div>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
+              These define absolute pricing that overrides the base product price when chosen.
+            </span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {prodVariations.map((v, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    className="input" 
+                    value={v.name}
+                    onChange={(e) => handleVariationChange(idx, 'name', e.target.value)}
+                    placeholder="e.g. Large"
+                    style={{ flex: 2, height: '36px', fontSize: '0.8rem' }}
+                  />
+                  <div className="input-affix" style={{ flex: 1 }}>
+                    <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                    <input 
+                      className="input" 
+                      value={v.price}
+                      onChange={(e) => handleVariationChange(idx, 'price', e.target.value)}
+                      placeholder="0.00"
+                      type="number"
+                      step="0.01"
+                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveVariationRow(idx)}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', padding: '4px', cursor: 'pointer' }}
+                  >
+                    <Trash2 style={{ width: '16px', height: '16px' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--line-2)', margin: '20px 0' }} />
+
+          {/* Product-level Add-ons */}
+          <div className="field">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Add-ons</label>
+              <button 
+                type="button" 
+                onClick={handleAddAddonRow}
+                style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                + Add Add-on
+              </button>
+            </div>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
+              Extra ingredients or customizations for this product with optional extra charge.
+            </span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {prodAddons.map((a, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    className="input" 
+                    value={a.name}
+                    onChange={(e) => handleAddonChange(idx, 'name', e.target.value)}
+                    placeholder="e.g. Extra Pepperoni"
+                    style={{ flex: 2, height: '36px', fontSize: '0.8rem' }}
+                  />
+                  <div className="input-affix" style={{ flex: 1 }}>
+                    <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                    <input 
+                      className="input" 
+                      value={a.price}
+                      onChange={(e) => handleAddonChange(idx, 'price', e.target.value)}
+                      placeholder="0.00"
+                      type="number"
+                      step="0.01"
+                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveAddonRow(idx)}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', padding: '4px', cursor: 'pointer' }}
+                  >
+                    <Trash2 style={{ width: '16px', height: '16px' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--line-2)', margin: '20px 0' }} />
+
+          {/* Product-level Removals */}
+          <div className="field">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Removals</label>
+              <button 
+                type="button" 
+                onClick={handleAddRemovalRow}
+                style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
+              >
+                + Add Removal
+              </button>
+            </div>
+            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
+              Ingredients customers can exclude from the item (e.g. No Onions) for free.
+            </span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {prodRemovals.map((r, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input 
+                    className="input" 
+                    value={r.name}
+                    onChange={(e) => handleRemovalChange(idx, e.target.value)}
+                    placeholder="e.g. No Onions"
+                    style={{ flex: 1, height: '36px', fontSize: '0.8rem' }}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => handleRemoveRemovalRow(idx)}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', padding: '4px', cursor: 'pointer' }}
+                  >
+                    <Trash2 style={{ width: '16px', height: '16px' }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button 
+            className="btn btn-primary btn-block btn-lg"
+            onClick={handleProductSubmit}
+            disabled={savingProduct}
+            style={{ marginTop: '24px' }}
+          >
+            <Save className="ic" />
+            <span>{savingProduct ? 'Saving...' : (editingProduct ? 'Save changes' : 'Create product')}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ============================================================
+          SLIDE DRAWER: ADD / EDIT CATEGORY
+          ============================================================ */}
+      <div className={`drawer-scrim ${isCategoryOpen ? 'open' : ''}`} onClick={closeCategoryDrawer}></div>
+      <aside className={`drawer ${isCategoryOpen ? 'open' : ''}`}>
+        <div className="rail-head">
+          <FolderPlus className="ic" />
+          <h3>{editingCategory ? 'Edit category' : 'Add category'}</h3>
+          <button className="x" onClick={closeCategoryDrawer} title="Close">
+            <X className="ic" />
+          </button>
+        </div>
+
+        <div className="rail-body">
+          <div className="field">
+            <label className="label">Category name</label>
+            <input 
+              className="input" 
+              value={catName}
+              onChange={(e) => setCatName(e.target.value)}
+              placeholder="e.g. Desserts" 
+            />
+          </div>
+
+          <button 
+            className="btn btn-primary btn-block btn-lg"
+            onClick={handleCategorySubmit}
+            disabled={savingCategory}
+            style={{ marginTop: '24px' }}
+          >
+            <Save className="ic" />
+            <span>{savingCategory ? 'Saving...' : (editingCategory ? 'Save changes' : 'Create category')}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ============================================================
+          SLIDE DRAWER: ADD / EDIT MODIFIER GROUP
+          ============================================================ */}
+      <div className={`drawer-scrim ${isModifierOpen ? 'open' : ''}`} onClick={closeModifierDrawer}></div>
+      <aside className={`drawer ${isModifierOpen ? 'open' : ''}`}>
+        <div className="rail-head">
+          <SlidersHorizontal className="ic" />
+          <h3>{editingGroup ? 'Edit modifier group' : 'New modifier group'}</h3>
+          <button className="x" onClick={closeModifierDrawer} title="Close">
+            <X className="ic" />
+          </button>
+        </div>
+
+        <div className="rail-body">
+          <div className="field">
+            <label className="label">Group name</label>
+            <input 
+              className="input" 
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="e.g. Choose Size" 
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Type</label>
+            <div className="type-picker">
+              <button 
+                type="button" 
+                className={`type-card ${groupType === 'variations' ? 'on' : ''}`}
+                onClick={() => setGroupType('variations')}
+              >
+                <span className="tc-ic"><Ruler className="ic" /></span>
+                <span className="tc-lbl">Variations</span>
+              </button>
+              <button 
+                type="button" 
+                className={`type-card ${groupType === 'addons' ? 'on' : ''}`}
+                onClick={() => setGroupType('addons')}
+              >
+                <span className="tc-ic"><PlusCircle className="ic" /></span>
+                <span className="tc-lbl">Add-ons</span>
+              </button>
+              <button 
+                type="button" 
+                className={`type-card ${groupType === 'removals' ? 'on' : ''}`}
+                onClick={() => setGroupType('removals')}
+              >
+                <span className="tc-ic"><MinusCircle className="ic" /></span>
+                <span className="tc-lbl">Removals</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="nm-hint">
+            <Info className="ic" />
+            <span>
+              {groupType === 'variations' && <b>Variations</b> && ' forces customers to pick exactly one option (e.g. sizes) that defines the base price.'}
+              {groupType === 'addons' && <b>Add-ons</b> && ' lets visitors select multiple optional ingredients for an extra price.'}
+              {groupType === 'removals' && <b>Removals</b> && ' lets customers strike out default ingredients for free.'}
+            </span>
+          </div>
+
+          <div className="field">
+            <label className="label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Options</span>
+              <button 
+                type="button" 
+                onClick={handleAddOptionRow}
+                style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                + Add Option
+              </button>
+            </label>
+
+            <div className="opt-list">
+              {groupOptions.map((opt, idx) => (
+                <div key={idx} className="opt-row" data-type={groupType}>
+                  <input 
+                    className="input" 
+                    value={opt.name}
+                    onChange={(e) => handleOptionChange(idx, 'name', e.target.value)}
+                    placeholder="e.g. Extra Cheese"
+                    style={{ height: '36px', fontSize: '0.8rem' }}
+                  />
+                  {groupType !== 'removals' && (
+                    <div className="input-affix">
+                      <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                      <input 
+                        className="input" 
+                        value={opt.price}
+                        onChange={(e) => handleOptionChange(idx, 'price', e.target.value)}
+                        placeholder="0.00"
+                        type="number"
+                        step="0.01"
+                        style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                      />
                     </div>
                   )}
-                </div>
-
-                {/* Product Image drag & drop picker */}
-                <div className="form-group">
-                  <label className="form-label">Product Image</label>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div style={{ 
-                      flexGrow: 1, 
-                      border: '2px dashed #d1d5db', 
-                      borderRadius: '12px', 
-                      padding: '12px', 
-                      textAlign: 'center', 
-                      position: 'relative',
-                      backgroundColor: 'var(--bg-secondary)',
-                      cursor: 'pointer'
-                    }}>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        style={{ 
-                          position: 'absolute', 
-                          top: 0, 
-                          left: 0, 
-                          width: '100%', 
-                          height: '100%', 
-                          opacity: 0, 
-                          cursor: 'pointer' 
-                        }} 
-                      />
-                      <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)' }}>
-                        📷 Choose Image File
-                      </span>
-                    </div>
-                    {prodImage && (
-                      <div style={{ position: 'relative', width: '54px', height: '54px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
-                        <img src={prodImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button 
-                          type="button"
-                          onClick={() => setProdImage('')}
-                          style={{ position: 'absolute', top: 0, right: 0, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label className="form-label">Description</label>
-                  <textarea 
-                    className="form-control" 
-                    rows="2"
-                    placeholder="Enter ingredients description"
-                    value={prodDesc}
-                    onChange={(e) => setProdDesc(e.target.value)}
-                    style={{ resize: 'none', fontFamily: 'inherit' }}
-                  />
-                </div>
-                <button 
-                  type="submit" 
-                  className="checkout-btn"
-                  disabled={savingProduct}
-                  style={{ fontSize: '0.85rem', padding: '10px' }}
-                >
-                  {savingProduct ? 'Saving details...' : (editingProduct ? 'Save Changes' : 'Create Product')}
-                </button>
-              </form>
-            </div>
-          </>
-        )}
-
-        {/* ============================================================
-            TAB 2: CATEGORIES LIST
-            ============================================================ */}
-        {tab === 'categories' && (
-          <>
-            {/* Left Categories Table */}
-            <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>
-                    <th style={{ padding: '12px' }}>Order</th>
-                    <th style={{ padding: '12px' }}>Category Name</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Promoted / Pinned</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.map((cat, index) => (
-                    <tr key={cat._id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{cat.order}</td>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: '700' }}>{cat.name?.en}</div>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{cat.name?.ar}</span>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleTogglePinCategory(cat)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '1.2rem',
-                            cursor: 'pointer',
-                            opacity: cat.isPinned ? 1 : 0.2
-                          }}
-                          title={cat.isPinned ? 'Promoted (Top of Storefront)' : 'Pin promotion'}
-                        >
-                          ⭐
-                        </button>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => loadCategoryForEdit(cat)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Edit Category"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(cat._id, cat.name?.en)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Delete Category"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Right Category Form */}
-            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', height: 'fit-content' }}>
-              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.05rem', fontWeight: '800', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{editingCategory ? '✏️ Edit Category' : '📋 Add Category'}</span>
-                {editingCategory && (
-                  <button onClick={clearCategoryForm} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer' }}>
-                    Cancel
-                  </button>
-                )}
-              </h4>
-              <form onSubmit={handleCategorySubmit}>
-                <div className="form-group" style={{ marginBottom: '16px' }}>
-                  <label className="form-label">Category Name</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="e.g. Desserts"
-                    value={catName}
-                    onChange={(e) => setCatName(e.target.value)}
-                    required
-                  />
-                </div>
-                <button 
-                  type="submit" 
-                  className="checkout-btn"
-                  disabled={savingCategory}
-                  style={{ fontSize: '0.85rem', padding: '10px' }}
-                >
-                  {savingCategory ? 'Saving changes...' : (editingCategory ? 'Save Changes' : 'Create Category')}
-                </button>
-              </form>
-            </div>
-          </>
-        )}
-
-        {/* ============================================================
-            TAB 3: MODIFIER ADD-ONS LIST
-            ============================================================ */}
-        {tab === 'addons' && (
-          <>
-            {/* Left Modifiers Table */}
-            <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid var(--border-light)', color: 'var(--text-muted)' }}>
-                    <th style={{ padding: '12px' }}>Group Name</th>
-                    <th style={{ padding: '12px' }}>Type</th>
-                    <th style={{ padding: '12px' }}>Options List</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {modifierGroups.map(group => (
-                    <tr key={group._id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: '700' }}>{group.name?.en}</div>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{group.name?.ar}</span>
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {group.type === 'variations' ? (
-                          <span style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-                            Mandatory Sizes
-                          </span>
-                        ) : group.type === 'addons' ? (
-                          <span style={{ backgroundColor: '#d1fae5', color: '#10b981', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-                            Premium Addon
-                          </span>
-                        ) : (
-                          <span style={{ backgroundColor: '#f3f4f6', color: '#4b5563', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold' }}>
-                            Ingredient Removal
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px', maxWidth: '300px' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {group.options?.map((opt, idx) => (
-                            <span key={idx} style={{ backgroundColor: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '500' }}>
-                              {typeof opt.name === 'object' ? opt.name.en : opt.name} {opt.price > 0 ? `(+${formatPrice(opt.price)})` : ''}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => loadGroupForEdit(group)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Edit Group"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            onClick={() => handleDeleteGroup(group._id, group.name?.en)}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                            title="Delete Group"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Right Addons Form */}
-            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)', height: 'fit-content' }}>
-              <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.05rem', fontWeight: '800', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{editingGroup ? '✏️ Edit Modifier' : '➕ Add Modifier Group'}</span>
-                {editingGroup && (
-                  <button onClick={clearGroupForm} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer' }}>
-                    Cancel
-                  </button>
-                )}
-              </h4>
-              <form onSubmit={handleGroupSubmit}>
-                <div className="form-group">
-                  <label className="form-label">Modifier Group Name</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="e.g. Premium Addons"
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Modifier Type</label>
-                  <select
-                    className="form-control"
-                    value={groupType}
-                    onChange={(e) => setGroupType(e.target.value)}
-                  >
-                    <option value="variations">Variations (Mandatory Size/Price)</option>
-                    <option value="addons">Addons (Optional Extra Price)</option>
-                    <option value="removals">Remove Ingredients (Optional Zero Price)</option>
-                  </select>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Group Options</span>
-                    <button type="button" onClick={handleAddOptionRow} style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      + Add Option
+                  {groupOptions.length > 1 && (
+                    <button 
+                      type="button" 
+                      className="opt-rm"
+                      onClick={() => handleRemoveOptionRow(idx)}
+                    >
+                      <Trash2 className="ic" />
                     </button>
-                  </label>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                    {groupOptions.map((opt, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="e.g. Extra Cheese"
-                          value={opt.name}
-                          onChange={(e) => handleOptionChange(idx, 'name', e.target.value)}
-                          required
-                          style={{ flex: 2, padding: '8px 12px', fontSize: '0.8rem' }}
-                        />
-                        {groupType !== 'removals' && (
-                          <input
-                            type="number"
-                            step="0.01"
-                            className="form-control"
-                            placeholder="Price"
-                            value={opt.price}
-                            onChange={(e) => handleOptionChange(idx, 'price', e.target.value)}
-                            required
-                            style={{ flex: 1, padding: '8px 12px', fontSize: '0.8rem' }}
-                          />
-                        )}
-                        {groupOptions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOptionRow(idx)}
-                            style={{ border: 'none', background: 'none', color: '#ef4444', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  )}
                 </div>
-
-                <button 
-                  type="submit" 
-                  className="checkout-btn"
-                  disabled={savingGroup}
-                  style={{ fontSize: '0.85rem', padding: '10px' }}
-                >
-                  {savingGroup ? 'Saving changes...' : (editingGroup ? 'Save Changes' : 'Create Modifier')}
-                </button>
-              </form>
+              ))}
             </div>
-          </>
-        )}
+          </div>
 
-      </div>
+          <button 
+            className="btn btn-primary btn-block btn-lg"
+            onClick={handleGroupSubmit}
+            disabled={savingGroup}
+            style={{ marginTop: '24px' }}
+          >
+            <Save className="ic" />
+            <span>{savingGroup ? 'Saving...' : (editingGroup ? 'Save changes' : 'Create group')}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ============================================================
+          SLIDE DRAWER: BULK UPLOAD SHEET
+          ============================================================ */}
+      <div className={`drawer-scrim ${isBulkOpen ? 'open' : ''}`} onClick={closeBulkDrawer}></div>
+      <aside className={`drawer ${isBulkOpen ? 'open' : ''}`}>
+        <div className="rail-head">
+          <UploadCloud className="ic" />
+          <h3>Bulk upload products</h3>
+          <button className="x" onClick={closeBulkDrawer} title="Close">
+            <X className="ic" />
+          </button>
+        </div>
+
+        <div className="rail-body">
+          <div className="field">
+            <label className="label">Step 1 &middot; Download the template</label>
+            <p className="opt" style={{ margin: '0 0 10px' }}>
+              Download a template CSV sheet structured with: name, category, price, sku, availability, modifiers.
+            </p>
+            <button 
+              className="btn btn-outline btn-sm"
+              onClick={handleBulkFileTemplate}
+            >
+              <FileDown className="ic" />
+              <span>Download CSV template</span>
+            </button>
+          </div>
+
+          <div className="field">
+            <label className="label">Step 2 &middot; Upload your file</label>
+            <div 
+              className="dropzone"
+              onClick={() => fileInputRef.current.click()}
+            >
+              <FileSpreadsheet className="ic" />
+              <span>{bulkFileName ? bulkFileName : 'Drag a .csv file here, or click to browse'}</span>
+            </div>
+            
+            <input 
+              type="file"
+              ref={fileInputRef}
+              accept=".csv"
+              onChange={handleBulkFileChange}
+              hidden
+            />
+          </div>
+
+          {bulkFileRows.length > 0 && (
+            <div className="field">
+              <label className="label">Preview &middot; {bulkFileRows.length} rows</label>
+              <div style={{ border: '1px solid var(--line)', borderRadius: '10px', overflow: 'hidden', maxHeight: '180px', overflowY: 'auto' }}>
+                <table className="tbl" style={{ margin: 0, fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr><th>Name</th><th>Category</th><th>Price</th></tr>
+                  </thead>
+                  <tbody>
+                    {bulkFileRows.slice(0, 5).map((r, rIdx) => (
+                      <tr key={rIdx}>
+                        <td>{r.name}</td>
+                        <td>{r.category}</td>
+                        <td>${parseFloat(r.price).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <button 
+            className="btn btn-primary btn-block btn-lg"
+            onClick={handleBulkImport}
+            disabled={bulkFileRows.length === 0}
+            style={{ marginTop: '24px' }}
+          >
+            <Upload className="ic" />
+            <span>Import products</span>
+          </button>
+        </div>
+      </aside>
+
     </div>
   );
 }
+
+const resetRail = () => {
+  // Global form resets logic handled on triggers
+};
 
 export default function ManagerProductsPage() {
   return (

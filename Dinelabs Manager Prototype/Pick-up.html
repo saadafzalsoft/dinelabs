@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Pick-up</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="service.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="pickup">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Pick-up</h1>
+          <p class="page-sub">Turn pick-up on and set how long customers should plan to wait before walking in.</p>
+        </div>
+        <button class="btn btn-primary" id="puSave"><i class="ic" data-lucide="check"></i>Save changes</button>
+      </div>
+
+      <section data-screen-label="Pick-up settings">
+        <div class="card">
+
+          <div class="svc-status" id="puStatus">
+            <div class="svc-ic"><i class="ic" data-lucide="shopping-bag"></i></div>
+            <div>
+              <div class="svc-h">
+                <span>Accepting pick-up orders</span>
+                <span class="svc-pill" id="puPill"><span class="dot"></span><span id="puPillTxt"></span></span>
+              </div>
+              <div class="svc-sub" id="puStatusSub">When off, the pick-up option is hidden from the storefront.</div>
+            </div>
+            <div class="svc-act">
+              <label class="switch"><input type="checkbox" id="puToggle" /><span class="track"></span></label>
+            </div>
+          </div>
+
+          <div class="svc-section" id="puSecTiming">
+            <div class="svc-section-head">
+              <div class="svc-section-title">Estimated pick-up time</div>
+              <div class="svc-section-sub">The "ready in" window shown to customers placing a pick-up order.</div>
+            </div>
+            <div class="svc-fields">
+              <div class="field field-wide">
+                <label class="label">Ready-in window</label>
+                <div class="range-input">
+                  <input type="number" min="5" max="180" step="5" id="puEtaFrom" aria-label="Minimum pick-up time" />
+                  <span class="dash">–</span>
+                  <input type="number" min="5" max="180" step="5" id="puEtaTo" aria-label="Maximum pick-up time" />
+                  <span class="suffix">minutes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-preview" id="puPreview"></div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script src="pickup.js"></script>
+</body>
+</html>

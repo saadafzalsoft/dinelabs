@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Notifications</title>
+<link rel="stylesheet" href="theme.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .nt-row {
+    display: grid; grid-template-columns: 48px 1fr auto;
+    gap: 16px 18px; padding: 22px; border-top: 1px solid var(--line);
+    align-items: flex-start; transition: background .12s;
+  }
+  .nt-row:first-child { border-top: 0; }
+  .nt-row.locked { background: linear-gradient(0deg, rgba(176,106,0,.025), rgba(176,106,0,.025)); }
+  .nt-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex: none;
+    background: var(--surface-2); border: 1px solid var(--line);
+    display: grid; place-items: center; color: var(--ink);
+  }
+  .nt-icon .ic { width: 20px; height: 20px; }
+  .nt-icon.has-img { padding: 0; background: transparent; border: 0; overflow: hidden; }
+  .nt-icon.has-img img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px; }
+  .nt-row.on .nt-icon.has-img,
+  .nt-row.locked .nt-icon.has-img { background: transparent; border: 0; }
+  .nt-row.on .nt-icon { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .nt-row.locked .nt-icon { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+
+  .nt-meta { min-width: 0; padding-top: 2px; }
+  .nt-title {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 14.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1.2;
+  }
+  .nt-sub { font-size: 13px; color: var(--ink-2); margin-top: 5px; line-height: 1.45; }
+  .nt-input { display: none; margin-top: 14px; max-width: 380px; }
+  .nt-row.on .nt-input, .nt-row.locked .nt-input { display: block; }
+  .nt-input .input-affix .pfx { font-size: 13.5px; }
+  .nt-input .input-affix .input { padding-left: 52px; }
+  .nt-input .input:disabled { background: var(--surface-2); color: var(--ink-3); cursor: not-allowed; }
+  .nt-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-3); margin-top: 8px; }
+  .nt-status .ic { width: 12px; height: 12px; }
+  .nt-status.ok { color: var(--pos); }
+
+  .nt-act { display: flex; align-items: center; gap: 12px; padding-top: 6px; }
+  .nt-locked-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 34px; padding: 0 14px; border-radius: 999px;
+    background: var(--ink); color: #fff; white-space: nowrap;
+    font-family: inherit; font-weight: 700; font-size: 12.5px; border: 0; cursor: pointer;
+    transition: background .12s;
+  }
+  .nt-locked-btn:hover { background: #262626; }
+  .nt-locked-btn .ic { width: 14px; height: 14px; }
+
+  .pill-premium {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 22px; padding: 0 9px; border-radius: 999px;
+    background: var(--warn-bg); color: var(--warn);
+    font-size: 11.5px; font-weight: 700; letter-spacing: .01em; line-height: 1;
+  }
+  .pill-premium .ic { width: 11px; height: 11px; }
+  .pill-always {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 22px; padding: 0 9px; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink-2);
+    font-size: 11.5px; font-weight: 700; letter-spacing: .01em; line-height: 1;
+    border: 1px solid var(--line);
+  }
+  .pill-always .ic { width: 11px; height: 11px; color: var(--pos); }
+
+  .nt-foot {
+    padding: 16px 22px; border-top: 1px solid var(--line); background: var(--surface-2);
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+    display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-2); font-weight: 600;
+  }
+  .nt-foot .ic { width: 15px; height: 15px; color: var(--ink-3); }
+
+  @media (max-width: 720px) {
+    .nt-row { grid-template-columns: 40px 1fr; }
+    .nt-act { grid-column: 1 / -1; justify-content: flex-start; padding-left: 56px; padding-top: 0; }
+  }
+</style>
+</head>
+<body data-page="notif">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Notifications</h1>
+          <p class="page-sub">Choose where new orders are sent. Pick as many channels as you like — they fire the moment an order comes in.</p>
+        </div>
+        <button class="btn btn-primary" id="ntSave"><i class="ic" data-lucide="check"></i>Save changes</button>
+      </div>
+
+      <section data-screen-label="Notification channels">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="ic" data-lucide="bell"></i>Order notification channels</div>
+            <span class="card-note" id="ntSummary">—</span>
+          </div>
+          <div id="ntList"></div>
+          <div class="nt-foot">
+            <i class="ic" data-lucide="info"></i>
+            <span>Notifications stop automatically when your store is outside opening hours.</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="shell.js"></script>
+<script src="notifications.js"></script>
+</body>
+</html>

@@ -71,3 +71,26 @@ DineLabs dispatches instant notifications to your manager's private chat or grou
      TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
      ```
    - In the DineLabs manager portal's settings page, under the **Order Alerts** tab, check the Telegram box and paste your numeric Chat ID.
+
+---
+
+## 4. Google Cloud Translation API Integration
+DineLabs uses the **Google Cloud Translation API** (v2) to automatically translate menu and category text when onboarded by the Super Admin or created by managers.
+
+### Step-by-Step Procedure:
+1. **Console Signup**: Go to the [Google Cloud Console](https://console.cloud.google.com).
+2. **Create/Select Project**: Select an existing project or create a new one.
+3. **Enable Translation API**:
+   - Go to the **API Library** (Search for "Cloud Translation API").
+   - Click **Enable** for the Cloud Translation API in your project.
+4. **Generate Credentials API Key**:
+   - Go to **APIs & Services** > **Credentials**.
+   - Click **+ Create Credentials** > **API key**.
+   - Copy the newly created API Key. For production safety, it is highly recommended to restrict the API key to only authorize Cloud Translation API calls.
+5. **Environment Configuration**:
+   - Add the key to your `.env` file:
+     ```env
+     GOOGLE_TRANSLATION_API_KEY=AIzaSyYourGoogleApiKeyHere
+     ```
+6. **Fallback Behavior**:
+   - If no Google Cloud Translation API Key is provided, the platform automatically falls back to predefined high-quality dictionary translations (English to Arabic) and mock labels for ES/FR languages, preventing catalog operation failure.

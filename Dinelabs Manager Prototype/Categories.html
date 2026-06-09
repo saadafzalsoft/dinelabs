@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Manager — Categories</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="catalog.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="categories">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Categories &amp; Starred</h1>
+          <p class="page-sub">Organise your menu into sections and promote starred categories on the storefront.</p>
+        </div>
+        <button class="btn btn-primary" id="addCatBtn"><i class="ic" data-lucide="plus"></i>Add category</button>
+      </div>
+
+      <section data-screen-label="Categories">
+        <div class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="layers"></i>Categories</div><span class="card-note" id="catCount">—</span></div>
+          <div class="reorder-hint" id="reorderHint">
+            <i class="ic" data-lucide="move-vertical"></i>
+            <span>Drag the <span class="grip-chip"><i class="ic" data-lucide="grip-vertical"></i></span> handle on any row to reorder your categories.</span>
+            <button class="x" id="reorderHintX" title="Got it"><i class="ic" data-lucide="x"></i></button>
+          </div>
+          <table class="tbl">
+            <thead><tr>
+              <th class="drag-col" title="Drag rows to reorder"><i class="ic" data-lucide="arrow-up-down" style="width:14px;height:14px;color:var(--ink-3)"></i></th>
+              <th>Category</th>
+              <th style="text-align:center">Pinned</th>
+              <th style="text-align:right">Actions</th>
+            </tr></thead>
+            <tbody id="catBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- add / edit category drawer -->
+<div class="drawer-scrim" id="catScrim"></div>
+<aside class="drawer" id="catDrawer">
+  <div class="rail-head">
+    <i class="ic" id="catDrawerIcon" data-lucide="folder-plus"></i>
+    <h3 id="catDrawerTitle">Add category</h3>
+    <button class="x" id="catDrawerClose" title="Close"><i class="ic" data-lucide="x"></i></button>
+  </div>
+  <div class="rail-body">
+    <div class="field">
+      <label class="label">Category name</label>
+      <input class="input" id="ncName" placeholder="e.g. Desserts" />
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" id="ncCreate"><i class="ic" data-lucide="plus"></i>Create category</button>
+  </div>
+</aside>
+
+<script src="shell.js"></script>
+<script src="categories.js"></script>
+</body>
+</html>
