@@ -76,7 +76,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications } = await request.json();
+    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications, logoUrl } = await request.json();
 
     if (!slug || !name || !managerEmail || !managerPassword) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -103,7 +103,7 @@ export async function POST(request) {
       _id: tenantId,
       slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, ''),
       name,
-      logoUrl: '',
+      logoUrl: logoUrl ? logoUrl.trim() : '',
       tier: parseInt(tier) || 1,
       status: 'active',
       enabledModes: enabledModes || { dineIn: true, pickup: true, delivery: true },
@@ -150,7 +150,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications } = await request.json();
+    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Tenant ID is required' }, { status: 400 });
@@ -167,6 +167,7 @@ export async function PUT(request) {
     if (defaultLanguage !== undefined) updateObj.defaultLanguage = defaultLanguage;
     if (ledger !== undefined) updateObj.ledger = ledger;
     if (assignedNotifications !== undefined) updateObj.assignedNotifications = assignedNotifications;
+    if (logoUrl !== undefined) updateObj.logoUrl = logoUrl.trim();
 
     const result = await db.collection('tenants').updateOne(
       { _id: id.toString() },

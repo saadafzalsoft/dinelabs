@@ -259,6 +259,57 @@ function ProductsPageContent() {
           triggerToast('Deleted selected products');
         }
         return;
+      } else if (bulkAction === 'add-to-offers' || bulkAction === 'remove-from-offers') {
+        const offersCat = categories.find(c => {
+          const enName = c.name?.en?.toLowerCase() || '';
+          return enName.includes('offers') || enName.includes('promotion') || c.isPinned;
+        });
+        if (!offersCat) {
+          alert('Offers & Promotions category not found');
+          return;
+        }
+
+        const isAdding = bulkAction === 'add-to-offers';
+        const promises = selectedIds.map(pId => {
+          const product = products.find(p => p._id === pId);
+          if (!product) return Promise.resolve();
+          const currentCats = product.categories || [];
+          let newCats;
+          if (isAdding) {
+            if (currentCats.includes(offersCat._id)) return Promise.resolve();
+            newCats = [...currentCats, offersCat._id];
+          } else {
+            if (!currentCats.includes(offersCat._id)) return Promise.resolve();
+            newCats = currentCats.filter(id => id !== offersCat._id);
+          }
+          
+          return fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: pId, categories: newCats })
+          });
+        });
+
+        await Promise.all(promises);
+
+        setProducts(products.map(p => {
+          if (selectedIds.includes(p._id)) {
+            const currentCats = p.categories || [];
+            let newCats = currentCats;
+            if (isAdding) {
+              if (!currentCats.includes(offersCat._id)) newCats = [...currentCats, offersCat._id];
+            } else {
+              newCats = currentCats.filter(id => id !== offersCat._id);
+            }
+            return { ...p, categories: newCats };
+          }
+          return p;
+        }));
+
+        setSelectedIds([]);
+        setBulkAction('');
+        triggerToast(isAdding ? 'Products added to Offers & Promotions' : 'Products removed from Offers & Promotions');
+        return;
       }
 
       const res = await fetch('/api/products', {
@@ -1111,6 +1162,8 @@ function ProductsPageContent() {
                     <option value="">Bulk action…</option>
                     <option value="stock-in">Mark in stock</option>
                     <option value="stock-out">Mark out of stock</option>
+                    <option value="add-to-offers">Add to Offers &amp; Promotions</option>
+                    <option value="remove-from-offers">Remove from Offers &amp; Promotions</option>
                     <option value="delete">Delete selected</option>
                   </select>
 

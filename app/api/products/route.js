@@ -140,8 +140,12 @@ export async function PUT(request) {
     // Support drag and drop reordering of multiple products at once
     if (reorderedIds && Array.isArray(reorderedIds)) {
       const promises = reorderedIds.map((pId, idx) => {
+        const matchIds = [pId.toString()];
+        try {
+          matchIds.push(new ObjectId(pId.toString()));
+        } catch (e) {}
         return db.collection('products').updateOne(
-          { _id: pId.toString(), tenantId: tenantId.toString() },
+          { _id: { $in: matchIds }, tenantId: tenantId.toString() },
           { $set: { order: idx } }
         );
       });
@@ -159,9 +163,17 @@ export async function PUT(request) {
         updateQuery.categories = categories;
       }
 
+      const bulkIds = [];
+      for (const pId of productIds) {
+        bulkIds.push(pId.toString());
+        try {
+          bulkIds.push(new ObjectId(pId.toString()));
+        } catch (e) {}
+      }
+
       await db.collection('products').updateMany(
         {
-          _id: { $in: productIds.map(pId => pId.toString()) },
+          _id: { $in: bulkIds },
           tenantId: tenantId.toString()
         },
         { $set: updateQuery }
@@ -175,7 +187,12 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    const product = await db.collection('products').findOne({ _id: id.toString(), tenantId: tenantId.toString() });
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
+    const product = await db.collection('products').findOne({ _id: { $in: matchIds }, tenantId: tenantId.toString() });
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
@@ -242,7 +259,7 @@ export async function PUT(request) {
     }
 
     await db.collection('products').updateOne(
-      { _id: id.toString(), tenantId: tenantId.toString() },
+      { _id: { $in: matchIds }, tenantId: tenantId.toString() },
       { $set: updateObj }
     );
 
@@ -264,8 +281,15 @@ export async function DELETE(request) {
     const db = await getDb();
 
     if (isBulkAction && Array.isArray(productIds)) {
+      const bulkIds = [];
+      for (const pId of productIds) {
+        bulkIds.push(pId.toString());
+        try {
+          bulkIds.push(new ObjectId(pId.toString()));
+        } catch (e) {}
+      }
       await db.collection('products').deleteMany({
-        _id: { $in: productIds.map(pId => pId.toString()) },
+        _id: { $in: bulkIds },
         tenantId: tenantId.toString()
       });
       return NextResponse.json({ success: true });
@@ -275,7 +299,12 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    await db.collection('products').deleteOne({ _id: id.toString(), tenantId: tenantId.toString() });
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
+    await db.collection('products').deleteOne({ _id: { $in: matchIds }, tenantId: tenantId.toString() });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Products API DELETE error:', error);

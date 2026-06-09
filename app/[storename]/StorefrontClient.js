@@ -44,24 +44,36 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       }
     }
 
-    const savedMode = localStorage.getItem(`dinelabs_mode_${tenant.slug}`);
-    if (savedMode) {
-      setMode(savedMode);
-    } else {
-      // Pick first enabled mode
-      if (tenant.enabledModes.dineIn) setMode('dine-in');
-      else if (tenant.enabledModes.pickup) setMode('pickup');
-      else if (tenant.enabledModes.delivery) setMode('delivery');
-    }
-
     // Table registration
+    let currentTable = '';
     if (tableParam) {
-      setTableNo(tableParam);
-      localStorage.setItem(`dinelabs_table_${tenant.slug}`, tableParam);
+      try {
+        currentTable = decodeURIComponent(tableParam);
+      } catch (e) {
+        currentTable = tableParam;
+      }
+      setTableNo(currentTable);
+      localStorage.setItem(`dinelabs_table_${tenant.slug}`, currentTable);
     } else {
       const savedTable = localStorage.getItem(`dinelabs_table_${tenant.slug}`);
       if (savedTable) {
+        currentTable = savedTable;
         setTableNo(savedTable);
+      }
+    }
+
+    if (currentTable) {
+      setMode('dine-in');
+      localStorage.setItem(`dinelabs_mode_${tenant.slug}`, 'dine-in');
+    } else {
+      const savedMode = localStorage.getItem(`dinelabs_mode_${tenant.slug}`);
+      if (savedMode) {
+        setMode(savedMode);
+      } else {
+        // Pick first enabled mode
+        if (tenant.enabledModes.dineIn) setMode('dine-in');
+        else if (tenant.enabledModes.pickup) setMode('pickup');
+        else if (tenant.enabledModes.delivery) setMode('delivery');
       }
     }
   }, [tableParam, tenant.slug, tenant.enabledModes]);
@@ -75,6 +87,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Persist fulfillment mode to localStorage
   const handleModeChange = (newMode) => {
     if (tenant.status !== 'active') return; // Browse only
+    if (tableNo) return; // Locked to dine-in if table scanned
     setMode(newMode);
     localStorage.setItem(`dinelabs_mode_${tenant.slug}`, newMode);
   };
@@ -111,6 +124,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       deliveryDesc: "45 mins",
       outOfStock: "Out of Stock",
       warningSuspended: "Service temporarily unavailable (Billing suspended)",
+      warningClosed: "The shop is closed. No orders are being accepted at this time.",
+      closed: "Closed",
       sizeLabel: "Choose Size",
       addonLabel: "Premium Addons",
       removalLabel: "Remove Ingredients",
@@ -139,6 +154,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       deliveryDesc: "٤٥ دقيقة",
       outOfStock: "غير متوفر",
       warningSuspended: "الخدمة غير متوفرة مؤقتاً (الحساب معلق)",
+      warningClosed: "المحل مغلق حالياً. لا يتم استقبال أي طلبات الآن.",
+      closed: "مغلق",
       sizeLabel: "اختر الحجم",
       addonLabel: "إضافات مميزة",
       removalLabel: "إزالة المكونات",
@@ -167,6 +184,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       deliveryDesc: "45 мин",
       outOfStock: "Нет в наличии",
       warningSuspended: "Сервис временно недоступен (аккаунт приостановлен)",
+      warningClosed: "Магазин закрыт. Заказы временно не принимаются.",
+      closed: "Закрыто",
       sizeLabel: "Выберите размер",
       addonLabel: "Добавки",
       removalLabel: "Исключить ингредиенты",
@@ -195,6 +214,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       deliveryDesc: "45 min",
       outOfStock: "Agotado",
       warningSuspended: "Servicio temporalmente no disponible (cuenta suspendida)",
+      warningClosed: "La tienda está cerrada. No se aceptan pedidos en este momento.",
+      closed: "Cerrado",
       sizeLabel: "Elegir tamaño",
       addonLabel: "Extras premium",
       removalLabel: "Quitar ingredientes",
@@ -223,6 +244,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       deliveryDesc: "45 min",
       outOfStock: "Épuisé",
       warningSuspended: "Service temporairement indisponible (compte suspendu)",
+      warningClosed: "Le magasin est fermé. Aucun ordre n'est accepté pour le moment.",
+      closed: "Fermé",
       sizeLabel: "Choisir la taille",
       addonLabel: "Suppléments premium",
       removalLabel: "Retirer des ingrédients",
@@ -233,6 +256,26 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       noFooter: "Sans pied de page"
     }
   };
+
+  // Check if store is open
+  const checkIfStoreOpen = (openingHours) => {
+    if (!openingHours || !Array.isArray(openingHours)) return true;
+    
+    const now = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const currentDay = days[now.getDay()];
+    
+    const hoursToday = openingHours.find(h => h.day === currentDay);
+    if (!hoursToday || !hoursToday.isOpen) return false;
+
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+
+    return currentTimeStr >= hoursToday.open && currentTimeStr <= hoursToday.close;
+  };
+
+  const isClosed = !checkIfStoreOpen(tenant.openingHours);
 
   // Filter products based on search query and category pill
   const filteredProducts = initialProducts.filter(product => {
@@ -259,14 +302,17 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const openCustomizer = (product) => {
     if (tenant.status !== 'active') return; // Suspended is browse-only
     if (!product.isAvailable) return; // Out of stock
+    if (isClosed) return; // Shop is closed, no ordering!
 
     setSelectedProduct(product);
     setModalQty(1);
 
     // Initialise Modifiers
-    const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && product.modifierGroups.includes(m._id));
-    if (sizeMod && sizeMod.options.length > 0) {
-      setModalSize(sizeMod.options[0].name.en); // Default to first size
+    const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && product.modifierGroups?.includes(m._id));
+    if (product.variations && product.variations.length > 0) {
+      setModalSize(product.variations[0].name?.en || product.variations[0].name); // Default to first product-level size
+    } else if (sizeMod && sizeMod.options.length > 0) {
+      setModalSize(sizeMod.options[0].name.en); // Default to first global size
     } else {
       setModalSize('');
     }
@@ -282,16 +328,33 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     let price = selectedProduct.price;
 
     // Size impact
-    const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups.includes(m._id));
-    if (sizeMod && modalSize) {
-      const selectedOption = sizeMod.options.find(o => o.name.en === modalSize);
+    if (selectedProduct.variations && selectedProduct.variations.length > 0) {
+      const selectedOption = selectedProduct.variations.find(o => (o.name?.en || o.name) === modalSize);
       if (selectedOption) {
-        price += selectedOption.price;
+        price = selectedOption.price; // OVERRIDES the base price!
+      }
+    } else {
+      const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups?.includes(m._id));
+      if (sizeMod && modalSize) {
+        const selectedOption = sizeMod.options.find(o => o.name.en === modalSize);
+        if (selectedOption) {
+          price += selectedOption.price;
+        }
       }
     }
 
-    // Addons impact
-    const addonsMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups.includes(m._id));
+    // Addons impact (Product-Level)
+    if (selectedProduct.addons) {
+      modalAddons.forEach(addonName => {
+        const option = selectedProduct.addons.find(o => (o.name?.en || o.name) === addonName);
+        if (option) {
+          price += option.price;
+        }
+      });
+    }
+
+    // Addons impact (Global Modifier Groups)
+    const addonsMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id));
     if (addonsMod) {
       modalAddons.forEach(addonName => {
         const option = addonsMod.options.find(o => o.name.en === addonName);
@@ -308,9 +371,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const addToCart = () => {
     if (!selectedProduct) return;
 
-    // Validate size selection if sizes modifier group is present
-    const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups.includes(m._id));
-    if (sizeMod && !modalSize) {
+    // Validate size selection if sizes modifier group or variations are present
+    const sizeMod = initialModifierGroups.find(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups?.includes(m._id));
+    const hasVariations = (selectedProduct.variations && selectedProduct.variations.length > 0) || sizeMod;
+    if (hasVariations && !modalSize) {
       alert(dict[lang].chooseMandatory);
       return;
     }
@@ -366,13 +430,38 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="main-viewport">
       {/* 1. Subscription suspended header warning bar */}
       {tenant.status !== 'active' && (
-        <div className="masquerade-banner" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="masquerade-banner" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>
           <span>⚠️ {dict[lang].warningSuspended}</span>
         </div>
       )}
 
+      {/* 2. Shop Closed warning marquee banner */}
+      {isClosed && (
+        <div className="closed-banner" style={{ 
+          position: 'fixed', 
+          top: tenant.status !== 'active' ? '40px' : 0, 
+          left: 0, 
+          right: 0, 
+          height: '40px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          backgroundColor: '#f59e0b',
+          color: '#000000',
+          fontWeight: 'bold',
+          zIndex: 1000,
+          overflow: 'hidden'
+        }}>
+          <marquee scrollamount="5" style={{ width: '100%', fontSize: '0.85rem' }}>
+            ⚠️ {dict[lang].warningClosed}
+          </marquee>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="header" style={{ top: tenant.status !== 'active' ? '40px' : 0 }}>
+      <header className="header" style={{ 
+        top: (tenant.status !== 'active' && isClosed) ? '80px' : (tenant.status !== 'active' || isClosed) ? '40px' : 0 
+      }}>
         <div className="header-container">
           {/* Logo / Brand Name */}
           <Link href={`/${tenant.slug}`} className="logo">
@@ -479,11 +568,15 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
         </div>
       </header>
 
-      {/* Main Grid Wrapper */}
+       {/* Main Grid Wrapper */}
       <div 
         className="main-wrapper" 
         style={{ 
-          paddingTop: tenant.status !== 'active' ? 'calc(var(--header-height) + 40px)' : 'var(--header-height)' 
+          paddingTop: (tenant.status !== 'active' && isClosed) 
+            ? 'calc(var(--header-height) + 80px)' 
+            : (tenant.status !== 'active' || isClosed) 
+              ? 'calc(var(--header-height) + 40px)' 
+              : 'var(--header-height)'
         }}
       >
         {/* Left catalog panel */}
@@ -504,6 +597,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       key={product._id} 
                       className="offer-card"
                       onClick={() => openCustomizer(product)}
+                      style={isClosed ? { cursor: 'default' } : {}}
                     >
                       <div className="offer-image-wrapper">
                         <img 
@@ -511,12 +605,16 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                           alt={t(product.name)} 
                           className="offer-img"
                         />
-                        {tenant.status === 'active' && product.isAvailable && (
+                        {tenant.status === 'active' && !isClosed && product.isAvailable && (
                           <div className="plus-overlay-btn">➕</div>
                         )}
                       </div>
                       <h3 className="offer-title">{t(product.name)}</h3>
-                      <p className="offer-price">{formatPrice(product.price)}</p>
+                      {isClosed ? (
+                        <p className="offer-price" style={{ color: 'var(--brand-red)', fontWeight: 'bold' }}>{dict[lang].closed}</p>
+                      ) : (
+                        <p className="offer-price">{formatPrice(product.price)}</p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -567,7 +665,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   key={product._id} 
                   className="product-card"
                   onClick={() => openCustomizer(product)}
-                  style={{ opacity: product.isAvailable ? 1 : 0.6 }}
+                  style={{ opacity: product.isAvailable ? 1 : 0.6, cursor: isClosed ? 'default' : 'pointer' }}
                 >
                   <div className="product-image-container">
                     <img 
@@ -582,6 +680,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                     
                     {!product.isAvailable ? (
                       <span className="out-of-stock-badge">{dict[lang].outOfStock}</span>
+                    ) : isClosed ? (
+                      <span className="closed-badge" style={{ backgroundColor: '#f59e0b', color: '#000000', fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', width: 'fit-content', display: 'inline-block' }}>
+                        {dict[lang].closed}
+                      </span>
                     ) : (
                       <div className="product-price-row">
                         <span className="product-price">{formatPrice(product.price)}</span>
@@ -614,6 +716,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <div 
                   onClick={() => handleModeChange('pickup')}
                   className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
+                  style={tableNo ? { opacity: 0.4, cursor: 'not-allowed', filter: 'grayscale(1)' } : {}}
                 >
                   <div className="toggle-header">🛍️ {dict[lang].pickup}</div>
                   <div className="toggle-desc">{dict[lang].pickupDesc}</div>
@@ -623,6 +726,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <div 
                   onClick={() => handleModeChange('delivery')}
                   className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
+                  style={tableNo ? { opacity: 0.4, cursor: 'not-allowed', filter: 'grayscale(1)' } : {}}
                 >
                   <div className="toggle-header">🛵 {dict[lang].delivery}</div>
                   <div className="toggle-desc">{dict[lang].deliveryDesc}</div>
@@ -698,9 +802,15 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 </div>
 
                 {tenant.status === 'active' ? (
-                  <Link href={`/${tenant.slug}/checkout`} className="checkout-btn">
-                    {dict[lang].checkout}
-                  </Link>
+                  isClosed ? (
+                    <div style={{ color: '#000000', backgroundColor: '#f59e0b', textAlign: 'center', fontWeight: 'bold', fontSize: '14px', padding: '12px', borderRadius: '12px', border: '1px solid #f59e0b' }}>
+                      ⚠️ {dict[lang].warningClosed}
+                    </div>
+                  ) : (
+                    <Link href={`/${tenant.slug}/checkout`} className="checkout-btn">
+                      {dict[lang].checkout}
+                    </Link>
+                  )
                 ) : (
                   <div style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold', fontSize: '14px', padding: '12px' }}>
                     {dict[lang].warningSuspended}
@@ -713,7 +823,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       </div>
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
-      {cart.length > 0 && tenant.status === 'active' && (
+      {cart.length > 0 && tenant.status === 'active' && !isClosed && (
         <Link href={`/${tenant.slug}/checkout`} className="mobile-cart-float visible">
           <div className="mobile-cart-left">
             <div className="mobile-cart-icon-wrapper">
@@ -754,37 +864,96 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               <h3 className="modal-title">{t(selectedProduct.name)}</h3>
               <p className="modal-desc">{t(selectedProduct.description)}</p>
               
-              {/* Modifier Group 1: Sizes variations (Mandatory!) */}
-              {initialModifierGroups
-                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups.includes(m._id))
-                .map(group => (
-                  <div key={group._id} className="modal-modifier-section">
-                    <h4 className="modal-section-title">{t(group.name)} ({dict[lang].chooseMandatory})</h4>
-                    <div className="modal-options-list">
-                      {group.options.map((option, idx) => (
+              {/* Product-Level Variations */}
+              {selectedProduct.variations && selectedProduct.variations.length > 0 ? (
+                <div className="modal-modifier-section">
+                  <h4 className="modal-section-title">{dict[lang].sizeLabel} ({dict[lang].chooseMandatory})</h4>
+                  <div className="modal-options-list">
+                    {selectedProduct.variations.map((option, idx) => {
+                      const optName = option.name?.en || option.name;
+                      return (
                         <label key={idx} className="option-row">
                           <div className="option-row-left">
                             <input 
                               type="radio" 
-                              name="pizza-size" 
-                              value={option.name.en}
-                              checked={modalSize === option.name.en}
-                              onChange={() => setModalSize(option.name.en)}
+                              name="product-size" 
+                              value={optName}
+                              checked={modalSize === optName}
+                              onChange={() => setModalSize(optName)}
                             />
                             <span>{t(option.name)}</span>
                           </div>
-                          {option.price > 0 && (
-                            <span className="option-row-price">+{formatPrice(option.price)}</span>
-                          )}
+                          <span className="option-row-price">{formatPrice(option.price)}</span>
                         </label>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                ))}
+                </div>
+              ) : (
+                /* Modifier Group 1: Sizes variations (Mandatory!) */
+                initialModifierGroups
+                  .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups?.includes(m._id))
+                  .map(group => (
+                    <div key={group._id} className="modal-modifier-section">
+                      <h4 className="modal-section-title">{t(group.name)} ({dict[lang].chooseMandatory})</h4>
+                      <div className="modal-options-list">
+                        {group.options.map((option, idx) => (
+                          <label key={idx} className="option-row">
+                            <div className="option-row-left">
+                              <input 
+                                type="radio" 
+                                name="pizza-size" 
+                                value={option.name.en}
+                                checked={modalSize === option.name.en}
+                                onChange={() => setModalSize(option.name.en)}
+                              />
+                              <span>{t(option.name)}</span>
+                            </div>
+                            {option.price > 0 && (
+                              <span className="option-row-price">+{formatPrice(option.price)}</span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+              )}
 
-              {/* Modifier Group 2: Addons checkboxes (Optional) */}
+              {/* Product-Level Add-ons */}
+              {selectedProduct.addons && selectedProduct.addons.length > 0 && (
+                <div className="modal-modifier-section">
+                  <h4 className="modal-section-title">{dict[lang].addonLabel}</h4>
+                  <div className="modal-options-list">
+                    {selectedProduct.addons.map((option, idx) => {
+                      const optName = option.name?.en || option.name;
+                      const isChecked = modalAddons.includes(optName);
+                      return (
+                        <label key={idx} className="option-row">
+                          <div className="option-row-left">
+                            <input 
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setModalAddons([...modalAddons, optName]);
+                                } else {
+                                  setModalAddons(modalAddons.filter(a => a !== optName));
+                                }
+                              }}
+                            />
+                            <span>{t(option.name)}</span>
+                          </div>
+                          <span className="option-row-price">+{formatPrice(option.price)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Modifier Group 2: Global Addons checkboxes (Optional) */}
               {initialModifierGroups
-                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups.includes(m._id))
+                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id))
                 .map(group => (
                   <div key={group._id} className="modal-modifier-section">
                     <h4 className="modal-section-title">{t(group.name)}</h4>
@@ -815,9 +984,44 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   </div>
                 ))}
 
-              {/* Modifier Group 3: Ingredient removals checkboxes (Optional, Zero cost) */}
+              {/* Product-Level Removals */}
+              {selectedProduct.removals && selectedProduct.removals.length > 0 && (
+                <div className="modal-modifier-section">
+                  <h4 className="modal-section-title">{dict[lang].removalLabel}</h4>
+                  <div className="modal-options-list">
+                    {selectedProduct.removals.map((option, idx) => {
+                      const optName = option.name?.en || option.name;
+                      const isRemoved = modalRemovals.includes(optName);
+                      return (
+                        <label 
+                          key={idx} 
+                          className={`remove-option-row ${isRemoved ? 'removed' : ''}`}
+                        >
+                          <div className="remove-option-left">
+                            <input 
+                              type="checkbox"
+                              checked={isRemoved}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setModalRemovals([...modalRemovals, optName]);
+                                } else {
+                                  setModalRemovals(modalRemovals.filter(r => r !== optName));
+                                }
+                              }}
+                            />
+                            <span>{isRemoved ? '🚫' : '✓'} {t(option.name)}</span>
+                          </div>
+                          <span className="option-row-price">{dict[lang].free}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Modifier Group 3: Global Ingredient removals checkboxes (Optional, Zero cost) */}
               {initialModifierGroups
-                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups.includes(m._id))
+                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups?.includes(m._id))
                 .map(group => (
                   <div key={group._id} className="modal-modifier-section">
                     <h4 className="modal-section-title">{t(group.name)}</h4>

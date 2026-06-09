@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
+import { ObjectId } from 'mongodb';
 
 export async function PUT(request, { params }) {
   try {
@@ -50,7 +51,12 @@ export async function PUT(request, { params }) {
     const db = await getDb();
     
     // Find order first to verify it belongs to this tenant
-    const order = await db.collection('orders').findOne({ _id: id.toString() });
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
+    const order = await db.collection('orders').findOne({ _id: { $in: matchIds } });
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
@@ -60,7 +66,7 @@ export async function PUT(request, { params }) {
     }
 
     const result = await db.collection('orders').updateOne(
-      { _id: id.toString() },
+      { _id: { $in: matchIds } },
       { $set: { status, updatedAt: new Date() } }
     );
 

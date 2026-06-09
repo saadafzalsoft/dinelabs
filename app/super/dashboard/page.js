@@ -64,6 +64,7 @@ export default function SuperDashboardPage() {
   const [assignedEmail, setAssignedEmail] = useState(true);
   const [assignedWhatsapp, setAssignedWhatsapp] = useState(false);
   const [assignedTelegram, setAssignedTelegram] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Edit Modal states
@@ -80,6 +81,7 @@ export default function SuperDashboardPage() {
   const [editAssignedEmail, setEditAssignedEmail] = useState(true);
   const [editAssignedWhatsapp, setEditAssignedWhatsapp] = useState(false);
   const [editAssignedTelegram, setEditAssignedTelegram] = useState(false);
+  const [editLogoUrl, setEditLogoUrl] = useState('');
   const [editStatus, setEditStatus] = useState('active');
   const [editLedger, setEditLedger] = useState([]);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -128,7 +130,8 @@ export default function SuperDashboardPage() {
           languages,
           defaultLanguage,
           enabledModes: { dineIn, pickup, delivery },
-          assignedNotifications: { email: assignedEmail, whatsapp: assignedWhatsapp, telegram: assignedTelegram }
+          assignedNotifications: { email: assignedEmail, whatsapp: assignedWhatsapp, telegram: assignedTelegram },
+          logoUrl: logoUrl.trim()
         })
       });
 
@@ -149,6 +152,7 @@ export default function SuperDashboardPage() {
         setAssignedEmail(true);
         setAssignedWhatsapp(false);
         setAssignedTelegram(false);
+        setLogoUrl('');
         fetchTenantsAndStats();
       } else {
         alert(data.error || 'Failed onboarding restaurant');
@@ -175,6 +179,7 @@ export default function SuperDashboardPage() {
     setEditAssignedEmail(tenant.assignedNotifications?.email ?? true);
     setEditAssignedWhatsapp(tenant.assignedNotifications?.whatsapp ?? false);
     setEditAssignedTelegram(tenant.assignedNotifications?.telegram ?? false);
+    setEditLogoUrl(tenant.logoUrl || '');
     setEditStatus(tenant.status || 'active');
     setEditLedger(tenant.ledger || []);
     setLedgerDesc('');
@@ -201,7 +206,8 @@ export default function SuperDashboardPage() {
           enabledModes: { dineIn: editDineIn, pickup: editPickup, delivery: editDelivery },
           assignedNotifications: { email: editAssignedEmail, whatsapp: editAssignedWhatsapp, telegram: editAssignedTelegram },
           status: editStatus,
-          ledger: editLedger
+          ledger: editLedger,
+          logoUrl: editLogoUrl.trim()
         })
       });
 
@@ -553,6 +559,17 @@ export default function SuperDashboardPage() {
                   </div>
 
                   <div className="field">
+                    <label className="label">Logo URL</label>
+                    <input 
+                      type="text" 
+                      className="input" 
+                      placeholder="e.g. /assets/logos/pizzapalace.png"
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="field">
                     <label className="label">Initial Manager Email</label>
                     <input 
                       type="email" 
@@ -767,6 +784,18 @@ export default function SuperDashboardPage() {
                       🔴 Suspended
                     </button>
                   </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Logo URL</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    placeholder="e.g. /assets/logos/pizzapalace.png"
+                    value={editLogoUrl}
+                    onChange={(e) => setEditLogoUrl(e.target.value)}
+                    style={{ height: '36px', fontSize: '0.8rem' }}
+                  />
                 </div>
 
                 <div className="field">

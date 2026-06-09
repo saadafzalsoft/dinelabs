@@ -38,6 +38,8 @@ function ManagerLayoutContent({ children }) {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [lang, setLang] = useState('en');
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const prevPendingCountRef = React.useRef(0);
 
   // Map icon names to components
   const iconsMap = {
@@ -123,6 +125,61 @@ function ManagerLayoutContent({ children }) {
     const interval = setInterval(fetchPendingCount, 10000);
     return () => clearInterval(interval);
   }, [session]);
+
+  // Handle tracking of pending orders count to show/hide the notification banner
+  useEffect(() => {
+    if (pendingOrdersCount > 0) {
+      if (pendingOrdersCount > prevPendingCountRef.current) {
+        setShowNotificationBanner(true);
+      }
+    } else {
+      setShowNotificationBanner(false);
+    }
+    prevPendingCountRef.current = pendingOrdersCount;
+  }, [pendingOrdersCount]);
+
+  // Handle repeated audio ringing alert when there are active pending orders
+  useEffect(() => {
+    if (pendingOrdersCount <= 0) return;
+    if (pathname === '/manager/live-orders') return; // live-orders page plays its own sound
+
+    const playNotificationChime = () => {
+      if (typeof window === 'undefined') return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      
+      try {
+        const ctx = new AudioContext();
+        
+        // Match live-orders triangle dual ping chime exactly
+        const playChime = (timeOffset, freq) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + timeOffset);
+          
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + timeOffset);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timeOffset + 0.4);
+          
+          osc.start(ctx.currentTime + timeOffset);
+          osc.stop(ctx.currentTime + timeOffset + 0.5);
+        };
+
+        playChime(0, 880); 
+        playChime(0.15, 1109);
+      } catch (e) {
+        console.warn('Audio play blocked or failed:', e);
+      }
+    };
+
+    playNotificationChime();
+    const ringInterval = setInterval(playNotificationChime, 2000); // Repeat every 2 seconds matching the live-orders page!
+    return () => clearInterval(ringInterval);
+  }, [pendingOrdersCount, pathname]);
 
   const handleLogout = async () => {
     try {
@@ -254,6 +311,72 @@ function ManagerLayoutContent({ children }) {
 
   return (
     <div className="layout">
+      {/* Live Order Received Toast Notification Banner */}
+      {showNotificationBanner && pendingOrdersCount > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: session.isMasquerading ? '64px' : '24px',
+          right: '24px',
+          backgroundColor: '#ef4444',
+          color: '#ffffff',
+          padding: '16px 24px',
+          borderRadius: '16px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          animation: 'slideIn 0.3s ease',
+          fontFamily: 'var(--font)'
+        }}>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes slideIn {
+              from { transform: translateY(-20px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+          `}} />
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>🔔 New Order Received</div>
+            <div style={{ fontSize: '0.75rem', opacity: 0.9, marginTop: '2px' }}>
+              You have {pendingOrdersCount} pending order{pendingOrdersCount > 1 ? 's' : ''} requiring review.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Link 
+              href="/manager/live-orders" 
+              onClick={() => setShowNotificationBanner(false)}
+              style={{
+                backgroundColor: '#ffffff',
+                color: '#ef4444',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              View Orders
+            </Link>
+            <button 
+              onClick={() => setShowNotificationBanner(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#ffffff',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                padding: '0 4px',
+                fontWeight: 'bold'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Super Admin Masquerading Warning Banner */}
       {session.isMasquerading && (
         <div style={{

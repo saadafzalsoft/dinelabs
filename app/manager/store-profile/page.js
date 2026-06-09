@@ -59,6 +59,7 @@ function StoreProfilePageContent() {
   
   // Selected table template QR preview
   const [selectedTable, setSelectedTable] = useState(null);
+  const [bookingTable, setBookingTable] = useState(null);
 
   // Sync state from query parameters tab on change
   useEffect(() => {
@@ -89,16 +90,19 @@ function StoreProfilePageContent() {
         setWhatsappRecipient(data.notifications?.whatsappRecipient || '');
         setTelegramEnabled(data.notifications?.telegramEnabled || false);
         setTelegramChatId(data.notifications?.telegramChatId || '');
-
-        // Fetch physical tables from dynamic REST API
-        const tablesRes = await fetch(`/api/tables`);
-        if (tablesRes.ok) {
-          const tablesData = await tablesRes.json();
-          setTables(tablesData);
-        }
       }
-    } catch (err) {
-      console.error('Failed fetching profiles', err);
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      const res = await fetch('/api/tables');
+      if (res.ok) {
+        const data = await res.json();
+        setTables(data);
+      }
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -199,15 +203,10 @@ function StoreProfilePageContent() {
       if (res.ok) {
         setTables([...tables, data.table]);
         setNewTableName('');
-        setNewTableChairs('4');
-        setNewTableLocation('Indoor');
-        setNewTableShape('square');
-        setNewTableX(50);
-        setNewTableY(50);
-        setNewTableView('Regular');
-        triggerToast(`Table "${data.table.name}" created!`);
+        setNewTableChairs(4);
+        triggerToast(`Table "${data.table.name}" added`);
       } else {
-        alert(data.error || 'Failed creating table');
+        alert(data.error || 'Failed adding table');
       }
     } catch (err) {
       console.error(err);
@@ -216,7 +215,7 @@ function StoreProfilePageContent() {
 
   // Delete a physical table
   const handleDeleteTable = async (id, name) => {
-    if (!confirm(`Delete ${name} permanently?`)) return;
+    if (!confirm(`Are you sure you want to delete Table "${name}"?`)) return;
 
     try {
       const res = await fetch('/api/tables', {
@@ -246,19 +245,63 @@ function StoreProfilePageContent() {
       const res = await fetch('/api/tables', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: table._id, isBooked: nextBookedState })
+        body: JSON.stringify({ id: table._id, isBooked: nextBookedState, bookedExpiresAt: null })
       });
 
       if (res.ok) {
-        setTables(tables.map(t => t._id === table._id ? { ...t, isBooked: nextBookedState } : t));
+        setTables(tables.map(t => t._id === table._id ? { ...t, isBooked: nextBookedState, bookedExpiresAt: null } : t));
         if (selectedTable?._id === table._id) {
-          setSelectedTable({ ...selectedTable, isBooked: nextBookedState });
+          setSelectedTable({ ...selectedTable, isBooked: nextBookedState, bookedExpiresAt: null });
         }
-        triggerToast(`${table.name} is now ${nextBookedState ? 'occupied' : 'available'}`);
+        triggerToast(`Table "${table.name}" is now available`);
       }
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleConfirmBooking = async (table, durationMinutes) => {
+    let expiresAt = null;
+    if (durationMinutes > 0) {
+      const date = new Date();
+      date.setMinutes(date.getMinutes() + durationMinutes);
+      expiresAt = date.toISOString();
+    }
+    
+    try {
+      const res = await fetch('/api/tables', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id: table._id, 
+          isBooked: true, 
+          bookedExpiresAt: expiresAt 
+        })
+      });
+
+      if (res.ok) {
+        setTables(tables.map(t => t._id === table._id ? { ...t, isBooked: true, bookedExpiresAt: expiresAt } : t));
+        if (selectedTable?._id === table._id) {
+          setSelectedTable({ ...selectedTable, isBooked: true, bookedExpiresAt: expiresAt });
+        }
+        triggerToast(`Table "${table.name}" is now booked ${durationMinutes > 0 ? `for ${durationMinutes} mins` : 'indefinitely'}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const formatExpiry = (expiresAt) => {
+    if (!expiresAt) return 'Booked Indefinitely';
+    const diffMs = new Date(expiresAt) - new Date();
+    if (diffMs <= 0) return 'Expiry imminent';
+    const diffMins = Math.ceil(diffMs / 60000);
+    if (diffMins < 60) {
+      return `Booked (expires in ${diffMins}m)`;
+    }
+    const diffHours = Math.floor(diffMins / 60);
+    const remMins = diffMins % 60;
+    return `Booked (expires in ${diffHours}h ${remMins}m)`;
   };
 
   const handleTabChange = (newTab) => {
@@ -269,9 +312,9 @@ function StoreProfilePageContent() {
   // Generate Table QR Code Redirect URL
   const getTableUrl = (tableName) => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/${settings.slug}?table=${encodeURIComponent(tableName)}`;
+      return `${window.location.origin}/${settings.slug}?table=${tableName}`;
     }
-    return `https://dinelabs.co/${settings.slug}?table=${encodeURIComponent(tableName)}`;
+    return `https://dinelabs.co/${settings.slug}?table=${tableName}`;
   };
 
   if (loading || !settings) {
@@ -636,11 +679,21 @@ function StoreProfilePageContent() {
                       📍 {table.location}
                     </div>
 
+                    {table.isBooked && (
+                      <div style={{ fontSize: '0.68rem', color: 'var(--neg)', fontWeight: '800', marginBottom: '8px', backgroundColor: 'var(--neg-bg)', padding: '4px 8px', borderRadius: '6px', width: '100%', textAlign: 'center' }}>
+                        ⏰ {formatExpiry(table.bookedExpiresAt)}
+                      </div>
+                    )}
+
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleOccupancy(table);
+                        if (table.isBooked) {
+                          handleToggleOccupancy(table);
+                        } else {
+                          setBookingTable(table);
+                        }
                       }}
                       className="btn btn-block btn-sm"
                       style={{ 
@@ -651,11 +704,99 @@ function StoreProfilePageContent() {
                         fontSize: '0.72rem'
                       }}
                     >
-                      {table.isBooked ? 'Occupied / Booked' : 'Available'}
+                      {table.isBooked ? 'Force Release (Open)' : 'Available (Book Now)'}
                     </button>
                   </div>
                 ))}
               </div>
+
+              {/* Booking Duration Modal Dialog */}
+              {bookingTable && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1010,
+                  backdropFilter: 'blur(4px)'
+                }}>
+                  <div style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '24px',
+                    padding: '28px',
+                    width: '100%',
+                    maxWidth: '400px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    border: '1px solid var(--line)'
+                  }}>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: '800', marginBottom: '8px', color: 'var(--ink)' }}>
+                      Book {bookingTable.name}
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--ink-3)', marginBottom: '20px' }}>
+                      Select duration to lock this table. Once the time is up, the table will automatically open for booking.
+                    </p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+                      {[
+                        { label: '15 Minutes', value: 15 },
+                        { label: '30 Minutes', value: 30 },
+                        { label: '1 Hour', value: 60 },
+                        { label: '2 Hours', value: 120 },
+                        { label: '3 Hours', value: 180 },
+                        { label: 'Indefinite (Manual Release)', value: 0 }
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            handleConfirmBooking(bookingTable, opt.value);
+                            setBookingTable(null);
+                          }}
+                          className="btn btn-block"
+                          style={{
+                            backgroundColor: 'var(--surface-2)',
+                            color: 'var(--ink)',
+                            border: '1px solid var(--line)',
+                            fontWeight: '700',
+                            fontSize: '0.85rem',
+                            padding: '12px',
+                            borderRadius: '12px',
+                            textAlign: 'left',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span>{opt.label}</span>
+                          <span style={{ fontSize: '12px', opacity: 0.6 }}>⚡ Select</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setBookingTable(null)}
+                      className="btn btn-block"
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: 'var(--ink-3)',
+                        border: 'none',
+                        fontWeight: '700',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Floor Plan Sketch Canvas */}
               <div style={{ marginTop: '28px', borderTop: '1px solid var(--line)', paddingTop: '24px' }}>
@@ -766,7 +907,7 @@ function StoreProfilePageContent() {
                   <span className="svc-ic"><Bell className="ic" /></span>
                   <div>
                     <div className="svc-h">Notification Channels</div>
-                    <div className="svc-sub">Receive instant alerts on WhatsApp, Telegram, or Email.</div>
+                    <div className="svc-sub">Enable or disable instant order alerts. Notifications will be delivered automatically using company configurations.</div>
                   </div>
                 </div>
 
@@ -780,7 +921,7 @@ function StoreProfilePageContent() {
                           🔒 Locked: Request Admin to Activate
                         </span>
                       )}
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isEmailAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: emailEnabled ? '12px' : 0 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isEmailAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: 0 }}>
                         <input 
                           type="checkbox"
                           checked={emailEnabled}
@@ -790,20 +931,6 @@ function StoreProfilePageContent() {
                         />
                         <span>📧 Email Order Alerts</span>
                       </label>
-                      {emailEnabled && (
-                        <div className="field" style={{ margin: 0, paddingTop: '4px' }}>
-                          <label className="label">Recipient Email Address</label>
-                          <input 
-                            type="email"
-                            className="input"
-                            value={emailRecipient}
-                            disabled={!isEmailAssigned}
-                            onChange={(e) => setEmailRecipient(e.target.value)}
-                            placeholder="manager@restaurant.com"
-                            required
-                          />
-                        </div>
-                      )}
                     </div>
 
                     {/* WhatsApp Channel */}
@@ -813,7 +940,7 @@ function StoreProfilePageContent() {
                           🔒 Locked: Request Admin to Activate
                         </span>
                       )}
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isWhatsappAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: whatsappEnabled ? '12px' : 0 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isWhatsappAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: 0 }}>
                         <input 
                           type="checkbox"
                           checked={whatsappEnabled}
@@ -821,22 +948,8 @@ function StoreProfilePageContent() {
                           onChange={(e) => setWhatsappEnabled(e.target.checked)}
                           style={{ width: '18px', height: '18px' }}
                         />
-                        <span>💬 WhatsApp Sandboxed Alerts</span>
+                        <span>💬 WhatsApp Alerts</span>
                       </label>
-                      {whatsappEnabled && (
-                        <div className="field" style={{ margin: 0, paddingTop: '4px' }}>
-                          <label className="label">Phone Number (with country code)</label>
-                          <input 
-                            type="tel"
-                            className="input"
-                            value={whatsappRecipient}
-                            disabled={!isWhatsappAssigned}
-                            onChange={(e) => setWhatsappRecipient(e.target.value)}
-                            placeholder="e.g. +96170123456"
-                            required
-                          />
-                        </div>
-                      )}
                     </div>
 
                     {/* Telegram Channel */}
@@ -846,7 +959,7 @@ function StoreProfilePageContent() {
                           🔒 Locked: Request Admin to Activate
                         </span>
                       )}
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isTelegramAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: telegramEnabled ? '12px' : 0 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700', cursor: isTelegramAssigned ? 'pointer' : 'not-allowed', fontSize: '0.9rem', marginBottom: 0 }}>
                         <input 
                           type="checkbox"
                           checked={telegramEnabled}
@@ -856,51 +969,21 @@ function StoreProfilePageContent() {
                         />
                         <span>🤖 Telegram Bot Alerts</span>
                       </label>
-                      {telegramEnabled && (
-                        <div className="field" style={{ margin: 0, paddingTop: '4px' }}>
-                          <label className="label">Your Telegram Chat ID</label>
-                          <input 
-                            type="text"
-                            className="input"
-                            value={telegramChatId}
-                            disabled={!isTelegramAssigned}
-                            onChange={(e) => setTelegramChatId(e.target.value)}
-                            placeholder="e.g. 543210987"
-                            required
-                          />
-                        </div>
-                      )}
                     </div>
 
-                  {/* credentials instructions documentation */}
-                  <div style={{ border: '1px solid var(--line-strong)', borderRadius: '12px', padding: '16px', backgroundColor: 'var(--surface-2)', fontSize: '0.8rem', lineHeight: '1.45', textAlign: 'left' }}>
-                    <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '6px' }}>🔑 Integration Credentials Setup Guide</strong>
-                    <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--ink-2)' }}>
-                      <li>
-                        <b>Email Alerts</b>: Set up your Resend key as <code>RESEND_API_KEY</code> inside the host <code>.env</code> file.
-                      </li>
-                      <li>
-                        <b>WhatsApp Sandbox</b>: Set up your Twilio SID, Sandbox number, and Auth token inside your <code>.env</code> as <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_WHATSAPP_NUMBER</code>, and <code>TWILIO_AUTH_TOKEN</code>.
-                      </li>
-                      <li>
-                        <b>Telegram Bot Alerts</b>: Message <code>@BotFather</code> on Telegram, send <code>/newbot</code> to get your token and save it as <code>TELEGRAM_BOT_TOKEN</code>. Find your Chat ID via <code>@userinfobot</code>.
-                      </li>
-                    </ul>
                   </div>
 
+                  <button 
+                    onClick={handleSaveSettings}
+                    disabled={saving}
+                    className="btn btn-primary btn-lg"
+                  >
+                    <Save className="ic" />
+                    <span>{saving ? 'Saving...' : 'Save settings'}</span>
+                  </button>
                 </div>
 
-                <button 
-                  onClick={handleSaveSettings}
-                  disabled={saving}
-                  className="btn btn-primary btn-lg"
-                >
-                  <Save className="ic" />
-                  <span>{saving ? 'Saving...' : 'Save settings'}</span>
-                </button>
               </div>
-
-            </div>
             );
           })()}
 

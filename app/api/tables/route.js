@@ -52,6 +52,19 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Tenant context is required' }, { status: 400 });
     }
 
+    // Automatically release tables whose booking has expired
+    const now = new Date();
+    await db.collection('tables').updateMany(
+      { 
+        tenantId: tenantId.toString(),
+        isBooked: true,
+        bookedExpiresAt: { $ne: null, $lt: now.toISOString() }
+      },
+      {
+        $set: { isBooked: false, bookedExpiresAt: null }
+      }
+    );
+
     const tables = await db.collection('tables')
       .find({ tenantId: tenantId.toString() })
       .toArray();
@@ -119,7 +132,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id, isBooked, name, chairs, location, x, y, shape, view } = await request.json();
+    const { id, isBooked, name, chairs, location, x, y, shape, view, bookedExpiresAt } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Table ID is required' }, { status: 400 });
@@ -127,14 +140,27 @@ export async function PUT(request) {
 
     const db = await getDb();
 
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
     // Verify ownership
-    const table = await db.collection('tables').findOne({ _id: id.toString(), tenantId: tenantId.toString() });
+    const table = await db.collection('tables').findOne({ _id: { $in: matchIds }, tenantId: tenantId.toString() });
     if (!table) {
       return NextResponse.json({ error: 'Table not found' }, { status: 404 });
     }
 
     const updateObj = {};
-    if (isBooked !== undefined) updateObj.isBooked = isBooked;
+    if (isBooked !== undefined) {
+      updateObj.isBooked = isBooked;
+      if (!isBooked) {
+        updateObj.bookedExpiresAt = null; // Clear booking duration on manual release
+      }
+    }
+    if (bookedExpiresAt !== undefined) {
+      updateObj.bookedExpiresAt = bookedExpiresAt;
+    }
     if (name !== undefined) updateObj.name = name.trim();
     if (chairs !== undefined) updateObj.chairs = parseInt(chairs);
     if (location !== undefined) updateObj.location = location.trim();
@@ -144,7 +170,7 @@ export async function PUT(request) {
     if (view !== undefined) updateObj.view = view;
 
     await db.collection('tables').updateOne(
-      { _id: id.toString() },
+      { _id: { $in: matchIds } },
       { $set: updateObj }
     );
 
@@ -170,7 +196,13 @@ export async function DELETE(request) {
     }
 
     const db = await getDb();
-    await db.collection('tables').deleteOne({ _id: id.toString(), tenantId: tenantId.toString() });
+
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
+    await db.collection('tables').deleteOne({ _id: { $in: matchIds }, tenantId: tenantId.toString() });
 
     return NextResponse.json({ success: true });
   } catch (error) {
