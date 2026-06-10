@@ -36,6 +36,7 @@ function StoreProfilePageContent() {
   const [baseCurrency, setBaseCurrency] = useState('USD');
   const [address, setAddress] = useState('');
   const [googleMapsLink, setGoogleMapsLink] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(0);
 
   // Notifications channels states
   const [emailEnabled, setEmailEnabled] = useState(false);
@@ -82,6 +83,7 @@ function StoreProfilePageContent() {
         setBaseCurrency(data.baseCurrency || 'USD');
         setAddress(data.address || '');
         setGoogleMapsLink(data.googleMapsLink || '');
+        setDeliveryFee(data.deliveryFee ?? 0);
 
         // Populate notification settings
         setEmailEnabled(data.notifications?.emailEnabled || false);
@@ -154,6 +156,7 @@ function StoreProfilePageContent() {
           openingHours,
           waitTimes: { delivery: parseInt(deliveryWait), pickup: parseInt(pickupWait) },
           baseCurrency,
+          deliveryFee: parseFloat(deliveryFee),
           address,
           googleMapsLink,
           notifications: {
@@ -483,7 +486,7 @@ function StoreProfilePageContent() {
               <div className="svc-section">
                 <div className="svc-fields" style={{ maxWidth: '400px', marginBottom: '24px' }}>
                   <div className="field">
-                    <label className="label">Delivery wait time</label>
+                    <label className="label">Default Cooking / Kitchen Prep Time</label>
                     <div className="range-input">
                       <input 
                         type="number" 
@@ -493,6 +496,22 @@ function StoreProfilePageContent() {
                       />
                       <span className="suffix">minutes</span>
                     </div>
+                  </div>
+
+                  <div className="field" style={{ marginTop: '16px' }}>
+                    <label className="label">Delivery Fee ({baseCurrency})</label>
+                    <div className="range-input">
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        min="0"
+                        value={deliveryFee}
+                        onChange={(e) => setDeliveryFee(e.target.value)}
+                        placeholder="0"
+                      />
+                      <span className="suffix">{baseCurrency}</span>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--ink-3)', marginTop: '4px', display: 'block' }}>Set to 0 for free delivery</span>
                   </div>
                 </div>
 

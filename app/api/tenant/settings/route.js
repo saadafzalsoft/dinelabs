@@ -64,7 +64,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { name, logoUrl, openingHours, waitTimes, baseCurrency, languages, defaultLanguage, enabledModes, address, notifications } = body;
+    const { name, logoUrl, openingHours, waitTimes, baseCurrency, languages, defaultLanguage, enabledModes, address, notifications, deliveryFee } = body;
 
     const db = await getDb();
 
@@ -87,6 +87,7 @@ export async function PUT(request) {
     if (address !== undefined) updateObj.address = address;
     if (body.googleMapsLink !== undefined) updateObj.googleMapsLink = body.googleMapsLink;
     if (notifications !== undefined) updateObj.notifications = notifications;
+    if (deliveryFee !== undefined) updateObj.deliveryFee = parseFloat(deliveryFee);
     
     // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin
     if (enabledModes !== undefined) {

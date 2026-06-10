@@ -137,8 +137,8 @@ export default function CheckoutPage() {
   };
 
   const subtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
-  // Delivery fee is LBP 200,000 if LBP currency, or $3.50 if USD
-  const deliveryFee = mode === 'delivery' ? (tenant?.baseCurrency === 'LBP' ? 200000 : 3.50) : 0.00;
+  // Delivery fee read from tenant settings (manager configurable)
+  const deliveryFee = mode === 'delivery' ? (tenant?.deliveryFee || 0) : 0.00;
   const total = subtotal + deliveryFee;
 
   const handleSubmit = async (e) => {
@@ -200,6 +200,7 @@ export default function CheckoutPage() {
           size: item.size,
           addons: item.addons,
           removedIngredients: item.removedIngredients,
+          notes: item.notes || '',
           priceCalculated: item.unitPrice
         })),
         subtotal,
@@ -274,9 +275,9 @@ export default function CheckoutPage() {
         
         {/* Header navigation back button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <Link href={`/${storename}`} style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a href={`/${storename}`} style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             ← Back to Menu
-          </Link>
+          </a>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: '800' }}>Checkout</h1>
         </div>
 
@@ -428,8 +429,8 @@ export default function CheckoutPage() {
                   ========================================== */}
               {mode === 'pickup' && (
                 <>
-                  {/* Local location card with map screenshot placeholder */}
-                  {tenant.address && (
+                  {/* Local location card with map */}
+                  {tenant.address ? (
                     <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
                         <span style={{ fontSize: '1.4rem', backgroundColor: 'var(--bg-secondary)', padding: '6px 10px', borderRadius: '50%' }}>📍</span>
@@ -476,6 +477,10 @@ export default function CheckoutPage() {
                           🗺️ Get Directions on Google Maps
                         </a>
                       )}
+                    </div>
+                  ) : (
+                    <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '20px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600' }}>
+                      📍 Pickup address is not available yet. Please contact the store directly for pickup location details.
                     </div>
                   )}
 
@@ -636,6 +641,11 @@ export default function CheckoutPage() {
                           {item.addons?.length > 0 && `, +${item.addons.join(', ')}`}
                           {item.removedIngredients?.length > 0 && `, (No ${item.removedIngredients.join(', ')})`}
                         </span>
+                        {item.notes && (
+                          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic', marginTop: '2px' }}>
+                            📝 {item.notes}
+                          </div>
+                        )}
                       </div>
                       <span style={{ fontWeight: '600' }}>{formatPrice(item.totalPrice)}</span>
                     </div>

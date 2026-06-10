@@ -2,17 +2,45 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
+import { sendOrderStatusUpdateNotification } from '@/lib/notifications';
+
+// GET handler: fetch a single order by ID (public access for guest tracking)
+export async function GET(request, { params }) {
+  try {
+    const { id } = await params;
+    if (!id) {
+      return NextResponse.json({ error: 'Missing order ID' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const matchIds = [id.toString()];
+    try {
+      matchIds.push(new ObjectId(id.toString()));
+    } catch (e) {}
+
+    const order = await db.collection('orders').findOne({ _id: { $in: matchIds } });
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(order);
+  } catch (error) {
+    console.error('Order GET error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 
 export async function PUT(request, { params }) {
   try {
     const { id } = await params;
-    const { status } = await request.json();
+    const body = await request.json();
+    const { status, deliveryMinutes } = body;
 
     if (!id || !status) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    const allowedStatuses = ['pending', 'accepted', 'declined', 'completed'];
+    const allowedStatuses = ['pending', 'accepted', 'ready', 'shipped', 'declined', 'completed'];
     if (!allowedStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid order status' }, { status: 400 });
     }
@@ -65,10 +93,29 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized tenant access to order' }, { status: 403 });
     }
 
+    // Build update object
+    const updateFields = { status, updatedAt: new Date() };
+    if (deliveryMinutes !== undefined && deliveryMinutes !== null) {
+      updateFields.deliveryMinutes = parseInt(deliveryMinutes);
+    }
+
     const result = await db.collection('orders').updateOne(
       { _id: { $in: matchIds } },
-      { $set: { status, updatedAt: new Date() } }
+      { $set: updateFields }
     );
+
+    // Send status update notification to customer asynchronously
+    try {
+      const tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantId.toString()) });
+      if (tenant) {
+        // Fire and forget – don't block the response
+        sendOrderStatusUpdateNotification(order, tenant, status, deliveryMinutes).catch(err => {
+          console.error('Status notification error:', err);
+        });
+      }
+    } catch (notifErr) {
+      console.error('Error preparing status notification:', notifErr);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

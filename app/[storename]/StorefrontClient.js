@@ -31,6 +31,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [modalAddons, setModalAddons] = useState([]);
   const [modalRemovals, setModalRemovals] = useState([]);
   const [modalQty, setModalQty] = useState(1);
+  const [modalNotes, setModalNotes] = useState('');
   const [modalPrice, setModalPrice] = useState(0);
 
   // Load cart and details from localStorage on mount
@@ -92,8 +93,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     localStorage.setItem(`dinelabs_mode_${tenant.slug}`, newMode);
   };
 
-  // Dynamic price formatter using comma decimal separator: $XX,XX
+  // Dynamic price formatter
   const formatPrice = (amount) => {
+    if (tenant.baseCurrency === 'LBP') {
+      return 'LBP ' + parseFloat(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
     return '$' + parseFloat(amount).toFixed(2).replace('.', ',');
   };
 
@@ -319,6 +323,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
     setModalAddons([]);
     setModalRemovals([]);
+    setModalNotes('');
   };
 
   // Real-time customizer item price calculation
@@ -388,6 +393,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       size: modalSize,
       addons: modalAddons,
       removedIngredients: modalRemovals,
+      notes: modalNotes,
       unitPrice: modalPrice / modalQty,
       totalPrice: modalPrice,
       imageUrl: selectedProduct.imageUrl
@@ -423,7 +429,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
   // Calculations
   const subtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
-  const deliveryFee = mode === 'delivery' ? 3.50 : 0.00;
+  const deliveryFee = mode === 'delivery' ? (tenant.deliveryFee || 0) : 0.00;
   const total = subtotal + deliveryFee;
 
   return (
@@ -761,9 +767,15 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       <div className="basket-qty-control">
                         <span 
                           className="basket-qty-btn"
-                          onClick={() => updateCartQty(item.id, -1)}
+                          onClick={() => {
+                            if (item.quantity === 1) {
+                              removeCartItem(item.id);
+                            } else {
+                              updateCartQty(item.id, -1);
+                            }
+                          }}
                         >
-                          -
+                          {item.quantity === 1 ? '🗑️' : '-'}
                         </span>
                         <span className="basket-qty-num">{item.quantity}</span>
                         <span 
@@ -771,12 +783,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                           onClick={() => updateCartQty(item.id, 1)}
                         >
                           +
-                        </span>
-                        <span 
-                          style={{ marginLeft: '8px', cursor: 'pointer', color: '#ef4444', fontWeight: 'bold' }}
-                          onClick={() => removeCartItem(item.id)}
-                        >
-                          🗑️
                         </span>
                       </div>
                     )}
@@ -1054,6 +1060,28 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                     </div>
                   </div>
                 ))}
+
+              {/* Special Instructions / Item Notes */}
+              <div className="modal-modifier-section">
+                <h4 className="modal-section-title">📝 Special Instructions</h4>
+                <textarea
+                  className="form-control"
+                  placeholder="e.g. No onions, extra sauce, allergies..."
+                  value={modalNotes}
+                  onChange={(e) => setModalNotes(e.target.value)}
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-light, #e5e7eb)',
+                    fontSize: '0.85rem',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    backgroundColor: '#f9fafb'
+                  }}
+                />
+              </div>
 
               {/* Modal footer quantity control and place button */}
               <div className="modal-footer-bar">
