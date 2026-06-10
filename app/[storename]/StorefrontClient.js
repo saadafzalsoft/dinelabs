@@ -56,20 +56,17 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       setTableNo(currentTable);
       localStorage.setItem(`dinelabs_table_${tenant.slug}`, currentTable);
     } else {
-      const savedTable = localStorage.getItem(`dinelabs_table_${tenant.slug}`);
-      if (savedTable) {
-        currentTable = savedTable;
-        setTableNo(savedTable);
-      }
+      setTableNo('');
+      localStorage.removeItem(`dinelabs_table_${tenant.slug}`);
     }
 
-    if (currentTable) {
-      setMode('dine-in');
-      localStorage.setItem(`dinelabs_mode_${tenant.slug}`, 'dine-in');
+    // Set mode from local storage or pick default
+    const savedMode = localStorage.getItem(`dinelabs_mode_${tenant.slug}`);
+    if (savedMode) {
+      setMode(savedMode);
     } else {
-      const savedMode = localStorage.getItem(`dinelabs_mode_${tenant.slug}`);
-      if (savedMode) {
-        setMode(savedMode);
+      if (currentTable) {
+        setMode('dine-in');
       } else {
         // Pick first enabled mode
         if (tenant.enabledModes.dineIn) setMode('dine-in');
@@ -88,7 +85,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Persist fulfillment mode to localStorage
   const handleModeChange = (newMode) => {
     if (tenant.status !== 'active') return; // Browse only
-    if (tableNo) return; // Locked to dine-in if table scanned
     setMode(newMode);
     localStorage.setItem(`dinelabs_mode_${tenant.slug}`, newMode);
   };
@@ -722,7 +718,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <div 
                   onClick={() => handleModeChange('pickup')}
                   className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
-                  style={tableNo ? { opacity: 0.4, cursor: 'not-allowed', filter: 'grayscale(1)' } : {}}
                 >
                   <div className="toggle-header">🛍️ {dict[lang].pickup}</div>
                   <div className="toggle-desc">{dict[lang].pickupDesc}</div>
@@ -732,7 +727,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <div 
                   onClick={() => handleModeChange('delivery')}
                   className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
-                  style={tableNo ? { opacity: 0.4, cursor: 'not-allowed', filter: 'grayscale(1)' } : {}}
                 >
                   <div className="toggle-header">🛵 {dict[lang].delivery}</div>
                   <div className="toggle-desc">{dict[lang].deliveryDesc}</div>
@@ -813,7 +807,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       ⚠️ {dict[lang].warningClosed}
                     </div>
                   ) : (
-                    <Link href={`/${tenant.slug}/checkout`} className="checkout-btn">
+                    <Link href={`/${tenant.slug}/checkout${(tableNo && mode === 'dine-in') ? `?table=${encodeURIComponent(tableNo)}` : ''}`} className="checkout-btn">
                       {dict[lang].checkout}
                     </Link>
                   )
@@ -830,7 +824,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
       {cart.length > 0 && tenant.status === 'active' && !isClosed && (
-        <Link href={`/${tenant.slug}/checkout`} className="mobile-cart-float visible">
+        <Link href={`/${tenant.slug}/checkout${(tableNo && mode === 'dine-in') ? `?table=${encodeURIComponent(tableNo)}` : ''}`} className="mobile-cart-float visible">
           <div className="mobile-cart-left">
             <div className="mobile-cart-icon-wrapper">
               <span>🛒</span>

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { storename } = useParams();
+  const searchParams = useSearchParams();
+  const tableParam = searchParams ? searchParams.get('table') : '';
 
   // Loading and State
   const [loading, setLoading] = useState(true);
@@ -76,13 +78,24 @@ export default function CheckoutPage() {
       }
 
       // Load modes
-      const savedTable = localStorage.getItem(`dinelabs_table_${storename}`) || '';
-      setTableNo(savedTable);
+      let currentTable = '';
+      if (tableParam) {
+        try {
+          currentTable = decodeURIComponent(tableParam);
+        } catch (e) {
+          currentTable = tableParam;
+        }
+        setTableNo(currentTable);
+        localStorage.setItem(`dinelabs_table_${storename}`, currentTable);
+      } else {
+        setTableNo('');
+        localStorage.removeItem(`dinelabs_table_${storename}`);
+      }
 
-      if (savedTable) {
+      const savedMode = localStorage.getItem(`dinelabs_mode_${storename}`) || 'dine-in';
+      if (currentTable && savedMode === 'dine-in') {
         setMode('dine-in');
       } else {
-        const savedMode = localStorage.getItem(`dinelabs_mode_${storename}`) || 'dine-in';
         setMode(savedMode);
       }
 
@@ -275,7 +288,7 @@ export default function CheckoutPage() {
         
         {/* Header navigation back button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <a href={`/${storename}`} style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a href={`/${storename}${tableNo ? `?table=${encodeURIComponent(tableNo)}` : ''}`} style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             ← Back to Menu
           </a>
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: '800' }}>Checkout</h1>

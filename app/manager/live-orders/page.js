@@ -39,6 +39,10 @@ function LiveOrdersPageContent() {
   // Selected order for details modal popup
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // State for delivery transit minutes modal
+  const [deliveryMinutesModal, setDeliveryMinutesModal] = useState(null);
+  const [transitMinutes, setTransitMinutes] = useState(20);
+
   // Audio Notification references
   const audioContextRef = useRef(null);
   const soundIntervalRef = useRef(null);
@@ -169,26 +173,45 @@ function LiveOrdersPageContent() {
   };
 
   // Mutates order status
-  const handleModifyStatus = async (orderId, newStatus) => {
+  const handleModifyStatus = async (orderId, newStatus, deliveryMinutes = null) => {
     try {
+      const payload = { status: newStatus };
+      if (deliveryMinutes !== null) {
+        payload.deliveryMinutes = deliveryMinutes;
+      }
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
         // Optimistic UI state update
-        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+        setOrders(prev =>
+          prev.map(o => o._id === orderId ? {
+            ...o,
+            status: newStatus,
+            ...(deliveryMinutes !== null ? { deliveryMinutes } : {})
+          } : o)
+        );
         
         // Update selected order in state if it's currently open
         if (selectedOrder && selectedOrder._id === orderId) {
-          setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+          setSelectedOrder(prev => ({
+            ...prev,
+            status: newStatus,
+            ...(deliveryMinutes !== null ? { deliveryMinutes } : {})
+          }));
         }
 
         // Add custom visual alert toast
-        const label = newStatus === 'accepted' ? 'Order accepted!' : newStatus === 'completed' ? 'Order marked ready!' : 'Order declined';
-        const icon = newStatus === 'accepted' ? 'chef-hat' : newStatus === 'completed' ? 'package-check' : 'x';
+        let label = 'Status updated';
+        if (newStatus === 'accepted') label = 'Order accepted!';
+        else if (newStatus === 'ready') label = 'Order marked ready!';
+        else if (newStatus === 'shipped') label = 'Order shipped!';
+        else if (newStatus === 'completed') label = 'Order completed!';
+        else if (newStatus === 'declined') label = 'Order declined';
+
         const el = document.createElement('div');
         el.className = 'toast-wrap';
         el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>${label}</span></div>`;
@@ -199,6 +222,15 @@ function LiveOrdersPageContent() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleReadyClick = (order) => {
+    if (order.type === 'delivery') {
+      setTransitMinutes(20);
+      setDeliveryMinutesModal(order);
+    } else {
+      handleModifyStatus(order._id, 'ready');
     }
   };
 
@@ -223,8 +255,8 @@ function LiveOrdersPageContent() {
   // 7. Get calculated counts for status stats headers
   const getStats = () => {
     const c = (status) => orders.filter(o => o.status === status).length;
-    // Completed counts are completed orders that haven't been dismissed
-    const readyActive = orders.filter(o => o.status === 'completed' && !dismissedIds.includes(o._id)).length;
+    // Ready active counts are ready, shipped, or completed orders that haven't been dismissed
+    const readyActive = orders.filter(o => ['ready', 'shipped', 'completed'].includes(o.status) && !dismissedIds.includes(o._id)).length;
     const completedTotalCount = orders.filter(o => o.status === 'completed').length;
     
     return {
@@ -241,7 +273,7 @@ function LiveOrdersPageContent() {
   const columns = [
     { key: 'pending', title: 'New', dot: 'var(--neg)' },
     { key: 'accepted', title: 'In progress', dot: 'var(--info)' },
-    { key: 'completed', title: 'Ready', dot: 'var(--pos)' }
+    { key: 'completed_group', title: 'Ready / Shipped', dot: 'var(--pos)' }
   ];
 
   const channelIcons = {
@@ -399,11 +431,13 @@ function LiveOrdersPageContent() {
       <div className="board">
         {columns.map(col => {
           // Filter orders belonging to this column status
-          let list = orders.filter(o => o.status === col.key);
-          
-          // Exclude dismissed completed orders from third column
-          if (col.key === 'completed') {
+          let list;
+          if (col.key === 'completed_group') {
+            list = orders.filter(o => o.status === 'ready' || o.status === 'shipped' || o.status === 'completed');
+            // Exclude dismissed completed orders from third column
             list = list.filter(o => !dismissedIds.includes(o._id));
+          } else {
+            list = orders.filter(o => o.status === col.key);
           }
 
           // Apply channels filter if set
@@ -468,9 +502,32 @@ function LiveOrdersPageContent() {
                         </div>
 
                         <div className="oc-foot">
-                          <span className="oc-total tnum" style={{ fontWeight: '800' }}>
-                            ${parseFloat(order.total).toFixed(2)}
-                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span className="oc-total tnum" style={{ fontWeight: '800' }}>
+                              ${parseFloat(order.total).toFixed(2)}
+                            </span>
+                            {['ready', 'shipped', 'completed'].includes(order.status) && (
+                              <span style={{ 
+                                fontSize: '0.7rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                fontWeight: 'bold',
+                                alignSelf: 'flex-start',
+                                backgroundColor: 
+                                  order.status === 'ready' ? 'var(--pos-bg)' : 
+                                  order.status === 'shipped' ? 'var(--info-bg)' : 
+                                  'var(--surface-3)',
+                                color: 
+                                  order.status === 'ready' ? 'var(--pos)' : 
+                                  order.status === 'shipped' ? 'var(--info)' : 
+                                  'var(--ink-3)'
+                              }}>
+                                {order.status === 'ready' ? 'Ready' : 
+                                 order.status === 'shipped' ? `Shipped (${order.deliveryMinutes || 20}m)` : 
+                                 'Completed'}
+                              </span>
+                            )}
+                          </div>
                           <span className="oc-actions" onClick={e => e.stopPropagation()}>
                             <button 
                               className="btn btn-outline btn-sm"
@@ -493,10 +550,20 @@ function LiveOrdersPageContent() {
                             {order.status === 'accepted' && (
                               <button 
                                 className="btn btn-primary btn-sm"
-                                onClick={() => handleModifyStatus(order._id, 'completed')}
+                                onClick={() => handleReadyClick(order)}
                               >
                                 <Check className="ic" style={{ width: '13px', height: '13px' }} />
                                 <span>Ready</span>
+                              </button>
+                            )}
+
+                            {(order.status === 'ready' || order.status === 'shipped') && (
+                              <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleModifyStatus(order._id, 'completed')}
+                              >
+                                <Check className="ic" style={{ width: '13px', height: '13px' }} />
+                                <span>Complete</span>
                               </button>
                             )}
 
@@ -551,10 +618,17 @@ function LiveOrdersPageContent() {
                       <span 
                         className="od-dot" 
                         style={{ 
-                          backgroundColor: selectedOrder.status === 'pending' ? 'var(--neg)' : selectedOrder.status === 'accepted' ? 'var(--warn)' : 'var(--pos)' 
+                          backgroundColor: 
+                            selectedOrder.status === 'pending' ? 'var(--neg)' : 
+                            selectedOrder.status === 'accepted' ? 'var(--warn)' : 
+                            'var(--pos)' 
                         }}
                       ></span>
-                      {selectedOrder.status === 'pending' ? 'New' : selectedOrder.status === 'accepted' ? 'In progress' : 'Ready'}
+                      {selectedOrder.status === 'pending' ? 'New' : 
+                       selectedOrder.status === 'accepted' ? 'In progress' : 
+                       selectedOrder.status === 'ready' ? 'Ready' : 
+                       selectedOrder.status === 'shipped' ? 'Shipped' : 
+                       'Completed'}
                     </span>
                   </div>
 
@@ -690,9 +764,19 @@ function LiveOrdersPageContent() {
                 {selectedOrder.status === 'accepted' && (
                   <button 
                     className="btn btn-primary btn-lg od-primary"
-                    onClick={() => handleModifyStatus(selectedOrder._id, 'completed')}
+                    onClick={() => handleReadyClick(selectedOrder)}
                   >
                     Mark Ready
+                    <Check className="ic" />
+                  </button>
+                )}
+
+                {(selectedOrder.status === 'ready' || selectedOrder.status === 'shipped') && (
+                  <button 
+                    className="btn btn-primary btn-lg od-primary"
+                    onClick={() => handleModifyStatus(selectedOrder._id, 'completed')}
+                  >
+                    Complete Order
                     <Check className="ic" />
                   </button>
                 )}
@@ -708,6 +792,63 @@ function LiveOrdersPageContent() {
                 )}
               </div>
 
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Delivery Transit Minutes Modal */}
+      {deliveryMinutesModal && (
+        <>
+          <div className="od-scrim open" onClick={() => setDeliveryMinutesModal(null)}></div>
+          <div className="order-modal open" style={{ maxWidth: '400px' }} role="dialog" aria-modal="true">
+            <div className="om-bar">
+              <h3>
+                <Bike className="ic" />
+                <span>Delivery Transit Time</span>
+              </h3>
+              <button 
+                className="x" 
+                onClick={() => setDeliveryMinutesModal(null)} 
+                title="Close"
+              >
+                <X className="ic" />
+              </button>
+            </div>
+            <div style={{ padding: '24px' }}>
+              <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: 'var(--ink-3)' }}>
+                Enter the estimated delivery transit time in minutes for Order <strong>#{deliveryMinutesModal.orderNo}</strong>.
+              </p>
+              <input
+                type="number"
+                value={transitMinutes}
+                onChange={(e) => setTransitMinutes(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-light)',
+                  backgroundColor: 'var(--surface-2)',
+                  color: 'var(--ink)',
+                  fontSize: '1rem',
+                  marginBottom: '20px'
+                }}
+                min="1"
+              />
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button className="btn btn-outline" onClick={() => setDeliveryMinutesModal(null)}>
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    handleModifyStatus(deliveryMinutesModal._id, 'shipped', parseInt(transitMinutes));
+                    setDeliveryMinutesModal(null);
+                  }}
+                >
+                  Confirm & Ship
+                </button>
+              </div>
             </div>
           </div>
         </>
