@@ -3,6 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import {
+  Menu,
+  X,
+  Search,
+  Plus,
+  ShoppingBag,
+  Utensils,
+  Bike,
+  Star,
+  FileText,
+  ChevronDown,
+  Check,
+  ShoppingCart
+} from 'lucide-react';
 
 export default function StorefrontClient({ tenant, initialProducts, initialCategories, initialModifierGroups }) {
   const searchParams = useSearchParams();
@@ -12,6 +26,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [lang, setLang] = useState(tenant.defaultLanguage || 'en');
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const LANGUAGES = {
     en: { label: 'English', flag: '🇬🇧', code: 'EN' },
@@ -464,15 +479,33 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       <header className="header" style={{ 
         top: (tenant.status !== 'active' && isClosed) ? '80px' : (tenant.status !== 'active' || isClosed) ? '40px' : 0 
       }}>
-        <div className="header-container">
-          {/* Logo / Brand Name */}
-          <Link href={`/${tenant.slug}`} className="logo">
-            {tenant.name.toLowerCase() === 'bar tartine' ? (
-              <>bar <span>tartine</span></>
-            ) : (
-              tenant.name
-            )}
-          </Link>
+        <div className="header-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="menu-toggle-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'var(--text-main)',
+                padding: '6px'
+              }}
+            >
+              <Menu className="ic" style={{ width: '22px', height: '22px' }} />
+            </button>
+            
+            {/* Logo / Brand Name */}
+            <Link href={`/${tenant.slug}`} className="logo" style={{ margin: 0 }}>
+              {tenant.name.toLowerCase() === 'bar tartine' ? (
+                <>bar <span>tartine</span></>
+              ) : (
+                tenant.name
+              )}
+            </Link>
+          </div>
 
           {/* Right Header: Languages switcher dropdown */}
           <div className="header-right" style={{ position: 'relative' }}>
@@ -591,7 +624,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             return (
               <section key={cat._id} className="promo-section" style={{ marginBottom: '32px' }}>
                 <div className="section-header">
-                  <h2 className="section-title">⭐ {t(cat.name)}</h2>
+                  <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Star style={{ width: '18px', height: '18px', fill: '#eab308', color: '#eab308' }} />
+                    <span>{t(cat.name)}</span>
+                  </h2>
                 </div>
                 <div className="offers-row">
                   {promoProducts.map(product => (
@@ -602,20 +638,28 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       style={isClosed ? { cursor: 'default' } : {}}
                     >
                       <div className="offer-image-wrapper">
-                        <img 
-                          src={product.imageUrl} 
-                          alt={t(product.name)} 
-                          className="offer-img"
-                        />
+                        {product.imageUrl ? (
+                          <img 
+                            src={product.imageUrl} 
+                            alt={t(product.name)} 
+                            className="offer-img"
+                          />
+                        ) : (
+                          <div className="offer-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
+                            No Image
+                          </div>
+                        )}
                         {tenant.status === 'active' && !isClosed && product.isAvailable && (
-                          <div className="plus-overlay-btn">➕</div>
+                          <div className="plus-overlay-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Plus className="ic" style={{ width: '16px', height: '16px', color: '#ffffff' }} />
+                          </div>
                         )}
                       </div>
                       <h3 className="offer-title">{t(product.name)}</h3>
                       {isClosed ? (
-                        <p className="offer-price" style={{ color: 'var(--brand-red)', fontWeight: 'bold' }}>{dict[lang].closed}</p>
+                        <p className="offer-price" style={{ color: 'var(--brand-red)', fontWeight: 'bold', textDecoration: 'none' }}>{dict[lang].closed}</p>
                       ) : (
-                        <p className="offer-price">{formatPrice(product.price)}</p>
+                        <p className="offer-price" style={{ textDecoration: 'none' }}>{formatPrice(product.price)}</p>
                       )}
                     </div>
                   ))}
@@ -623,6 +667,98 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               </section>
             );
           })}
+
+          {/* Top Fulfillment Switcher Redesign */}
+          {tenant.status === 'active' && (
+            <div style={{
+              display: 'flex',
+              backgroundColor: '#f3f4f6',
+              padding: '6px',
+              borderRadius: '16px',
+              marginBottom: '20px',
+              gap: '6px',
+              border: '1px solid var(--border-light, #e5e7eb)'
+            }}>
+              {tenant.enabledModes.dineIn && (
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('dine-in')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '10px 8px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    backgroundColor: mode === 'dine-in' ? '#000000' : 'transparent',
+                    color: mode === 'dine-in' ? '#ffffff' : '#4b5563',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    gap: '4px'
+                  }}
+                >
+                  <Utensils style={{ width: '16px', height: '16px' }} />
+                  <span>{dict[lang].dineIn} {tableNo ? `(${tableNo})` : ''}</span>
+                </button>
+              )}
+              {tenant.enabledModes.pickup && (
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('pickup')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '10px 8px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    backgroundColor: mode === 'pickup' ? '#000000' : 'transparent',
+                    color: mode === 'pickup' ? '#ffffff' : '#4b5563',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    gap: '4px'
+                  }}
+                >
+                  <ShoppingBag style={{ width: '16px', height: '16px' }} />
+                  <span>{dict[lang].pickup}</span>
+                </button>
+              )}
+              {tenant.enabledModes.delivery && (
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('delivery')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '10px 8px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    backgroundColor: mode === 'delivery' ? '#000000' : 'transparent',
+                    color: mode === 'delivery' ? '#ffffff' : '#4b5563',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontWeight: '700',
+                    fontSize: '0.8rem',
+                    gap: '4px'
+                  }}
+                >
+                  <Bike style={{ width: '16px', height: '16px' }} />
+                  <span>{dict[lang].delivery}</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Search bar */}
           <div className="search-container">
@@ -633,7 +769,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <span className="search-icon">🔍</span>
+            <span className="search-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Search className="ic" style={{ width: '18px', height: '18px', color: 'var(--text-muted)' }} />
+            </span>
           </div>
 
           {/* Categories Pills bar */}
@@ -669,12 +807,36 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   onClick={() => openCustomizer(product)}
                   style={{ opacity: product.isAvailable ? 1 : 0.6, cursor: isClosed ? 'default' : 'pointer' }}
                 >
-                  <div className="product-image-container">
-                    <img 
-                      src={product.imageUrl} 
-                      alt={t(product.name)} 
-                      className="product-img"
-                    />
+                  <div className="product-image-container" style={{ position: 'relative' }}>
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={t(product.name)} 
+                        className="product-img"
+                      />
+                    ) : (
+                      <div className="product-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
+                        No Image
+                      </div>
+                    )}
+                    {tenant.status === 'active' && !isClosed && product.isAvailable && (
+                      <div className="plus-overlay-btn" style={{
+                        position: 'absolute',
+                        bottom: '8px',
+                        right: '8px',
+                        backgroundColor: '#ffffff',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                        zIndex: 2
+                      }}>
+                        <Plus className="ic" style={{ width: '16px', height: '16px', color: '#000000' }} />
+                      </div>
+                    )}
                   </div>
                   <div className="product-info">
                     <h3 className="product-title">{t(product.name)}</h3>
@@ -688,7 +850,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       </span>
                     ) : (
                       <div className="product-price-row">
-                        <span className="product-price">{formatPrice(product.price)}</span>
+                        <span className="product-price" style={{ textDecoration: 'none' }}>{formatPrice(product.price)}</span>
                       </div>
                     )}
                   </div>
@@ -700,7 +862,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
         {/* Right shopping basket panel */}
         <aside className="right-panel">
-          <h2 className="basket-title">🛒</h2>
+          <h2 className="basket-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+            <ShoppingCart className="ic" style={{ width: '22px', height: '22px' }} />
+          </h2>
 
           {/* Fulfillment toggles */}
           {tenant.status === 'active' && (
@@ -710,7 +874,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   onClick={() => handleModeChange('dine-in')}
                   className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}
                 >
-                  <div className="toggle-header">🍽️ {dict[lang].dineIn}</div>
+                  <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Utensils style={{ width: '14px', height: '14px' }} />
+                    <span>{dict[lang].dineIn}</span>
+                  </div>
                   <div className="toggle-desc">{tableNo ? tableNo : dict[lang].dineInDesc}</div>
                 </div>
               )}
@@ -719,7 +886,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   onClick={() => handleModeChange('pickup')}
                   className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
                 >
-                  <div className="toggle-header">🛍️ {dict[lang].pickup}</div>
+                  <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ShoppingBag style={{ width: '14px', height: '14px' }} />
+                    <span>{dict[lang].pickup}</span>
+                  </div>
                   <div className="toggle-desc">{dict[lang].pickupDesc}</div>
                 </div>
               )}
@@ -728,7 +898,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   onClick={() => handleModeChange('delivery')}
                   className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
                 >
-                  <div className="toggle-header">🛵 {dict[lang].delivery}</div>
+                  <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Bike style={{ width: '14px', height: '14px' }} />
+                    <span>{dict[lang].delivery}</span>
+                  </div>
                   <div className="toggle-desc">{dict[lang].deliveryDesc}</div>
                 </div>
               )}
@@ -738,7 +911,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           {/* Empty state vs Cart list */}
           {cart.length === 0 ? (
             <div className="basket-empty-state">
-              <span className="basket-empty-icon" style={{ fontSize: '40px' }}>🍕</span>
+              <span className="basket-empty-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <ShoppingBag className="ic" style={{ width: '48px', height: '48px', color: 'var(--text-muted)' }} />
+              </span>
               <h3 className="basket-empty-title">{dict[lang].emptyTitle}</h3>
               <p className="basket-empty-sub">{dict[lang].emptySub}</p>
             </div>
@@ -824,10 +999,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
       {cart.length > 0 && tenant.status === 'active' && !isClosed && (
-        <Link href={`/${tenant.slug}/checkout${(tableNo && mode === 'dine-in') ? `?table=${encodeURIComponent(tableNo)}` : ''}`} className="mobile-cart-float visible">
+        <Link href={`/${tenant.slug}/checkout${(tableNo && mode === 'dine-in') ? `?table=${encodeURIComponent(tableNo)}` : ''}`} className="mobile-cart-float visible" style={{ textDecoration: 'none' }}>
           <div className="mobile-cart-left">
-            <div className="mobile-cart-icon-wrapper">
-              <span>🛒</span>
+            <div className="mobile-cart-icon-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
+              <ShoppingCart className="ic" style={{ width: '18px', height: '18px' }} />
               <span className="mobile-cart-badge">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
             </div>
             <span className="mobile-cart-text">{dict[lang].checkout}</span>
@@ -846,11 +1021,17 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           <div className="modal-card">
             {/* Header / Close */}
             <div className="modal-image-wrapper">
-              <img 
-                src={selectedProduct.imageUrl} 
-                alt={t(selectedProduct.name)} 
-                className="modal-pizza-img"
-              />
+              {selectedProduct.imageUrl ? (
+                <img 
+                  src={selectedProduct.imageUrl} 
+                  alt={t(selectedProduct.name)} 
+                  className="modal-pizza-img"
+                />
+              ) : (
+                <div className="modal-pizza-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
+                  No Image Available
+                </div>
+              )}
               <button 
                 onClick={() => setSelectedProduct(null)}
                 className="modal-close-btn"
@@ -860,106 +1041,76 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             </div>
 
             {/* Modal Customizer Body */}
-            <div className="modal-body">
-              <h3 className="modal-title">{t(selectedProduct.name)}</h3>
-              <p className="modal-desc">{t(selectedProduct.description)}</p>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', maxHeight: '80vh', padding: 0 }}>
               
-              {/* Product-Level Variations */}
-              {selectedProduct.variations && selectedProduct.variations.length > 0 ? (
-                <div className="modal-modifier-section">
-                  <h4 className="modal-section-title">{dict[lang].sizeLabel} ({dict[lang].chooseMandatory})</h4>
-                  <div className="modal-options-list">
-                    {selectedProduct.variations.map((option, idx) => {
-                      const optName = option.name?.en || option.name;
-                      return (
-                        <label key={idx} className="option-row">
-                          <div className="option-row-left">
-                            <input 
-                              type="radio" 
-                              name="product-size" 
-                              value={optName}
-                              checked={modalSize === optName}
-                              onChange={() => setModalSize(optName)}
-                            />
-                            <span>{t(option.name)}</span>
-                          </div>
-                          <span className="option-row-price">{formatPrice(option.price)}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                /* Modifier Group 1: Sizes variations (Mandatory!) */
-                initialModifierGroups
-                  .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups?.includes(m._id))
-                  .map(group => (
-                    <div key={group._id} className="modal-modifier-section">
-                      <h4 className="modal-section-title">{t(group.name)} ({dict[lang].chooseMandatory})</h4>
-                      <div className="modal-options-list">
-                        {group.options.map((option, idx) => (
+              {/* Scrollable Options List */}
+              <div style={{ overflowY: 'auto', padding: '24px', flex: 1 }}>
+                <h3 className="modal-title">{t(selectedProduct.name)}</h3>
+                <p className="modal-desc">{t(selectedProduct.description)}</p>
+                
+                {/* Product-Level Variations */}
+                {selectedProduct.variations && selectedProduct.variations.length > 0 ? (
+                  <div className="modal-modifier-section">
+                    <h4 className="modal-section-title">{dict[lang].sizeLabel} ({dict[lang].chooseMandatory})</h4>
+                    <div className="modal-options-list">
+                      {selectedProduct.variations.map((option, idx) => {
+                        const optName = option.name?.en || option.name;
+                        return (
                           <label key={idx} className="option-row">
                             <div className="option-row-left">
                               <input 
                                 type="radio" 
-                                name="pizza-size" 
-                                value={option.name.en}
-                                checked={modalSize === option.name.en}
-                                onChange={() => setModalSize(option.name.en)}
+                                name="product-size" 
+                                value={optName}
+                                checked={modalSize === optName}
+                                onChange={() => setModalSize(optName)}
                               />
                               <span>{t(option.name)}</span>
                             </div>
-                            {option.price > 0 && (
-                              <span className="option-row-price">+{formatPrice(option.price)}</span>
-                            )}
+                            <span className="option-row-price">{formatPrice(option.price)}</span>
                           </label>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-                  ))
-              )}
-
-              {/* Product-Level Add-ons */}
-              {selectedProduct.addons && selectedProduct.addons.length > 0 && (
-                <div className="modal-modifier-section">
-                  <h4 className="modal-section-title">{dict[lang].addonLabel}</h4>
-                  <div className="modal-options-list">
-                    {selectedProduct.addons.map((option, idx) => {
-                      const optName = option.name?.en || option.name;
-                      const isChecked = modalAddons.includes(optName);
-                      return (
-                        <label key={idx} className="option-row">
-                          <div className="option-row-left">
-                            <input 
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setModalAddons([...modalAddons, optName]);
-                                } else {
-                                  setModalAddons(modalAddons.filter(a => a !== optName));
-                                }
-                              }}
-                            />
-                            <span>{t(option.name)}</span>
-                          </div>
-                          <span className="option-row-price">+{formatPrice(option.price)}</span>
-                        </label>
-                      );
-                    })}
                   </div>
-                </div>
-              )}
+                ) : (
+                  /* Modifier Group 1: Sizes variations (Mandatory!) */
+                  initialModifierGroups
+                    .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'variations' && selectedProduct.modifierGroups?.includes(m._id))
+                    .map(group => (
+                      <div key={group._id} className="modal-modifier-section">
+                        <h4 className="modal-section-title">{t(group.name)} ({dict[lang].chooseMandatory})</h4>
+                        <div className="modal-options-list">
+                          {group.options.map((option, idx) => (
+                            <label key={idx} className="option-row">
+                              <div className="option-row-left">
+                                <input 
+                                  type="radio" 
+                                  name="pizza-size" 
+                                  value={option.name.en}
+                                  checked={modalSize === option.name.en}
+                                  onChange={() => setModalSize(option.name.en)}
+                                />
+                                <span>{t(option.name)}</span>
+                              </div>
+                              {option.price > 0 && (
+                                <span className="option-row-price">+{formatPrice(option.price)}</span>
+                              )}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                )}
 
-              {/* Modifier Group 2: Global Addons checkboxes (Optional) */}
-              {initialModifierGroups
-                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id))
-                .map(group => (
-                  <div key={group._id} className="modal-modifier-section">
-                    <h4 className="modal-section-title">{t(group.name)}</h4>
+                {/* Product-Level Add-ons */}
+                {selectedProduct.addons && selectedProduct.addons.length > 0 && (
+                  <div className="modal-modifier-section">
+                    <h4 className="modal-section-title">{dict[lang].addonLabel}</h4>
                     <div className="modal-options-list">
-                      {group.options.map((option, idx) => {
-                        const isChecked = modalAddons.includes(option.name.en);
+                      {selectedProduct.addons.map((option, idx) => {
+                        const optName = option.name?.en || option.name;
+                        const isChecked = modalAddons.includes(optName);
                         return (
                           <label key={idx} className="option-row">
                             <div className="option-row-left">
@@ -968,9 +1119,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                                 checked={isChecked}
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setModalAddons([...modalAddons, option.name.en]);
+                                    setModalAddons([...modalAddons, optName]);
                                   } else {
-                                    setModalAddons(modalAddons.filter(a => a !== option.name.en));
+                                    setModalAddons(modalAddons.filter(a => a !== optName));
                                   }
                                 }}
                               />
@@ -982,52 +1133,49 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       })}
                     </div>
                   </div>
-                ))}
+                )}
 
-              {/* Product-Level Removals */}
-              {selectedProduct.removals && selectedProduct.removals.length > 0 && (
-                <div className="modal-modifier-section">
-                  <h4 className="modal-section-title">{dict[lang].removalLabel}</h4>
-                  <div className="modal-options-list">
-                    {selectedProduct.removals.map((option, idx) => {
-                      const optName = option.name?.en || option.name;
-                      const isRemoved = modalRemovals.includes(optName);
-                      return (
-                        <label 
-                          key={idx} 
-                          className={`remove-option-row ${isRemoved ? 'removed' : ''}`}
-                        >
-                          <div className="remove-option-left">
-                            <input 
-                              type="checkbox"
-                              checked={isRemoved}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setModalRemovals([...modalRemovals, optName]);
-                                } else {
-                                  setModalRemovals(modalRemovals.filter(r => r !== optName));
-                                }
-                              }}
-                            />
-                            <span>{isRemoved ? '🚫' : '✓'} {t(option.name)}</span>
-                          </div>
-                          <span className="option-row-price">{dict[lang].free}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                {/* Modifier Group 2: Global Addons checkboxes (Optional) */}
+                {initialModifierGroups
+                  .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id))
+                  .map(group => (
+                    <div key={group._id} className="modal-modifier-section">
+                      <h4 className="modal-section-title">{t(group.name)}</h4>
+                      <div className="modal-options-list">
+                        {group.options.map((option, idx) => {
+                          const isChecked = modalAddons.includes(option.name.en);
+                          return (
+                            <label key={idx} className="option-row">
+                              <div className="option-row-left">
+                                <input 
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setModalAddons([...modalAddons, option.name.en]);
+                                    } else {
+                                      setModalAddons(modalAddons.filter(a => a !== option.name.en));
+                                    }
+                                  }}
+                                />
+                                <span>{t(option.name)}</span>
+                              </div>
+                              <span className="option-row-price">+{formatPrice(option.price)}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
 
-              {/* Modifier Group 3: Global Ingredient removals checkboxes (Optional, Zero cost) */}
-              {initialModifierGroups
-                .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups?.includes(m._id))
-                .map(group => (
-                  <div key={group._id} className="modal-modifier-section">
-                    <h4 className="modal-section-title">{t(group.name)}</h4>
+                {/* Product-Level Removals */}
+                {selectedProduct.removals && selectedProduct.removals.length > 0 && (
+                  <div className="modal-modifier-section">
+                    <h4 className="modal-section-title">{dict[lang].removalLabel}</h4>
                     <div className="modal-options-list">
-                      {group.options.map((option, idx) => {
-                        const isRemoved = modalRemovals.includes(option.name.en);
+                      {selectedProduct.removals.map((option, idx) => {
+                        const optName = option.name?.en || option.name;
+                        const isRemoved = modalRemovals.includes(optName);
                         return (
                           <label 
                             key={idx} 
@@ -1039,9 +1187,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                                 checked={isRemoved}
                                 onChange={(e) => {
                                   if (e.target.checked) {
-                                    setModalRemovals([...modalRemovals, option.name.en]);
+                                    setModalRemovals([...modalRemovals, optName]);
                                   } else {
-                                    setModalRemovals(modalRemovals.filter(r => r !== option.name.en));
+                                    setModalRemovals(modalRemovals.filter(r => r !== optName));
                                   }
                                 }}
                               />
@@ -1053,32 +1201,72 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       })}
                     </div>
                   </div>
-                ))}
+                )}
 
-              {/* Special Instructions / Item Notes */}
-              <div className="modal-modifier-section">
-                <h4 className="modal-section-title">📝 Special Instructions</h4>
-                <textarea
-                  className="form-control"
-                  placeholder="e.g. No onions, extra sauce, allergies..."
-                  value={modalNotes}
-                  onChange={(e) => setModalNotes(e.target.value)}
-                  rows={2}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-light, #e5e7eb)',
-                    fontSize: '0.85rem',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                    backgroundColor: '#f9fafb'
-                  }}
-                />
+                {/* Modifier Group 3: Global Ingredient removals checkboxes (Optional, Zero cost) */}
+                {initialModifierGroups
+                  .filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups?.includes(m._id))
+                  .map(group => (
+                    <div key={group._id} className="modal-modifier-section">
+                      <h4 className="modal-section-title">{t(group.name)}</h4>
+                      <div className="modal-options-list">
+                        {group.options.map((option, idx) => {
+                          const isRemoved = modalRemovals.includes(option.name.en);
+                          return (
+                            <label 
+                              key={idx} 
+                              className={`remove-option-row ${isRemoved ? 'removed' : ''}`}
+                            >
+                              <div className="remove-option-left">
+                                <input 
+                                  type="checkbox"
+                                  checked={isRemoved}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setModalRemovals([...modalRemovals, option.name.en]);
+                                    } else {
+                                      setModalRemovals(modalRemovals.filter(r => r !== option.name.en));
+                                    }
+                                  }}
+                                />
+                                <span>{isRemoved ? '🚫' : '✓'} {t(option.name)}</span>
+                              </div>
+                              <span className="option-row-price">{dict[lang].free}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                {/* Special Instructions / Item Notes */}
+                <div className="modal-modifier-section">
+                  <h4 className="modal-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FileText className="ic" style={{ width: '15px', height: '15px' }} />
+                    <span>Special Instructions</span>
+                  </h4>
+                  <textarea
+                    className="form-control"
+                    placeholder="e.g. No onions, extra sauce, allergies..."
+                    value={modalNotes}
+                    onChange={(e) => setModalNotes(e.target.value)}
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border-light, #e5e7eb)',
+                      fontSize: '0.85rem',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      backgroundColor: '#f9fafb'
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Modal footer quantity control and place button */}
-              <div className="modal-footer-bar">
+              {/* Fixed Footer Bar */}
+              <div className="modal-footer-bar" style={{ padding: '16px 24px 24px', margin: 0, borderTop: '1px solid var(--border-light)', backgroundColor: '#ffffff', borderBottomLeftRadius: '28px', borderBottomRightRadius: '28px', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
                 <div className="modal-qty-selector">
                   <span 
                     className="modal-qty-btn"
@@ -1097,15 +1285,103 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <button 
                   onClick={addToCart}
                   className="modal-add-btn"
+                  style={{ flex: 1 }}
                 >
-                  <span>{dict[lang].add}</span>
-                  <span>{formatPrice(modalPrice)}</span>
+                  <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                    <span>{dict[lang].add}</span>
+                    <span>{formatPrice(modalPrice)}</span>
+                  </span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+      {/* Sidebar Categories Menu Drawer */}
+      <div 
+        className={`drawer-scrim ${sidebarOpen ? 'open' : ''}`} 
+        onClick={() => setSidebarOpen(false)}
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.4)',
+          opacity: sidebarOpen ? 1 : 0,
+          pointerEvents: sidebarOpen ? 'auto' : 'none',
+          transition: 'opacity 0.25s ease',
+          zIndex: 2000
+        }}
+      ></div>
+      <aside 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: '280px',
+          backgroundColor: '#ffffff',
+          boxShadow: '4px 0 25px rgba(0,0,0,0.1)',
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.25s ease',
+          zIndex: 2001,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '24px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifySpaceBetween: 'space-between', marginBottom: '24px', borderBottom: '1px solid var(--border-light)', paddingBottom: '16px', justifyContent: 'space-between' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>Menu</h3>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+          >
+            <X style={{ width: '20px', height: '20px' }} />
+          </button>
+        </div>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', flex: 1 }}>
+          <button
+            onClick={() => {
+              setActiveCategory('all');
+              setSidebarOpen(false);
+            }}
+            style={{
+              textAlign: 'left',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              background: activeCategory === 'all' ? 'var(--bg-secondary)' : 'transparent',
+              fontWeight: activeCategory === 'all' ? '700' : '500',
+              cursor: 'pointer',
+              color: 'var(--text-main)',
+              fontSize: '0.9rem'
+            }}
+          >
+            {dict[lang].all}
+          </button>
+          {sortedCategories.map(cat => (
+            <button
+              key={cat._id}
+              onClick={() => {
+                setActiveCategory(cat._id);
+                setSidebarOpen(false);
+              }}
+              style={{
+                textAlign: 'left',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: 'none',
+                background: activeCategory === cat._id ? 'var(--bg-secondary)' : 'transparent',
+                fontWeight: activeCategory === cat._id ? '700' : '500',
+                cursor: 'pointer',
+                color: 'var(--text-main)',
+                fontSize: '0.9rem'
+              }}
+            >
+              {t(cat.name)}
+            </button>
+          ))}
+        </div>
+      </aside>
     </div>
   );
 }

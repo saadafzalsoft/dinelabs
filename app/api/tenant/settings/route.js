@@ -86,6 +86,7 @@ export async function PUT(request) {
     if (defaultLanguage !== undefined) updateObj.defaultLanguage = defaultLanguage;
     if (address !== undefined) updateObj.address = address;
     if (body.googleMapsLink !== undefined) updateObj.googleMapsLink = body.googleMapsLink;
+    if (body.minOrderValue !== undefined) updateObj.minOrderValue = parseFloat(body.minOrderValue);
     if (notifications !== undefined) updateObj.notifications = notifications;
     if (deliveryFee !== undefined) updateObj.deliveryFee = parseFloat(deliveryFee);
     

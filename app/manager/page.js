@@ -57,10 +57,10 @@ export default function ManagerLoginPage() {
       <div className="split-right-form">
         <div className="login-card">
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: '800', marginBottom: '6px' }}>
-            Welcome back
+            Dinelabs Manager
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '32px', fontWeight: '500' }}>
-            Access your restaurant manager cockpit
+            Sign in to manage your tables, orders, and menu
           </p>
 
           {error && (
@@ -103,10 +103,6 @@ export default function ManagerLoginPage() {
               {submitting ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
-          
-          <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-            Are you a Super Admin? <a href="/super" style={{ color: 'var(--text-main)', textDecoration: 'underline' }}>Login here</a>
-          </div>
         </div>
       </div>
     </div>

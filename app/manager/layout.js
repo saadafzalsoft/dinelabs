@@ -247,56 +247,47 @@ function ManagerLayoutContent({ children }) {
     {
       group: 'Menu',
       items: [
-        { id: 'categories', name: 'Categories', icon: 'layers', path: '/manager/products', query: 'tab=categories' },
+        { id: 'categories', name: 'Categories', icon: 'layers', path: '/manager/categories' },
         { id: 'products', name: 'Products', icon: 'utensils-crossed', path: '/manager/products' },
-        { id: 'addons', name: 'Add-ons', icon: 'plus-circle', path: '/manager/products', query: 'tab=addons' },
+        { id: 'addons', name: 'Add-ons', icon: 'plus-circle', path: '/manager/addons' },
       ]
     },
     {
       group: 'Store settings',
       items: [
-        { id: 'hours', name: 'Opening hours', icon: 'clock', path: '/manager/store-profile', query: 'tab=hours' },
-        { id: 'delivery', name: 'Delivery', icon: 'bike', path: '/manager/store-profile', query: 'tab=delivery' },
-        { id: 'dinein', name: 'Dine-in', icon: 'armchair', path: '/manager/store-profile', query: 'tab=tables' },
-        { id: 'pickup', name: 'Pick-up', icon: 'shopping-bag', path: '/manager/store-profile', query: 'tab=pickup' },
+        { id: 'hours', name: 'Opening hours', icon: 'clock', path: '/manager/opening-hours' },
+        { id: 'delivery', name: 'Delivery', icon: 'bike', path: '/manager/delivery' },
+        { id: 'dinein', name: 'Dine-in', icon: 'armchair', path: '/manager/dine-in' },
+        { id: 'pickup', name: 'Pick-up', icon: 'shopping-bag', path: '/manager/pick-up' },
       ]
     },
     {
       group: 'Account',
       items: [
         { id: 'profile', name: 'Store profile', icon: 'settings', path: '/manager/store-profile' },
-        { id: 'notifications', name: 'Notifications', icon: 'bell', path: '/manager/store-profile', query: 'tab=notifications' },
+        { id: 'notifications', name: 'Notifications', icon: 'bell', path: '/manager/notifications' },
       ]
     }
   ];
 
   // Helper to check if a navigation item is active
   const isLinkActive = (item) => {
-    if (pathname !== item.path) return false;
-    if (item.query) {
-      const q = item.query.split('=');
-      return currentTab === q[1];
-    }
-    return !currentTab;
+    return pathname === item.path;
   };
 
   // Get dynamic breadcrumb label
   const getCrumbLabel = () => {
     if (pathname === '/manager/dashboard') return 'Dashboard';
     if (pathname === '/manager/live-orders') return 'Live Orders';
-    if (pathname === '/manager/products') {
-      if (currentTab === 'categories') return 'Categories';
-      if (currentTab === 'addons') return 'Add-ons';
-      return 'Products';
-    }
-    if (pathname === '/manager/store-profile') {
-      if (currentTab === 'hours') return 'Opening hours';
-      if (currentTab === 'delivery') return 'Delivery';
-      if (currentTab === 'tables') return 'Dine-in';
-      if (currentTab === 'pickup') return 'Pick-up';
-      if (currentTab === 'notifications') return 'Notifications';
-      return 'Store profile';
-    }
+    if (pathname === '/manager/products') return 'Products';
+    if (pathname === '/manager/categories') return 'Categories';
+    if (pathname === '/manager/addons') return 'Add-ons';
+    if (pathname === '/manager/opening-hours') return 'Opening hours';
+    if (pathname === '/manager/delivery') return 'Delivery';
+    if (pathname === '/manager/dine-in') return 'Dine-in';
+    if (pathname === '/manager/pick-up') return 'Pick-up';
+    if (pathname === '/manager/store-profile') return 'Store profile';
+    if (pathname === '/manager/notifications') return 'Notifications';
     return 'Manager';
   };
 
@@ -474,25 +465,26 @@ function ManagerLayoutContent({ children }) {
           <div className="topbar-spacer"></div>
 
           {/* Open Storefront */}
-          <Link
+          <a
             href={`/${activeSlug}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-outline btn-sm"
-            style={{ height: '40px' }}
+            style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
           >
             <ExternalLink className="ic" />
             <span>View store</span>
-          </Link>
+          </a>
 
           {/* Contact Support */}
-          <button
-            onClick={handleSupport}
+          <a
+            href="mailto:support@dinelabs.co?subject=DineLabs%20Support%20Request"
             className="btn btn-outline btn-sm"
-            style={{ height: '40px' }}
+            style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
           >
             <LifeBuoy className="ic" />
             <span>Contact support</span>
-          </button>
+          </a>
 
           {/* Language Flag Dropdown */}
           <div className="lang-wrap">

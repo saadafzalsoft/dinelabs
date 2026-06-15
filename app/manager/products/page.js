@@ -32,7 +32,7 @@ import {
 function ProductsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tab = searchParams.get('tab') || 'products'; // 'products' | 'categories' | 'addons'
+  const tab = 'products'; // Fixed to products page, other tabs removed
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -86,6 +86,8 @@ function ProductsPageContent() {
   // Bulk file parser states
   const [bulkFileRows, setBulkFileRows] = useState([]);
   const [bulkFileName, setBulkFileName] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
   const fileInputRef = useRef(null);
 
   // Drag and drop states
@@ -246,6 +248,57 @@ function ProductsPageContent() {
         payload.isAvailable = true;
       } else if (bulkAction === 'stock-out') {
         payload.isAvailable = false;
+      } else if (bulkAction.startsWith('set-category:')) {
+        const catId = bulkAction.split(':')[1];
+        const promises = selectedIds.map(pId => {
+          return fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: pId, categories: [catId] })
+          });
+        });
+        await Promise.all(promises);
+
+        setProducts(products.map(p => {
+          if (selectedIds.includes(p._id)) {
+            return { ...p, categories: [catId] };
+          }
+          return p;
+        }));
+
+        setSelectedIds([]);
+        setBulkAction('');
+        triggerToast('Updated categories for selected products');
+        return;
+      } else if (bulkAction.startsWith('add-modifier:')) {
+        const mgId = bulkAction.split(':')[1];
+        const promises = selectedIds.map(pId => {
+          const product = products.find(p => p._id === pId);
+          if (!product) return Promise.resolve();
+          const currentGroups = product.modifierGroups || [];
+          if (currentGroups.includes(mgId)) return Promise.resolve();
+          return fetch('/api/products', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: pId, modifierGroups: [...currentGroups, mgId] })
+          });
+        });
+        await Promise.all(promises);
+
+        setProducts(products.map(p => {
+          if (selectedIds.includes(p._id)) {
+            const currentGroups = p.modifierGroups || [];
+            if (!currentGroups.includes(mgId)) {
+              return { ...p, modifierGroups: [...currentGroups, mgId] };
+            }
+          }
+          return p;
+        }));
+
+        setSelectedIds([]);
+        setBulkAction('');
+        triggerToast('Added modifier group to selected products');
+        return;
       } else if (bulkAction === 'delete') {
         const delRes = await fetch('/api/products', {
           method: 'DELETE',
@@ -435,7 +488,7 @@ function ProductsPageContent() {
         price: parseFloat(prodPrice),
         description: prodDesc,
         categories: prodCatIds,
-        imageUrl: prodImage || '/assets/cheese_pizza.png',
+        imageUrl: prodImage || '',
         modifierGroups: prodModGroups,
         isFeatured: prodIsFeatured,
         variations: prodVariations.filter(v => v.name.trim() !== ''),
@@ -749,11 +802,15 @@ function ProductsPageContent() {
     setIsModifierOpen(true);
   };
 
-  const closeModifierDrawer = () => {
+  const clearGroupForm = () => {
     setEditingGroup(null);
     setGroupName('');
     setGroupType('variations');
     setGroupOptions([{ name: '', price: '0.00' }]);
+  };
+
+  const closeModifierDrawer = () => {
+    clearGroupForm();
     setIsModifierOpen(false);
   };
 
@@ -776,7 +833,7 @@ function ProductsPageContent() {
 
   // Bulk Upload File Handler
   const handleBulkFileTemplate = () => {
-    const csv = 'name,category,price,sku,availability,modifiers\nMargherita,Classic Pizzas,12.50,PZ-001,in,Crust;Toppings\nCaesar Salad,Sides & Appetizers,8.00,SD-014,in,Dressing\n';
+    const csv = 'name,category,price,short description,modifiers\nMargherita,Classic Pizzas,12.50,"Classic margherita pizza with fresh basil, mozzarella, and tomato sauce",Crust;Toppings\nCaesar Salad,Sides & Appetizers,8.00,"Crispy romaine lettuce, parmesan cheese, and caesar dressing",Dressing\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -796,10 +853,39 @@ function ProductsPageContent() {
       try {
         const text = reader.result;
         const lines = text.split(/\r?\n/).filter(Boolean);
-        const head = lines.shift().split(',').map(s => s.trim().toLowerCase());
+        if (lines.length === 0) {
+          alert('CSV file is empty');
+          return;
+        }
+
+        const parseCSVLine = (line) => {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+
+        const head = parseCSVLine(lines.shift()).map(s => s.toLowerCase());
         
         const parsed = lines.map(line => {
-          const cells = line.split(',').map(s => s.trim());
+          const cells = parseCSVLine(line);
           const row = {};
           head.forEach((h, i) => {
             row[h] = cells[i] || '';
@@ -809,6 +895,7 @@ function ProductsPageContent() {
         
         setBulkFileRows(parsed);
       } catch (err) {
+        console.error(err);
         alert('Could not parse template CSV file.');
       }
     };
@@ -816,12 +903,17 @@ function ProductsPageContent() {
   };
 
   const handleBulkImport = async () => {
-    if (bulkFileRows.length === 0) return;
+    if (bulkFileRows.length === 0 || importing) return;
 
+    setImporting(true);
+    setImportedCount(0);
     let successCount = 0;
     try {
       for (const row of bulkFileRows) {
-        if (!row.name) continue;
+        if (!row.name) {
+          setImportedCount(prev => prev + 1);
+          continue;
+        }
         
         // Find mapped category IDs or create temporary ones, or match by name
         let matchedCatIds = [];
@@ -830,20 +922,34 @@ function ProductsPageContent() {
           if (match) matchedCatIds.push(match._id);
         }
 
+        // Parse modifiers column if it exists
+        let matchedModifierGroups = [];
+        if (row.modifiers) {
+          const modNames = row.modifiers.split(';').map(m => m.trim().toLowerCase());
+          modNames.forEach(name => {
+            const match = modifierGroups.find(mg => mg.name.en.toLowerCase() === name);
+            if (match) matchedModifierGroups.push(match._id);
+          });
+        }
+
+        // Map short description to description
+        const descriptionText = row['short description'] || row.description || '';
+
         await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: row.name,
             price: parseFloat(row.price) || 0,
-            description: `${row.name} imported via spreadsheet.`,
+            description: descriptionText,
             categories: matchedCatIds,
-            imageUrl: '/assets/cheese_pizza.png',
-            modifierGroups: [],
-            isAvailable: (row.availability || 'in').toLowerCase() !== 'out'
+            imageUrl: '',
+            modifierGroups: matchedModifierGroups,
+            isAvailable: true
           })
         });
         successCount++;
+        setImportedCount(successCount);
       }
 
       fetchCatalogData();
@@ -852,12 +958,17 @@ function ProductsPageContent() {
     } catch (e) {
       console.error(e);
       alert('Error importing file rows');
+    } finally {
+      setImporting(false);
+      setImportedCount(0);
     }
   };
 
   const closeBulkDrawer = () => {
     setBulkFileRows([]);
     setBulkFileName('');
+    setImporting(false);
+    setImportedCount(0);
     setIsBulkOpen(false);
   };
 
@@ -976,7 +1087,7 @@ function ProductsPageContent() {
       <table className="tbl">
         <thead>
           <tr>
-            <th style={{ width: '60px' }}>Order</th>
+            <th style={{ width: '40px' }}></th>
             <th>Category</th>
             <th style={{ textAlign: 'center', width: '120px' }}>Promoted</th>
             <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
@@ -985,7 +1096,7 @@ function ProductsPageContent() {
         <tbody>
           {[1, 2, 3].map(i => (
             <tr key={i}>
-              <td><div className="skeleton" style={{ width: '20px', height: '16px', borderRadius: '4px' }}></div></td>
+              <td><div className="skeleton" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div></td>
               <td>
                 <div className="skeleton" style={{ width: '120px', height: '16px', borderRadius: '4px', marginBottom: '6px' }}></div>
                 <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }}></div>
@@ -1041,28 +1152,6 @@ function ProductsPageContent() {
           <h1 className="page-title">Products catalog</h1>
           <p className="page-sub">Manage your menu items, prices, modifiers and availability.</p>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="tabs">
-        <button 
-          onClick={() => switchTab('products')} 
-          className={`tab ${tab === 'products' ? 'active' : ''}`}
-        >
-          🍕 Products catalog
-        </button>
-        <button 
-          onClick={() => switchTab('categories')} 
-          className={`tab ${tab === 'categories' ? 'active' : ''}`}
-        >
-          📋 Categories
-        </button>
-        <button 
-          onClick={() => switchTab('addons')} 
-          className={`tab ${tab === 'addons' ? 'active' : ''}`}
-        >
-          ➕ Modifier Add-ons
-        </button>
       </div>
 
       {/* ============================================================
@@ -1165,6 +1254,16 @@ function ProductsPageContent() {
                     <option value="add-to-offers">Add to Offers &amp; Promotions</option>
                     <option value="remove-from-offers">Remove from Offers &amp; Promotions</option>
                     <option value="delete">Delete selected</option>
+                    <optgroup label="Assign Category">
+                      {categories.map(c => (
+                        <option key={c._id} value={`set-category:${c._id}`}>{c.name.en}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Assign Add-ons Group">
+                      {modifierGroups.map(mg => (
+                        <option key={mg._id} value={`add-modifier:${mg._id}`}>{mg.name.en} ({mg.type})</option>
+                      ))}
+                    </optgroup>
                   </select>
 
                   <button 
@@ -1194,7 +1293,7 @@ function ProductsPageContent() {
                         </span>
                       </th>
                       <th>Product</th>
-                      <th>Modifiers</th>
+                      <th>Category</th>
                       <th>Price</th>
                       <th>Availability</th>
                       <th style={{ textAlign: 'right' }}>Actions</th>
@@ -1253,22 +1352,17 @@ function ProductsPageContent() {
                                 <td>
                                   <div className="p-cell">
                                     <span className="thumb">
-                                      <img src={p.imageUrl} alt={p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      {p.imageUrl ? (
+                                        <img src={p.imageUrl} alt={p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                      ) : (
+                                        <span style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.1' }}>
+                                          No Image
+                                        </span>
+                                      )}
                                     </span>
                                     <div>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <div className="p-name">{p.name.en}</div>
-                                        <button 
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleToggleFeatured(p);
-                                          }}
-                                          title={p.isFeatured ? 'Featured item (starred at top of storefront)' : 'Mark as featured'}
-                                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0 4px', display: 'inline-flex', alignItems: 'center' }}
-                                        >
-                                          <Star className="ic" style={{ color: p.isFeatured ? '#eab308' : '#cbd5e1', fill: p.isFeatured ? '#eab308' : 'none', width: '13px', height: '13px' }} />
-                                        </button>
                                       </div>
                                       <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.en || 'No description'}</div>
                                     </div>
@@ -1277,15 +1371,17 @@ function ProductsPageContent() {
 
                                 <td>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', maxWidth: '240px' }}>
-                                    {p.modifierGroups?.length > 0 ? (
-                                      p.modifierGroups.map(grpId => {
-                                        const matchedGrp = modifierGroups.find(g => g._id === grpId);
-                                        return matchedGrp ? (
-                                          <span key={grpId} className="tag">{matchedGrp.name.en}</span>
+                                    {p.categories?.length > 0 ? (
+                                      p.categories.map(catId => {
+                                        const matchedCat = categories.find(c => c._id === catId);
+                                        return matchedCat ? (
+                                          <span key={catId} className="tag" style={{ backgroundColor: 'var(--brand-red-light)', color: 'var(--brand-red)', fontWeight: '600' }}>
+                                            {matchedCat.name.en}
+                                          </span>
                                         ) : null;
                                       })
                                     ) : (
-                                      <span className="mut3">None</span>
+                                      <span className="mut3">Uncategorized</span>
                                     )}
                                   </div>
                                 </td>
@@ -1344,189 +1440,7 @@ function ProductsPageContent() {
         </section>
       )}
 
-      {/* ============================================================
-          TAB 2: CATEGORIES LIST
-          ============================================================ */}
-      {tab === 'categories' && (
-        <section>
-          {loading ? (
-            renderSkeletonCategories()
-          ) : (
-            <div className="card">
-              
-              {/* Header toolbar */}
-              <div className="toolbar" style={{ justifyContent: 'space-between' }}>
-                <div className="card-title">
-                  <Layers className="ic" style={{ marginRight: '7px' }} />
-                  <span>Categories</span>
-                </div>
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    setEditingCategory(null);
-                    setCatName('');
-                    setIsCategoryOpen(true);
-                  }}
-                >
-                  <Plus className="ic" />
-                  <span>Add category</span>
-                </button>
-              </div>
 
-              {/* Categories list table */}
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th style={{ width: '60px' }}>Order</th>
-                    <th>Category</th>
-                    <th style={{ textAlign: 'center', width: '120px' }}>Promoted</th>
-                    <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" style={{ padding: '48px', textAlign: 'center', color: 'var(--ink-3)' }}>
-                        No categories found. Click add category to start.
-                      </td>
-                    </tr>
-                  ) : (
-                    categories.map((c, idx) => (
-                      <tr 
-                        key={c._id}
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, c._id, 'category')}
-                        onDragOver={(e) => handleDragOver(e, c._id, 'category')}
-                        onDrop={(e) => handleDrop(e, c._id, 'category')}
-                        className={draggedId === c._id ? 'dragging' : ''}
-                      >
-                        <td style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'grab' }}>
-                          <GripVertical style={{ width: '12px', height: '12px', color: 'var(--ink-3)' }} />
-                          <span>{c.order !== undefined ? c.order : idx + 1}</span>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: '700' }}>{c.name.en}</div>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--ink-3)' }}>{c.name.ar}</span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <button 
-                            className={`star ${c.isPinned ? 'on' : ''}`}
-                            onClick={() => handleTogglePinCategory(c)}
-                            title={c.isPinned ? 'Pinned Main storefront' : 'Pin to storefront header'}
-                          >
-                            <Check className="ic" />
-                          </button>
-                        </td>
-                        <td>
-                          <div className="row gap8" style={{ justifyContent: 'flex-end' }}>
-                            <button 
-                              className="iconbtn" 
-                              onClick={() => loadCategoryForEdit(c)}
-                              title="Edit"
-                            >
-                              <Pencil className="ic" />
-                            </button>
-                            <button 
-                              className="iconbtn del" 
-                              onClick={() => handleDeleteCategory(c._id, c.name.en)}
-                              title="Delete"
-                            >
-                              <Trash2 className="ic" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* ============================================================
-          TAB 3: MODIFIER ADD-ONS LIST
-          ============================================================ */}
-      {tab === 'addons' && (
-        <section>
-          {loading ? (
-            renderSkeletonModifiers()
-          ) : (
-            <div className="card">
-              
-              {/* Header toolbar */}
-              <div className="toolbar" style={{ justifyContent: 'space-between' }}>
-                <div className="card-title">
-                  <SlidersHorizontal className="ic" style={{ marginRight: '7px' }} />
-                  <span>Modifier Groups</span>
-                </div>
-                
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    clearGroupForm();
-                    setIsModifierOpen(true);
-                  }}
-                >
-                  <Plus className="ic" />
-                  <span>Add group</span>
-                </button>
-              </div>
-
-              {/* Modifiers List mapping cards */}
-              <div className="card-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', backgroundColor: 'var(--bg)' }}>
-                {modifierGroups.length === 0 ? (
-                  <div style={{ padding: '40px', textAlign: 'center', gridColumn: '1 / -1' }} className="mut3">
-                    No modifier groups created yet.
-                  </div>
-                ) : (
-                  modifierGroups.map(grp => (
-                    <div key={grp._id} className="mod-card">
-                      <div className="mod-top">
-                        <span className="mod-title">{grp.name.en}</span>
-                        <span className="pill pill-soft" style={{ marginLeft: 'auto', fontSize: '11px' }}>
-                          {grp.type === 'variations' ? 'Sizes' : grp.type === 'addons' ? 'Add-on' : 'Removal'}
-                        </span>
-                      </div>
-
-                      <div className="mod-opts">
-                        {grp.options?.map((opt, oIdx) => {
-                          const nameLabel = typeof opt.name === 'object' ? opt.name.en : opt.name;
-                          return (
-                            <span key={oIdx} className="tag">
-                              {nameLabel} {parseFloat(opt.price) > 0 ? `(+$${parseFloat(opt.price).toFixed(2)})` : ''}
-                            </span>
-                          );
-                        })}
-                      </div>
-
-                      <div className="row gap8" style={{ justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
-                        <button 
-                          className="iconbtn" 
-                          onClick={() => loadGroupForEdit(grp)}
-                          title="Edit"
-                        >
-                          <Pencil className="ic" />
-                        </button>
-                        <button 
-                          className="iconbtn del" 
-                          onClick={() => handleDeleteGroup(grp._id, grp.name.en)}
-                          title="Delete"
-                        >
-                          <Trash2 className="ic" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-            </div>
-          )}
-        </section>
-      )}
 
       {/* ============================================================
           SLIDE DRAWER: ADD / EDIT PRODUCT
@@ -1644,22 +1558,7 @@ function ProductsPageContent() {
             />
           </div>
 
-          <div className="field" style={{ marginTop: '16px' }}>
-            <label className="chk" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', cursor: 'pointer' }}>
-              <input 
-                type="checkbox" 
-                checked={prodIsFeatured} 
-                onChange={(e) => setProdIsFeatured(e.target.checked)} 
-              />
-              <span style={{ fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Star style={{ width: '14px', height: '14px', fill: prodIsFeatured ? '#eab308' : 'none', color: prodIsFeatured ? '#eab308' : 'currentColor' }} />
-                Promote as Featured Item
-              </span>
-            </label>
-            <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginTop: '4px', marginLeft: '22px' }}>
-              Featured products appear in a premium slider at the top of the storefront menu.
-            </span>
-          </div>
+          {/* Featured product configuration removed */}
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--line-2)', margin: '20px 0' }} />
 
@@ -1817,200 +1716,45 @@ function ProductsPageContent() {
         </div>
       </aside>
 
-      {/* ============================================================
-          SLIDE DRAWER: ADD / EDIT CATEGORY
-          ============================================================ */}
-      <div className={`drawer-scrim ${isCategoryOpen ? 'open' : ''}`} onClick={closeCategoryDrawer}></div>
-      <aside className={`drawer ${isCategoryOpen ? 'open' : ''}`}>
-        <div className="rail-head">
-          <FolderPlus className="ic" />
-          <h3>{editingCategory ? 'Edit category' : 'Add category'}</h3>
-          <button className="x" onClick={closeCategoryDrawer} title="Close">
-            <X className="ic" />
-          </button>
-        </div>
 
-        <div className="rail-body">
-          <div className="field">
-            <label className="label">Category name</label>
-            <input 
-              className="input" 
-              value={catName}
-              onChange={(e) => setCatName(e.target.value)}
-              placeholder="e.g. Desserts" 
-            />
-          </div>
-
-          <button 
-            className="btn btn-primary btn-block btn-lg"
-            onClick={handleCategorySubmit}
-            disabled={savingCategory}
-            style={{ marginTop: '24px' }}
-          >
-            <Save className="ic" />
-            <span>{savingCategory ? 'Saving...' : (editingCategory ? 'Save changes' : 'Create category')}</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ============================================================
-          SLIDE DRAWER: ADD / EDIT MODIFIER GROUP
-          ============================================================ */}
-      <div className={`drawer-scrim ${isModifierOpen ? 'open' : ''}`} onClick={closeModifierDrawer}></div>
-      <aside className={`drawer ${isModifierOpen ? 'open' : ''}`}>
-        <div className="rail-head">
-          <SlidersHorizontal className="ic" />
-          <h3>{editingGroup ? 'Edit modifier group' : 'New modifier group'}</h3>
-          <button className="x" onClick={closeModifierDrawer} title="Close">
-            <X className="ic" />
-          </button>
-        </div>
-
-        <div className="rail-body">
-          <div className="field">
-            <label className="label">Group name</label>
-            <input 
-              className="input" 
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              placeholder="e.g. Choose Size" 
-            />
-          </div>
-
-          <div className="field">
-            <label className="label">Type</label>
-            <div className="type-picker">
-              <button 
-                type="button" 
-                className={`type-card ${groupType === 'variations' ? 'on' : ''}`}
-                onClick={() => setGroupType('variations')}
-              >
-                <span className="tc-ic"><Ruler className="ic" /></span>
-                <span className="tc-lbl">Variations</span>
-              </button>
-              <button 
-                type="button" 
-                className={`type-card ${groupType === 'addons' ? 'on' : ''}`}
-                onClick={() => setGroupType('addons')}
-              >
-                <span className="tc-ic"><PlusCircle className="ic" /></span>
-                <span className="tc-lbl">Add-ons</span>
-              </button>
-              <button 
-                type="button" 
-                className={`type-card ${groupType === 'removals' ? 'on' : ''}`}
-                onClick={() => setGroupType('removals')}
-              >
-                <span className="tc-ic"><MinusCircle className="ic" /></span>
-                <span className="tc-lbl">Removals</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="nm-hint">
-            <Info className="ic" />
-            <span>
-              {groupType === 'variations' && <b>Variations</b> && ' forces customers to pick exactly one option (e.g. sizes) that defines the base price.'}
-              {groupType === 'addons' && <b>Add-ons</b> && ' lets visitors select multiple optional ingredients for an extra price.'}
-              {groupType === 'removals' && <b>Removals</b> && ' lets customers strike out default ingredients for free.'}
-            </span>
-          </div>
-
-          <div className="field">
-            <label className="label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Options</span>
-              <button 
-                type="button" 
-                onClick={handleAddOptionRow}
-                style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
-              >
-                + Add Option
-              </button>
-            </label>
-
-            <div className="opt-list">
-              {groupOptions.map((opt, idx) => (
-                <div key={idx} className="opt-row" data-type={groupType}>
-                  <input 
-                    className="input" 
-                    value={opt.name}
-                    onChange={(e) => handleOptionChange(idx, 'name', e.target.value)}
-                    placeholder="e.g. Extra Cheese"
-                    style={{ height: '36px', fontSize: '0.8rem' }}
-                  />
-                  {groupType !== 'removals' && (
-                    <div className="input-affix">
-                      <span className="pfx" style={{ fontSize: '12px' }}>$</span>
-                      <input 
-                        className="input" 
-                        value={opt.price}
-                        onChange={(e) => handleOptionChange(idx, 'price', e.target.value)}
-                        placeholder="0.00"
-                        type="number"
-                        step="0.01"
-                        style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
-                      />
-                    </div>
-                  )}
-                  {groupOptions.length > 1 && (
-                    <button 
-                      type="button" 
-                      className="opt-rm"
-                      onClick={() => handleRemoveOptionRow(idx)}
-                    >
-                      <Trash2 className="ic" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <button 
-            className="btn btn-primary btn-block btn-lg"
-            onClick={handleGroupSubmit}
-            disabled={savingGroup}
-            style={{ marginTop: '24px' }}
-          >
-            <Save className="ic" />
-            <span>{savingGroup ? 'Saving...' : (editingGroup ? 'Save changes' : 'Create group')}</span>
-          </button>
-        </div>
-      </aside>
 
       {/* ============================================================
           SLIDE DRAWER: BULK UPLOAD SHEET
           ============================================================ */}
-      <div className={`drawer-scrim ${isBulkOpen ? 'open' : ''}`} onClick={closeBulkDrawer}></div>
+      <div className={`drawer-scrim ${isBulkOpen ? 'open' : ''}`} onClick={importing ? undefined : closeBulkDrawer}></div>
       <aside className={`drawer ${isBulkOpen ? 'open' : ''}`}>
         <div className="rail-head">
           <UploadCloud className="ic" />
           <h3>Bulk upload products</h3>
-          <button className="x" onClick={closeBulkDrawer} title="Close">
+          <button className="x" onClick={importing ? undefined : closeBulkDrawer} title="Close" disabled={importing}>
             <X className="ic" />
           </button>
         </div>
 
         <div className="rail-body">
-          <div className="field">
+          <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
             <label className="label">Step 1 &middot; Download the template</label>
-            <p className="opt" style={{ margin: '0 0 10px' }}>
-              Download a template CSV sheet structured with: name, category, price, sku, availability, modifiers.
+            <p className="opt" style={{ margin: '0 0 4px' }}>
+              Download a template CSV sheet structured with: name, category, price, short description, modifiers.
+            </p>
+            <p className="opt" style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              💡 <b>Note on Modifiers:</b> You can assign global modifier groups to imported items by listing their exact names in the <b>modifiers</b> column, separated by semicolons (e.g., <code>Choose Size;Premium Addons;Removals</code>).
             </p>
             <button 
               className="btn btn-outline btn-sm"
               onClick={handleBulkFileTemplate}
+              disabled={importing}
             >
               <FileDown className="ic" />
               <span>Download CSV template</span>
             </button>
           </div>
 
-          <div className="field">
+          <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
             <label className="label">Step 2 &middot; Upload your file</label>
             <div 
               className="dropzone"
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => !importing && fileInputRef.current.click()}
             >
               <FileSpreadsheet className="ic" />
               <span>{bulkFileName ? bulkFileName : 'Drag a .csv file here, or click to browse'}</span>
@@ -2022,11 +1766,12 @@ function ProductsPageContent() {
               accept=".csv"
               onChange={handleBulkFileChange}
               hidden
+              disabled={importing}
             />
           </div>
 
           {bulkFileRows.length > 0 && (
-            <div className="field">
+            <div className="field" style={{ opacity: importing ? 0.5 : 1 }}>
               <label className="label">Preview &middot; {bulkFileRows.length} rows</label>
               <div style={{ border: '1px solid var(--line)', borderRadius: '10px', overflow: 'hidden', maxHeight: '180px', overflowY: 'auto' }}>
                 <table className="tbl" style={{ margin: 0, fontSize: '0.75rem' }}>
@@ -2047,14 +1792,31 @@ function ProductsPageContent() {
             </div>
           )}
 
+          {importing && (
+            <div style={{ marginTop: '20px', backgroundColor: 'var(--surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '8px' }}>
+                <span>Importing Products...</span>
+                <span>{importedCount} of {bulkFileRows.length}</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${(importedCount / bulkFileRows.length) * 100}%`,
+                  height: '100%',
+                  backgroundColor: 'var(--brand-red, #dc2626)',
+                  transition: 'width 0.2s ease-out'
+                }}></div>
+              </div>
+            </div>
+          )}
+
           <button 
             className="btn btn-primary btn-block btn-lg"
             onClick={handleBulkImport}
-            disabled={bulkFileRows.length === 0}
+            disabled={bulkFileRows.length === 0 || importing}
             style={{ marginTop: '24px' }}
           >
             <Upload className="ic" />
-            <span>Import products</span>
+            <span>{importing ? 'Importing...' : 'Import products'}</span>
           </button>
         </div>
       </aside>

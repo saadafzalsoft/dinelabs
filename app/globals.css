@@ -1473,3 +1473,7 @@ body {
   }
 }
 
+.checkout-btn, .product-price, .offer-price, .mobile-cart-float {
+  text-decoration: none !important;
+}
+

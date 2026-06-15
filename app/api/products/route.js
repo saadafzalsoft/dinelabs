@@ -105,7 +105,7 @@ export async function POST(request) {
       name: nameMap,
       description: descMap,
       price: parseFloat(price),
-      imageUrl: imageUrl || '/assets/cheese_pizza.png',
+      imageUrl: imageUrl || '',
       categories: categories || [],
       modifierGroups: modifierGroups || [],
       isAvailable: true,
