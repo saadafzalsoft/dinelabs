@@ -864,7 +864,7 @@ export default function RestaurantDetailPage() {
                 </div>
                 <div className="pw-reveal" style={{ marginBottom: '12px' }}>
                   <code style={{ flex: 1, textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                    {pwShown ? managerPasswordPlain : '•'.repeat(Math.max(8, managerPasswordPlain.length))}
+                    {pwShown ? (managerPasswordPlain || '(No password saved)') : '•'.repeat(Math.max(8, managerPasswordPlain.length))}
                   </code>
                   <button
                     className="act-btn"
@@ -877,6 +877,10 @@ export default function RestaurantDetailPage() {
                   <button
                     className="act-btn"
                     onClick={() => {
+                      if (!managerPasswordPlain) {
+                        showToast('No password set to copy', 'info');
+                        return;
+                      }
                       navigator.clipboard?.writeText(managerPasswordPlain);
                       showToast('Password copied');
                     }}
@@ -1006,7 +1010,7 @@ export default function RestaurantDetailPage() {
 
       {/* 1. Change Password Modal */}
       {pwModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '480px' }}>
             <button className="modal-x" onClick={() => setPwModalOpen(false)} aria-label="Close">
               <X className="ic" />
@@ -1059,7 +1063,7 @@ export default function RestaurantDetailPage() {
 
       {/* 2. Edit Subscription Modal */}
       {billModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '480px' }}>
             <button className="modal-x" onClick={() => setBillModalOpen(false)} aria-label="Close">
               <X className="ic" />
@@ -1169,7 +1173,7 @@ export default function RestaurantDetailPage() {
 
       {/* 3. Masquerade Modal */}
       {masqModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '480px' }}>
             <button className="modal-x" onClick={() => setMasqModalOpen(false)} aria-label="Close">
               <X className="ic" />
@@ -1212,7 +1216,7 @@ export default function RestaurantDetailPage() {
 
       {/* 4. Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '470px' }}>
             <button className="modal-x" onClick={() => setDeleteModalOpen(false)} aria-label="Close">
               <X className="ic" />
@@ -1262,7 +1266,7 @@ export default function RestaurantDetailPage() {
 
       {/* 5. Suspend Confirmation Modal */}
       {suspendModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '460px' }}>
             <button className="modal-x" onClick={() => setSuspendModalOpen(false)} aria-label="Close">
               <X className="ic" />
