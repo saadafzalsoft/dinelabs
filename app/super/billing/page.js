@@ -15,6 +15,10 @@ const CURRENCIES = {
   AED: { sym: 'د.إ', name: 'UAE Dirham' },
 };
 
+const moneyStr = (n, cur = 'USD') => {
+  return (CURRENCIES[cur]?.sym || '$') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 export default function SuperBillingPage() {
   const router = useRouter();
   const [tenants, setTenants] = useState([]);
@@ -146,10 +150,6 @@ export default function SuperBillingPage() {
       const kb = getSortKey(b);
       return ka[0] - kb[0] || ka[1] - kb[1];
     });
-  };
-
-  const moneyStr = (n, cur = 'USD') => {
-    return (CURRENCIES[cur]?.sym || '$') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   // Format date helper
