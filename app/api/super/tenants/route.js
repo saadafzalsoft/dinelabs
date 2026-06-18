@@ -106,6 +106,7 @@ export async function POST(request) {
       logoUrl: logoUrl ? logoUrl.trim() : '',
       tier: parseInt(tier) || 1,
       status: 'active',
+      managerPasswordPlain: managerPassword,
       enabledModes: enabledModes || { dineIn: true, pickup: true, delivery: true },
       openingHours: daysOfWeek.map(day => ({ day, open: '09:00', close: '22:00', isOpen: true })),
       waitTimes: { delivery: 40, pickup: 20 },
@@ -156,15 +157,33 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl, billing } = await request.json();
+    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl, billing, managerPassword } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Tenant ID is required' }, { status: 400 });
     }
 
     const db = await getDb();
+    const queryId = id.toString();
+
+    if (managerPassword !== undefined && managerPassword.trim().length >= 6) {
+      const { hashPassword } = require('@/lib/auth');
+      await db.collection('users').updateOne(
+        { tenantId: queryId, role: 'manager' },
+        { $set: { password: hashPassword(managerPassword.trim()) } }
+      );
+      try {
+        await db.collection('users').updateOne(
+          { tenantId: new ObjectId(queryId), role: 'manager' },
+          { $set: { password: hashPassword(managerPassword.trim()) } }
+        );
+      } catch (e) {}
+    }
     
     const updateObj = {};
+    if (managerPassword !== undefined && managerPassword.trim().length >= 6) {
+      updateObj.managerPasswordPlain = managerPassword.trim();
+    }
     if (status !== undefined) updateObj.status = status;
     if (tier !== undefined) updateObj.tier = parseInt(tier);
     if (enabledModes !== undefined) updateObj.enabledModes = enabledModes;
@@ -176,7 +195,6 @@ export async function PUT(request) {
     if (logoUrl !== undefined) updateObj.logoUrl = logoUrl.trim();
     if (billing !== undefined) updateObj.billing = billing;
 
-    const queryId = id.toString();
     let result = await db.collection('tenants').updateOne(
       { _id: queryId },
       { $set: updateObj }

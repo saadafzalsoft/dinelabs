@@ -6,67 +6,247 @@ import '../../../manager/manager.css';
 import '../../super.css';
 import SuperSidebar from '../../SuperSidebar';
 import {
-  LayoutDashboard,
-  ShieldCheck,
-  LogOut,
-  Menu,
-  LifeBuoy,
-  Store,
   ArrowLeft,
-  Save,
-  Check,
+  Play,
+  Pause,
   Trash2,
-  Plus,
+  ExternalLink,
+  UserRoundCog,
+  ReceiptText,
+  Banknote,
+  Clock,
+  Activity,
+  Layers,
+  SlidersHorizontal,
+  Bell,
+  Mail,
+  KeyRound,
+  Copy,
   Globe,
-  DollarSign,
-  AlertCircle,
-  Clock
+  Coins,
+  Calendar,
+  CalendarCog,
+  Info,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  ShieldAlert,
+  Wand2,
+  Plus,
+  Star,
+  Menu,
+  MessageCircle,
+  Send,
+  Bike,
+  ShoppingBag,
+  Utensils,
+  UtensilsCrossed
 } from 'lucide-react';
 
-const LANGUAGES = {
-  en: { label: 'English', flag: '🇬🇧' },
-  ar: { label: 'العربية · Arabic', flag: '🇱🇧' },
-  ru: { label: 'Русский · Russian', flag: '🇷🇺' },
-  es: { label: 'Español · Spanish', flag: '🇪🇸' },
-  fr: { label: 'Français · French', flag: '🇫🇷' },
+const CURRENCIES = {
+  USD: { sym: '$', name: 'US Dollar' },
+  EUR: { sym: '€', name: 'Euro' },
+  GBP: { sym: '£', name: 'British Pound' },
+  GEL: { sym: '₾', name: 'Georgian Lari' },
+  AED: { sym: 'د.إ', name: 'UAE Dirham' },
 };
 
-export default function RestaurantConfigPage() {
+const LANGS = {
+  en: 'English',
+  ka: 'Georgian',
+  ru: 'Russian',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  it: 'Italian',
+  ar: 'Arabic'
+};
+
+const CORE_FEATURES = [
+  { name: 'Live orders board', icon: ReceiptText },
+  { name: 'Menu management', icon: UtensilsCrossed },
+];
+
+const genPassword = () => {
+  const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ', b = 'abcdefghijkmnpqrstuvwxyz', n = '23456789', s = '!@#$';
+  const pick = (p) => p[Math.floor(Math.random() * p.length)];
+  let p = pick(a) + pick(b) + pick(b) + pick(b) + pick(n) + pick(n) + pick(s) + pick(b) + pick(n);
+  return p.split('').sort(() => Math.random() - .5).join('');
+};
+
+const addDays = (d, n) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
+
+const iso = (d) => d.toISOString().slice(0, 10);
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const fmtDate = (s) => {
+  if (!s) return '—';
+  const datePart = s.split('T')[0];
+  const d = new Date(datePart + 'T00:00:00');
+  if (isNaN(d.getTime())) return '—';
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+};
+
+const freshLabel = (m) => {
+  if (m == null || m >= 99999) return '—';
+  return m < 60 ? `${m}m` : m < 1440 ? `${Math.round(m / 60)}h` : `${Math.round(m / 1440)}d`;
+};
+
+export default function RestaurantDetailPage() {
   const router = useRouter();
   const { id } = useParams();
 
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // Restaurant details states
+  // Tenant / Tiers Data
   const [tenant, setTenant] = useState(null);
+  const [tiers, setTiers] = useState([]);
+
+  // Managed States
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [tier, setTier] = useState(1);
   const [status, setStatus] = useState('active');
   const [baseCurrency, setBaseCurrency] = useState('USD');
-  const [languages, setLanguages] = useState(['en', 'ar']);
+  const [languages, setLanguages] = useState(['en', 'ka']);
   const [defaultLanguage, setDefaultLanguage] = useState('en');
-  const [dineIn, setDineIn] = useState(true);
-  const [pickup, setPickup] = useState(true);
-  const [delivery, setDelivery] = useState(true);
-  const [dineInWait, setDineInWait] = useState(15);
-  const [pickupWait, setPickupWait] = useState(20);
-  const [deliveryWait, setDeliveryWait] = useState(40);
-  const [assignedEmail, setAssignedEmail] = useState(true);
-  const [assignedWhatsapp, setAssignedWhatsapp] = useState(false);
-  const [assignedTelegram, setAssignedTelegram] = useState(false);
+  const [enabledModes, setEnabledModes] = useState({ dineIn: true, pickup: true, delivery: true });
+  const [assignedNotifications, setAssignedNotifications] = useState({ email: true, whatsapp: false, telegram: false });
+  const [billing, setBilling] = useState({ cycle: 'monthly', amount: 29, start: '', renewal: '' });
   const [ledger, setLedger] = useState([]);
+  const [managerPasswordPlain, setManagerPasswordPlain] = useState('');
 
-  // Add Ledger Entry Form states
-  const [ledgerDesc, setLedgerDesc] = useState('');
-  const [ledgerAmount, setLedgerAmount] = useState('');
-  const [ledgerStatus, setLedgerStatus] = useState('Paid');
+  // Password toggle reveal
+  const [pwShown, setPwShown] = useState(false);
 
-  const fetchTenantDetails = async () => {
+  // Modals Visibility
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [billModalOpen, setBillModalOpen] = useState(false);
+  const [masqModalOpen, setMasqModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+
+  // Modal temporary values
+  const [modalPassword, setModalPassword] = useState('');
+  const [modalBillingCycle, setModalBillingCycle] = useState('monthly');
+  const [modalBillingAmount, setModalBillingAmount] = useState(29);
+  const [modalBillingStart, setModalBillingStart] = useState('');
+  const [modalBillingRenewal, setModalBillingRenewal] = useState('');
+  const [deleteConfirmSlug, setDeleteConfirmSlug] = useState('');
+
+  const showToast = (message, icon = 'check') => {
+    setToast({ message, icon });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const renderOrderingModes = () => {
+    const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { modes: { delivery: 1, pickup: 1, dinein: 1 } } };
+    const caps = activeTierObj.caps || { modes: { delivery: 1, pickup: 1, dinein: 1 } };
+    
+    const modesList = [
+      { key: 'delivery', label: 'Delivery', icon: Bike, dbField: 'delivery', value: enabledModes.delivery, setter: (val) => setEnabledModes(prev => ({ ...prev, delivery: val })) },
+      { key: 'pickup', label: 'Pick-up', icon: ShoppingBag, dbField: 'pickup', value: enabledModes.pickup, setter: (val) => setEnabledModes(prev => ({ ...prev, pickup: val })) },
+      { key: 'dinein', label: 'Dine-in', icon: Utensils, dbField: 'dineIn', value: enabledModes.dineIn, setter: (val) => setEnabledModes(prev => ({ ...prev, dineIn: val })) },
+    ];
+    
+    return (
+      <div className="card-pad" style={{ paddingTop: '6px', paddingBottom: '8px' }}>
+        {modesList.map(m => {
+          const allowed = !!caps.modes?.[m.key];
+          return (
+            <div key={m.key} className="mode-row" style={{ opacity: allowed ? 1 : 0.55 }}>
+              <span className="m-ic">
+                <m.icon style={{ width: '18px', height: '18px' }} />
+              </span>
+              <div style={{ flex: 1 }}>
+                <div className="m-name">{m.label}</div>
+                <div className="m-sub">
+                  {allowed ? (m.value ? 'Accepting orders' : 'Turned off') : `Not available on ${activeTierObj.name}`}
+                </div>
+              </div>
+              {allowed ? (
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={m.value}
+                    onChange={(e) => m.setter(e.target.checked)}
+                  />
+                  <span className="track"></span>
+                </label>
+              ) : (
+                <Lock style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderOrderChannels = () => {
+    const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { channels: { email: 1, whatsapp: 1, telegram: 1 } } };
+    const caps = activeTierObj.caps || { channels: { email: 1, whatsapp: 1, telegram: 1 } };
+    
+    const channelsList = [
+      { key: 'email', label: 'Email', icon: Mail, value: assignedNotifications.email, setter: (val) => setAssignedNotifications(prev => ({ ...prev, email: val })) },
+      { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, value: assignedNotifications.whatsapp, setter: (val) => setAssignedNotifications(prev => ({ ...prev, whatsapp: val })) },
+      { key: 'telegram', label: 'Telegram', icon: Send, value: assignedNotifications.telegram, setter: (val) => setAssignedNotifications(prev => ({ ...prev, telegram: val })) },
+    ];
+    
+    return (
+      <div className="card-pad" style={{ paddingTop: '6px', paddingBottom: '8px' }}>
+        {channelsList.map(ch => {
+          const allowed = !!caps.channels?.[ch.key];
+          return (
+            <div key={ch.key} className="mode-row" style={{ opacity: allowed ? 1 : 0.55 }}>
+              <span className="m-ic">
+                <ch.icon style={{ width: '18px', height: '18px' }} />
+              </span>
+              <div style={{ flex: 1 }}>
+                <div className="m-name">{ch.label}</div>
+                <div className="m-sub">
+                  {allowed ? (ch.value ? 'Alerts on' : 'Turned off') : `Not available on ${activeTierObj.name}`}
+                </div>
+              </div>
+              {allowed ? (
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={ch.value}
+                    onChange={(e) => ch.setter(e.target.checked)}
+                  />
+                  <span className="track"></span>
+                </label>
+              ) : (
+                <Lock style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const fetchDetails = async () => {
     try {
+      // Fetch Tiers
+      const tiersRes = await fetch('/api/super/tiers');
+      const tiersData = await tiersRes.json();
+      setTiers(tiersData.tiers || []);
+
+      // Fetch Tenant details
+      console.log('Fetching details for restaurant ID:', id);
       const res = await fetch(`/api/super/tenants/${id}`);
       if (res.ok) {
         const data = await res.json();
@@ -78,25 +258,34 @@ export default function RestaurantConfigPage() {
         setTier(t.tier || 1);
         setStatus(t.status || 'active');
         setBaseCurrency(t.baseCurrency || 'USD');
-        setLanguages(t.languages || ['en', 'ar']);
+        setLanguages(t.languages || ['en', 'ka']);
         setDefaultLanguage(t.defaultLanguage || 'en');
-        setDineIn(t.enabledModes?.dineIn ?? true);
-        setPickup(t.enabledModes?.pickup ?? true);
-        setDelivery(t.enabledModes?.delivery ?? true);
-        setDineInWait(t.waitTimes?.dineIn ?? 15);
-        setPickupWait(t.waitTimes?.pickup ?? 20);
-        setDeliveryWait(t.waitTimes?.delivery ?? 40);
-        setAssignedEmail(t.assignedNotifications?.email ?? true);
-        setAssignedWhatsapp(t.assignedNotifications?.whatsapp ?? false);
-        setAssignedTelegram(t.assignedNotifications?.telegram ?? false);
+        setEnabledModes({
+          dineIn: t.enabledModes?.dineIn ?? true,
+          pickup: t.enabledModes?.pickup ?? true,
+          delivery: t.enabledModes?.delivery ?? true
+        });
+        setAssignedNotifications({
+          email: t.assignedNotifications?.email ?? true,
+          whatsapp: t.assignedNotifications?.whatsapp ?? false,
+          telegram: t.assignedNotifications?.telegram ?? false
+        });
+        setBilling(t.billing || {
+          cycle: 'monthly',
+          amount: t.tier === 3 ? 199 : t.tier === 2 ? 79 : 29,
+          start: new Date().toISOString().slice(0, 10),
+          renewal: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        });
         setLedger(t.ledger || []);
+        setManagerPasswordPlain(t.managerPasswordPlain || '');
       } else {
-        alert('Restaurant details not found');
-        router.push('/super/dashboard');
+        console.error('Fetch failed for ID:', id, 'status:', res.status);
+        alert(`Restaurant details not found for ID: "${id}" (status: ${res.status})`);
+        router.push('/super/restaurants');
       }
     } catch (err) {
       console.error(err);
-      alert('Error fetching restaurant details');
+      alert('Error fetching details');
     } finally {
       setLoading(false);
     }
@@ -104,16 +293,218 @@ export default function RestaurantConfigPage() {
 
   useEffect(() => {
     if (id) {
-      fetchTenantDetails();
+      fetchDetails();
     }
   }, [id]);
 
-  const triggerToast = (msg) => {
-    const el = document.createElement('div');
-    el.className = 'toast-wrap';
-    el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>${msg}</span></div>`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2500);
+  const handleTierChange = (newTierVal) => {
+    const newTierNum = parseInt(newTierVal);
+    setTier(newTierNum);
+
+    const selectedTierObj = tiers.find(t => t._id === 't' + newTierNum) || tiers.find(t => t.id === 't' + newTierNum);
+    if (selectedTierObj && selectedTierObj.caps) {
+      const caps = selectedTierObj.caps;
+
+      // Clamp modes
+      const updatedModes = { ...enabledModes };
+      if (!caps.modes.dinein) updatedModes.dineIn = false;
+      if (!caps.modes.pickup) updatedModes.pickup = false;
+      if (!caps.modes.delivery) updatedModes.delivery = false;
+      setEnabledModes(updatedModes);
+
+      // Clamp channels
+      const updatedChannels = { ...assignedNotifications };
+      if (!caps.channels.email) updatedChannels.email = false;
+      if (!caps.channels.whatsapp) updatedChannels.whatsapp = false;
+      if (!caps.channels.telegram) updatedChannels.telegram = false;
+      setAssignedNotifications(updatedChannels);
+
+      // Clamp languages
+      let updatedLangs = [...languages];
+      updatedLangs = updatedLangs.filter(l => caps.langs.includes(l));
+      if (updatedLangs.length === 0) {
+        updatedLangs = [caps.langs[0] || 'en'];
+      }
+      if (updatedLangs.length > caps.maxTranslations) {
+        updatedLangs = updatedLangs.slice(0, caps.maxTranslations);
+      }
+      setLanguages(updatedLangs);
+
+      // Clamp default language
+      if (!updatedLangs.includes(defaultLanguage)) {
+        setDefaultLanguage(updatedLangs[0] || 'en');
+      }
+
+      // Recompute amount for billing
+      const cycle = billing.cycle || 'monthly';
+      const amount = cycle === 'annual' ? (selectedTierObj.priceAnnual || selectedTierObj.price * 10) : selectedTierObj.price;
+      setBilling(prev => ({ ...prev, amount }));
+
+      showToast(`Tier limits applied: ${selectedTierObj.name}`);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (savingSettings) return;
+    setSavingSettings(true);
+
+    try {
+      const res = await fetch('/api/super/tenants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          tier: parseInt(tier),
+          baseCurrency,
+          languages,
+          defaultLanguage,
+          enabledModes,
+          assignedNotifications,
+          status,
+          ledger,
+          logoUrl: logoUrl.trim(),
+          billing
+        })
+      });
+
+      if (res.ok) {
+        showToast('Configurations saved successfully!');
+        fetchDetails();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed saving configurations');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving configurations');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleToggleSuspend = async () => {
+    try {
+      const nextStatus = status === 'active' ? 'suspended' : 'active';
+      const res = await fetch('/api/super/tenants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          status: nextStatus
+        })
+      });
+
+      if (res.ok) {
+        showToast(nextStatus === 'suspended' ? 'Store suspended' : 'Store reactivated');
+        setSuspendModalOpen(false);
+        fetchDetails();
+      } else {
+        alert('Failed updating suspension status');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating status');
+    }
+  };
+
+  const handleDeleteTenant = async () => {
+    try {
+      const res = await fetch(`/api/super/tenants/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        showToast('Tenant permanently deleted');
+        setDeleteModalOpen(false);
+        router.push('/super/restaurants');
+      } else {
+        alert('Failed deleting tenant');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting tenant');
+    }
+  };
+
+  const handleSavePassword = async () => {
+    if (modalPassword.trim().length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/super/tenants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          managerPassword: modalPassword.trim()
+        })
+      });
+
+      if (res.ok) {
+        showToast('Password updated successfully');
+        setPwModalOpen(false);
+        fetchDetails();
+      } else {
+        alert('Failed changing password');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving password');
+    }
+  };
+
+  const handleSaveBilling = async () => {
+    try {
+      const updatedBilling = {
+        ...billing,
+        cycle: modalBillingCycle,
+        amount: parseFloat(modalBillingAmount) || 0,
+        start: modalBillingStart,
+        renewal: modalBillingRenewal
+      };
+
+      const res = await fetch('/api/super/tenants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          billing: updatedBilling
+        })
+      });
+
+      if (res.ok) {
+        showToast('Subscription updated');
+        setBillModalOpen(false);
+        fetchDetails();
+      } else {
+        alert('Failed updating billing details');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving billing details');
+    }
+  };
+
+  const handleEnterMasquerade = async () => {
+    try {
+      const res = await fetch('/api/super/masquerade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantSlug: slug })
+      });
+
+      if (res.ok) {
+        showToast('Masquerade session started');
+        setMasqModalOpen(false);
+        router.push('/manager/dashboard');
+      } else {
+        alert('Failed entering masquerade session');
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleLogoUploadClick = () => {
@@ -132,99 +523,31 @@ export default function RestaurantConfigPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoUrl(reader.result); // Base64 DataURL
-        triggerToast('Logo updated! Click Save configurations to apply.');
+        showToast('Logo updated! Click Save configurations to apply.');
       };
       reader.readAsDataURL(file);
     };
     input.click();
   };
 
-  const handleSaveSettings = async (e) => {
-    if (e) e.preventDefault();
-    if (savingSettings) return;
-
-    setSavingSettings(true);
-    try {
-      const res = await fetch('/api/super/tenants', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          tier: parseInt(tier),
-          baseCurrency,
-          languages,
-          defaultLanguage,
-          enabledModes: { dineIn, pickup, delivery },
-          waitTimes: { dineIn: parseInt(dineInWait), pickup: parseInt(pickupWait), delivery: parseInt(deliveryWait) },
-          assignedNotifications: { email: assignedEmail, whatsapp: assignedWhatsapp, telegram: assignedTelegram },
-          status,
-          ledger,
-          logoUrl: logoUrl.trim()
-        })
-      });
-
-      if (res.ok) {
-        triggerToast('Configurations saved successfully!');
-        fetchTenantDetails();
-      } else {
-        const data = await res.json();
-        alert(data.error || 'Failed saving configurations');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error saving configurations');
-    } finally {
-      setSavingSettings(false);
+  const renderMonogram = (lg = false) => {
+    const monogramClass = `cmono ${lg ? 'lg' : ''}`;
+    if (logoUrl && logoUrl.trim()) {
+      return (
+        <span className={monogramClass} onClick={handleLogoUploadClick} style={{ cursor: 'pointer' }}>
+          <img src={logoUrl.trim()} alt={name} />
+        </span>
+      );
     }
-  };
 
-  const handleToggleLang = (code) => {
-    if (languages.includes(code)) {
-      if (languages.length === 1) return; // Must have at least one language
-      setLanguages(languages.filter(l => l !== code));
-    } else {
-      setLanguages([...languages, code]);
-    }
-  };
-
-  const handleAddLedgerEntry = (e) => {
-    e.preventDefault();
-    if (!ledgerDesc.trim() || !ledgerAmount) return;
-
-    const newEntry = {
-      date: new Date().toISOString(),
-      description: ledgerDesc.trim(),
-      amount: parseFloat(ledgerAmount),
-      status: ledgerStatus
-    };
-
-    setLedger([...ledger, newEntry]);
-    setLedgerDesc('');
-    setLedgerAmount('');
-    setLedgerStatus('Paid');
-  };
-
-  const handleDeleteLedgerEntry = (idx) => {
-    setLedger(ledger.filter((_, i) => i !== idx));
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/super');
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const formatPrice = (amount) => {
-    return '$' + parseFloat(amount).toFixed(2);
+    const nameInitials = name || 'S';
+    const initials = nameInitials.split(/\s+/).filter(w => /[a-z]/i.test(w[0])).slice(0, 2).map(w => w[0]).join('').toUpperCase() || nameInitials.slice(0, 2).toUpperCase();
+    return <span className={monogramClass} onClick={handleLogoUploadClick} style={{ cursor: 'pointer' }}>{initials}</span>;
   };
 
   if (loading) {
     return (
       <div className="layout" style={{ fontFamily: 'var(--font)' }}>
-        {/* Sidebar Skeleton */}
         <aside className="sidebar" style={{ top: '0', borderRight: '1px solid var(--line)' }}>
           <div className="brand" style={{ opacity: 0.5 }}>
             <div className="skeleton" style={{ width: '34px', height: '34px', borderRadius: '9px' }} />
@@ -234,8 +557,6 @@ export default function RestaurantConfigPage() {
             </div>
           </div>
         </aside>
-        
-        {/* Main Column Skeleton */}
         <div className="main-col">
           <header className="topbar" style={{ opacity: 0.5 }}>
             <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: '6px' }} />
@@ -254,12 +575,18 @@ export default function RestaurantConfigPage() {
     );
   }
 
+  const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { maxProducts: 30, maxTranslations: 1 } };
+  const caps = activeTierObj.caps || { maxProducts: 30, maxTranslations: 1 };
+  const isSuspended = status === 'suspended';
+  const prodLimit = caps.maxProducts === 0 ? null : caps.maxProducts;
+  const prodPct = prodLimit ? Math.min(100, Math.round((tenant?.productsCount || 0) / prodLimit * 100)) : Math.min(100, (tenant?.productsCount || 0) / 300 * 100);
+
   return (
     <div className="layout">
       {/* Mobile sidebar scrim */}
       {mobileOpen && (
-        <div 
-          onClick={() => setMobileOpen(false)} 
+        <div
+          onClick={() => setMobileOpen(false)}
           style={{
             position: 'fixed',
             inset: 0,
@@ -277,452 +604,704 @@ export default function RestaurantConfigPage() {
       {/* Main content container */}
       <div className="main-col">
         <header className="topbar">
-          <button 
-            className="menu-toggle icon-btn" 
+          <button
+            className="menu-toggle icon-btn"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle Navigation"
+            style={{ border: 'none', background: 'transparent' }}
           >
             <Menu className="ic" />
           </button>
-          
+
           <div className="crumb">
-            <ShieldCheck style={{ width: '15px', height: '15px' }} />
-            <span>Super Operator</span>
+            <Layers style={{ width: '15px', height: '15px' }} />
+            <span>Super Admin</span>
             <span style={{ color: 'var(--line-strong)' }}>/</span>
-            <span onClick={() => router.push('/super/dashboard')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Directory</span>
+            <span onClick={() => router.push('/super/restaurants')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Stores</span>
             <span style={{ color: 'var(--line-strong)' }}>/</span>
-            <b>Configure Restaurant</b>
+            <b>{name}</b>
           </div>
 
           <div className="topbar-spacer"></div>
 
           <button
-            onClick={() => router.push('/super/dashboard')}
-            className="btn btn-outline btn-sm"
+            onClick={handleSaveSettings}
+            disabled={savingSettings}
+            className="btn btn-accent btn-sm"
             style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <ArrowLeft className="ic" />
-            <span>Back to directory</span>
+            <span>{savingSettings ? 'Saving...' : 'Save configurations'}</span>
           </button>
         </header>
 
         <main className="content">
-          <div className="page-head">
-            <div>
-              <h1 className="page-title">{name} Configuration</h1>
-              <p className="page-sub">Restaurant parameters, billing ledgers, storefront languages, and fulfillment overrides.</p>
+          <button className="back-link" onClick={() => router.push('/super/restaurants')}>
+            <ArrowLeft className="ic" />
+            <span>Stores</span>
+          </button>
+
+          {isSuspended && (
+            <div className="susp-banner">
+              <Pause className="ic" />
+              <div className="sb-main">
+                <div className="sb-t">This store is suspended</div>
+                <div className="sb-s">Customers see a "temporarily unavailable" notice. Menu &amp; data are preserved. You can reactivate or permanently delete it.</div>
+              </div>
+              <button
+                className="btn btn-sm"
+                style={{ background: '#fff', border: '1px solid #f0c5c7', color: 'var(--neg)', gap: '6px' }}
+                onClick={handleToggleSuspend}
+              >
+                <Play className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Reactivate</span>
+              </button>
             </div>
-            <button 
-              className="btn btn-primary"
-              onClick={handleSaveSettings}
-              disabled={savingSettings}
-            >
-              <Save className="ic" />
-              <span>{savingSettings ? 'Saving...' : 'Save configurations'}</span>
-            </button>
+          )}
+
+          <div className="detail-head">
+            {renderMonogram(true)}
+            <div className="detail-id">
+              <div className="detail-name">
+                <span>{name}</span>
+                <span className={`tier t${activeTierObj.lv || 1}`}>
+                  <span className="lv">{activeTierObj.name}</span> · {activeTierObj.tag}
+                </span>
+              </div>
+              <div className="detail-meta">
+                <span className={`stat ${isSuspended ? 'suspended' : 'active'}`}>
+                  <span className="dot"></span>
+                  {isSuspended ? 'Suspended' : 'Active'}
+                </span>
+                <span className="dotsep"></span>
+                <span className="cslug">dinelabs.co/<b>{slug}</b></span>
+                <span className="dotsep"></span>
+                <span className="cslug" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <Globe style={{ width: '13px', height: '13px' }} />
+                  {tenant?.country || 'Georgia'}
+                </span>
+              </div>
+            </div>
+            <div className="detail-actions">
+              <a className="btn btn-outline btn-sm" href={`https://dinelabs.co/${slug}`} target="_blank" rel="noopener" style={{ height: '40px', gap: '6px' }}>
+                <ExternalLink className="ic" />
+                <span>Storefront</span>
+              </a>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => {
+                  if (isSuspended) {
+                    handleToggleSuspend();
+                  } else {
+                    setSuspendModalOpen(true);
+                  }
+                }}
+                style={{ height: '40px', gap: '6px' }}
+              >
+                {isSuspended ? (
+                  <>
+                    <Play className="ic" />
+                    <span>Reactivate</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="ic" />
+                    <span>Suspend</span>
+                  </>
+                )}
+              </button>
+              {isSuspended ? (
+                <button className="btn btn-danger btn-sm" onClick={() => { setDeleteConfirmSlug(''); setDeleteModalOpen(true); }} style={{ height: '40px', gap: '6px' }}>
+                  <Trash2 className="ic" />
+                  <span>Delete</span>
+                </button>
+              ) : (
+                <button className="btn btn-accent btn-sm" onClick={() => setMasqModalOpen(true)} style={{ height: '40px', gap: '6px' }}>
+                  <UserRoundCog className="ic" />
+                  <span>Masquerade</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="dash-grid" style={{ alignItems: 'start', gap: '24px' }}>
-            {/* Left Column: configs forms */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
-              {/* Card 1: Identities & Subscription Status */}
-              <section className="card" style={{ padding: '24px' }}>
-                <div className="card-title" style={{ marginBottom: '16px', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Store className="ic" style={{ color: 'var(--ink-2)' }} />
-                  <span>Identities & Subscription</span>
-                </div>
+          <div className="kpis">
+            <div className="card kpi">
+              <div className="kpi-top">
+                <span className="kpi-label">Orders today</span>
+                <span className="kpi-ic"><ReceiptText className="ic" /></span>
+              </div>
+              <div className="kpi-val tnum">{isSuspended ? '—' : tenant?.ordersToday ?? 0}</div>
+              <div className="kpi-foot mut">live storefront</div>
+            </div>
+            <div className="card kpi">
+              <div className="kpi-top">
+                <span className="kpi-label">Revenue · this week</span>
+                <span className="kpi-ic"><Banknote className="ic" /></span>
+              </div>
+              <div className="kpi-val tnum">{isSuspended ? '—' : (CURRENCIES[baseCurrency]?.sym || '$') + (tenant?.revenueThisWeek ?? 0).toLocaleString('en-US')}</div>
+              <div className="kpi-foot mut">{CURRENCIES[baseCurrency]?.name || 'US Dollar'}</div>
+            </div>
+            <div className="card kpi">
+              <div className="kpi-top">
+                <span className="kpi-label">Last order</span>
+                <span className="kpi-ic"><Clock className="ic" /></span>
+              </div>
+              <div className="kpi-val" style={{ fontSize: '24px' }}>{isSuspended ? '—' : freshLabel(tenant?.lastMin)}</div>
+              <div className="kpi-foot mut">{isSuspended ? 'paused' : 'most recent activity'}</div>
+            </div>
+            <div className="card kpi">
+              <div className="kpi-top">
+                <span className="kpi-label">Error rate</span>
+                <span className="kpi-ic"><Activity className="ic" /></span>
+              </div>
+              <div className="kpi-val tnum" style={{ fontSize: '26px' }}>{isSuspended ? '—' : (tenant?.err ?? 0.0).toFixed(1) + '%'}</div>
+              <div className="kpi-foot mut">{isSuspended ? 'paused' : (tenant?.err ?? 0.0) >= 2.5 ? 'elevated — investigate' : 'within range'}</div>
+            </div>
+          </div>
 
-                <div className="super-identity-grid">
-                  {/* Base64 Logo card */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span className="label" style={{ fontWeight: '700', fontSize: '0.8rem' }}>Restaurant Logo</span>
-                    {logoUrl.trim() ? (
-                      <img 
-                        src={logoUrl.trim()} 
-                        alt="Restaurant logo" 
-                        onClick={handleLogoUploadClick}
-                        style={{ width: '130px', height: '130px', borderRadius: '14px', objectFit: 'cover', border: '1px solid var(--line-2)', cursor: 'pointer' }}
-                      />
-                    ) : (
-                      <div 
-                        onClick={handleLogoUploadClick}
-                        style={{ width: '130px', height: '130px', borderRadius: '14px', border: '1.5px dashed var(--line-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--surface-2)', color: 'var(--text-muted)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center', padding: '8px' }}
-                      >
-                        Click to Upload
-                      </div>
-                    )}
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Click card to upload base64 image logo.</span>
+          <div className="detail-grid">
+            {/* Left Column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <section className="card">
+                <div className="card-head">
+                  <div className="card-title">
+                    <Layers className="ic" />
+                    <span>Plan &amp; limits</span>
+                  </div>
+                  <select
+                    className="select"
+                    value={tier}
+                    onChange={(e) => handleTierChange(e.target.value)}
+                    style={{ width: 'auto', height: '34px', fontSize: '13px' }}
+                  >
+                    {tiers.map(tt => (
+                      <option key={tt._id || tt.id} value={tt._id ? tt._id.replace('t', '') : tt.id.replace('t', '')}>
+                        {tt.name} · {tt.tag} · ${(tt.price || 0).toLocaleString('en-US')}/mo
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="card-pad" style={{ paddingTop: '10px' }}>
+                  <div className="mini-label">Always included</div>
+                  <div className="chip-grid" style={{ marginBottom: '18px' }}>
+                    {CORE_FEATURES.map((f, idx) => (
+                      <span key={idx} className="core-chip">
+                        <f.icon className="ic" style={{ width: '14px', height: '14px' }} />
+                        {f.name}
+                      </span>
+                    ))}
                   </div>
 
-                  {/* Form parameters */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div className="field">
-                      <label className="label">Restaurant name</label>
-                      <input 
-                        type="text"
-                        className="input"
-                        value={name}
-                        disabled
-                        style={{ backgroundColor: 'var(--surface-2)', cursor: 'not-allowed', color: 'var(--text-muted)', height: '38px', borderRadius: '8px' }}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Ecosystem Slug URL</label>
-                      <input 
-                        type="text"
-                        className="input"
-                        value={slug}
-                        disabled
-                        style={{ backgroundColor: 'var(--surface-2)', cursor: 'not-allowed', color: 'var(--text-muted)', height: '38px', borderRadius: '8px' }}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Subscription Tier</label>
-                      <select 
-                        className="select"
-                        value={tier}
-                        onChange={(e) => setTier(e.target.value)}
-                        style={{ height: '38px', borderRadius: '8px', fontSize: '0.82rem' }}
-                      >
-                        <option value="1">Tier 1 (Standard)</option>
-                        <option value="2">Tier 2 (Pro)</option>
-                        <option value="3">Tier 3 (Hospitality)</option>
-                      </select>
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Ecosystem status</label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setStatus('active')}
-                          className={`btn ${status === 'active' ? 'btn-primary' : 'btn-outline'}`}
-                          style={{ flex: 1, height: '36px', justifyContent: 'center', fontSize: '0.8rem' }}
-                        >
-                          🟢 Active
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setStatus('suspended')}
-                          className={`btn ${status === 'suspended' ? 'btn-danger' : 'btn-outline'}`}
-                          style={{ flex: 1, height: '36px', justifyContent: 'center', fontSize: '0.8rem' }}
-                        >
-                          🔴 Suspended
-                        </button>
+                  <div className="mini-label">Limits on {activeTierObj.name}</div>
+                  <div className="info-row">
+                    <span className="info-k">
+                      <Utensils className="ic" style={{ width: '15px', height: '15px' }} />
+                      Products
+                    </span>
+                    <span className="info-v">
+                      {tenant?.productsCount || 0} <span className="mut3" style={{ fontWeight: '600' }}>/ {prodLimit ? prodLimit : 'Unlimited'}</span>
+                    </span>
+                  </div>
+                  {prodLimit && (
+                    <div className="limit-meter">
+                      <div className="lm-bar">
+                        <span style={{ width: `${prodPct}%`, background: prodPct >= 90 ? 'var(--neg)' : 'var(--accent)' }}></span>
                       </div>
                     </div>
+                  )}
+
+                  <div className="info-row" style={{ marginTop: '6px' }}>
+                    <span className="info-k">
+                      <Globe className="ic" style={{ width: '15px', height: '15px' }} />
+                      Storefront translations
+                    </span>
+                    <span className="info-v">
+                      {languages.length} <span className="mut3" style={{ fontWeight: '600' }}>/ {caps.maxTranslations}</span>
+                    </span>
+                  </div>
+                  <div className="card-note" style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                    <Info className="ic" style={{ width: '14px', height: '14px' }} />
+                    <span>Changing tier re-applies its limits. </span>
+                    <span onClick={() => router.push('/super/tiers')} style={{ color: 'var(--accent-2)', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+                      Manage tiers →
+                    </span>
                   </div>
                 </div>
               </section>
 
-              {/* Card 2: Localization Settings */}
-              <section className="card" style={{ padding: '24px' }}>
-                <div className="card-title" style={{ marginBottom: '16px', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Globe className="ic" style={{ color: 'var(--ink-2)' }} />
-                  <span>Currency & Localization</span>
+              <section className="card">
+                <div className="card-head">
+                  <div className="card-title">
+                    <SlidersHorizontal className="ic" />
+                    <span>Ordering modes</span>
+                  </div>
+                  <span className="card-note">Limited by {activeTierObj.name}</span>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="field">
-                    <label className="label">Base Currency</label>
-                    <select 
-                      className="select"
-                      value={baseCurrency}
-                      onChange={(e) => setBaseCurrency(e.target.value)}
-                      style={{ height: '38px', borderRadius: '8px', fontSize: '0.82rem' }}
-                    >
-                      <option value="USD">USD ($)</option>
-                      <option value="LBP">LBP (ل.ل)</option>
-                      <option value="EUR">EUR (€)</option>
-                    </select>
-                  </div>
-
-                  <div className="field">
-                    <label className="label">Storefront Languages</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                      {[
-                        { code: 'en', name: 'English 🇬🇧' },
-                        { code: 'ar', name: 'Arabic 🇱🇧' },
-                        { code: 'ru', name: 'Russian 🇷🇺' },
-                        { code: 'es', name: 'Spanish 🇪🇸' },
-                        { code: 'fr', name: 'French 🇫🇷' }
-                      ].map(lang => (
-                        <label key={lang.code} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', fontWeight: '500', cursor: 'pointer' }}>
-                          <input 
-                            type="checkbox"
-                            checked={languages.includes(lang.code)}
-                            onChange={() => handleToggleLang(lang.code)}
-                          />
-                          <span>{lang.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label className="label">Default Language</label>
-                    <select 
-                      className="select"
-                      value={defaultLanguage}
-                      onChange={(e) => setDefaultLanguage(e.target.value)}
-                      style={{ height: '38px', borderRadius: '8px', fontSize: '0.82rem' }}
-                    >
-                      {languages.map(code => (
-                        <option key={code} value={code}>
-                          {LANGUAGES[code]?.label || code.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                {renderOrderingModes()}
               </section>
 
-              {/* Card 3: Fulfillment & Wait times */}
-              <section className="card" style={{ padding: '24px' }}>
-                <div className="card-title" style={{ marginBottom: '16px', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Clock className="ic" style={{ color: 'var(--ink-2)' }} />
-                  <span>Fulfillment & Preparation Times</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  
-                  {/* Dine-in Table Setup */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input 
-                        type="checkbox" 
-                        id="dineinCheck"
-                        checked={dineIn} 
-                        onChange={(e) => setDineIn(e.target.checked)} 
-                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                      />
-                      <label htmlFor="dineinCheck" style={{ fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}>🍽️ Dine-in Table Ordering</label>
-                    </div>
-                    {dineIn && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Est. Wait:</span>
-                        <input 
-                          type="number"
-                          className="input"
-                          value={dineInWait}
-                          onChange={(e) => setDineInWait(e.target.value)}
-                          style={{ width: '60px', height: '30px', padding: '0 6px', textAlign: 'center', fontSize: '12px', borderRadius: '6px' }}
-                        />
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>min</span>
-                      </div>
-                    )}
+              <section className="card">
+                <div className="card-head">
+                  <div className="card-title">
+                    <Bell className="ic" />
+                    <span>Order channels</span>
                   </div>
-
-                  {/* Pickup Setup */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input 
-                        type="checkbox" 
-                        id="pickupCheck"
-                        checked={pickup} 
-                        onChange={(e) => setPickup(e.target.checked)} 
-                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                      />
-                      <label htmlFor="pickupCheck" style={{ fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}>🛍️ Customer Pick-up Setup</label>
-                    </div>
-                    {pickup && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Est. Wait:</span>
-                        <input 
-                          type="number"
-                          className="input"
-                          value={pickupWait}
-                          onChange={(e) => setPickupWait(e.target.value)}
-                          style={{ width: '60px', height: '30px', padding: '0 6px', textAlign: 'center', fontSize: '12px', borderRadius: '6px' }}
-                        />
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>min</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Delivery Setup */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <input 
-                        type="checkbox" 
-                        id="deliveryCheck"
-                        checked={delivery} 
-                        onChange={(e) => setDelivery(e.target.checked)} 
-                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                      />
-                      <label htmlFor="deliveryCheck" style={{ fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}>🛵 Home Delivery Setup</label>
-                    </div>
-                    {delivery && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Transit:</span>
-                        <input 
-                          type="number"
-                          className="input"
-                          value={deliveryWait}
-                          onChange={(e) => setDeliveryWait(e.target.value)}
-                          style={{ width: '60px', height: '30px', padding: '0 6px', textAlign: 'center', fontSize: '12px', borderRadius: '6px' }}
-                        />
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>min</span>
-                      </div>
-                    )}
-                  </div>
+                  <span className="card-note">Where alerts are sent</span>
                 </div>
-              </section>
-
-              {/* Card 4: Notification Channels */}
-              <section className="card" style={{ padding: '24px' }}>
-                <div className="card-title" style={{ marginBottom: '16px', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <LifeBuoy className="ic" style={{ color: 'var(--ink-2)' }} />
-                  <span>Notification Channels</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem', fontWeight: '500', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={assignedEmail} onChange={(e) => setAssignedEmail(e.target.checked)} style={{ width: '15px', height: '15px' }} />
-                    <span>📧 Email Notifications</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem', fontWeight: '500', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={assignedWhatsapp} onChange={(e) => setAssignedWhatsapp(e.target.checked)} style={{ width: '15px', height: '15px' }} />
-                    <span>💬 WhatsApp Notifications</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem', fontWeight: '500', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={assignedTelegram} onChange={(e) => setAssignedTelegram(e.target.checked)} style={{ width: '15px', height: '15px' }} />
-                    <span>🤖 Telegram Bot Notifications</span>
-                  </label>
-                </div>
+                {renderOrderChannels()}
               </section>
             </div>
 
-            {/* Right Column: Invoices & Billing Ledger */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <section className="card" style={{ padding: '24px' }}>
-                <div className="card-title" style={{ marginBottom: '16px', fontSize: '1.05rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <DollarSign className="ic" style={{ color: 'var(--ink-2)' }} />
-                  <span>Billing Ledger & Invoices</span>
+            {/* Right Column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <section className="card card-pad">
+                <div className="mini-label">Manager login</div>
+                <div className="info-row" style={{ borderBottom: 0, paddingBottom: '8px' }}>
+                  <span className="info-k">
+                    <Mail className="ic" style={{ width: '15px', height: '15px' }} />
+                    Email
+                  </span>
+                  <span className="info-v" style={{ fontWeight: '600' }}>{tenant?.managerEmail || 'N/A'}</span>
                 </div>
-
-                <div className="table-container" style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '24px', border: '1px solid var(--line-2)', borderRadius: '12px' }}>
-                  {ledger.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '32px', fontSize: '0.78rem', color: 'var(--ink-3)' }}>
-                      No entries in this ledger yet.
-                    </div>
-                  ) : (
-                    <table className="tbl">
-                      <thead>
-                        <tr>
-                          <th>Details</th>
-                          <th>Amount</th>
-                          <th>Status</th>
-                          <th style={{ width: '40px' }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ledger.map((entry, idx) => (
-                          <tr key={idx}>
-                            <td>
-                              <div style={{ fontWeight: '700', fontSize: '0.82rem' }}>{entry.description}</div>
-                              <span style={{ fontSize: '0.62rem', color: 'var(--ink-3)' }}>
-                                {new Date(entry.date).toLocaleDateString()}
-                              </span>
-                            </td>
-                            <td style={{ fontWeight: 'bold', fontSize: '0.82rem' }}>
-                              {formatPrice(entry.amount)}
-                            </td>
-                            <td>
-                              <span style={{
-                                display: 'inline-block',
-                                padding: '3px 8px',
-                                borderRadius: '8px',
-                                fontSize: '0.68rem',
-                                fontWeight: 'bold',
-                                backgroundColor: entry.status === 'Paid' ? '#d1fae5' : entry.status === 'Pending' ? '#fef3c7' : '#fee2e2',
-                                color: entry.status === 'Paid' ? '#10b981' : entry.status === 'Pending' ? '#d97706' : '#ef4444'
-                              }}>
-                                {entry.status}
-                              </span>
-                            </td>
-                            <td>
-                              <button 
-                                type="button"
-                                onClick={() => handleDeleteLedgerEntry(idx)}
-                                style={{ border: 'none', background: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', padding: '4px' }}
-                              >
-                                <Trash2 style={{ width: '14px', height: '14px' }} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                <h3 style={{ fontSize: '0.9rem', fontWeight: '800', marginBottom: '12px' }}>Add Ledger Entry</h3>
-                <form onSubmit={handleAddLedgerEntry} style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: 'var(--surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--line)' }}>
-                  <div className="field">
-                    <label className="label">Entry Description</label>
-                    <input 
-                      type="text"
-                      className="input"
-                      placeholder="e.g. Platform Monthly Subscription"
-                      value={ledgerDesc}
-                      onChange={(e) => setLedgerDesc(e.target.value)}
-                      required
-                      style={{ height: '36px', fontSize: '0.8rem' }}
-                    />
-                  </div>
-
-                  <div className="super-ledger-form-grid">
-                    <div className="field">
-                      <label className="label">Amount (USD)</label>
-                      <input 
-                        type="number"
-                        className="input"
-                        placeholder="199"
-                        value={ledgerAmount}
-                        onChange={(e) => setLedgerAmount(e.target.value)}
-                        required
-                        style={{ height: '36px', fontSize: '0.8rem' }}
-                      />
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Payment Status</label>
-                      <select
-                        className="select"
-                        value={ledgerStatus}
-                        onChange={(e) => setLedgerStatus(e.target.value)}
-                        style={{ height: '36px', fontSize: '0.8rem' }}
-                      >
-                        <option value="Paid">Paid</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Overdue">Overdue</option>
-                      </select>
-                    </div>
-                  </div>
-
+                <div className="pw-reveal" style={{ marginBottom: '12px' }}>
+                  <code style={{ flex: 1, textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    {pwShown ? managerPasswordPlain : '•'.repeat(Math.max(8, managerPasswordPlain.length))}
+                  </code>
                   <button
-                    type="submit"
-                    className="btn btn-outline btn-block"
-                    style={{ height: '36px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '4px' }}
+                    className="act-btn"
+                    onClick={() => setPwShown(!pwShown)}
+                    title={pwShown ? 'Hide' : 'Reveal'}
+                    style={{ background: 'transparent' }}
                   >
-                    <Plus className="ic" style={{ width: '14px', height: '14px' }} />
-                    <span>Add Entry</span>
+                    {pwShown ? <EyeOff className="ic" /> : <Eye className="ic" />}
                   </button>
-                </form>
+                  <button
+                    className="act-btn"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(managerPasswordPlain);
+                      showToast('Password copied');
+                    }}
+                    title="Copy"
+                    style={{ background: 'transparent' }}
+                  >
+                    <Copy className="ic" />
+                  </button>
+                </div>
+                <button
+                  className="btn btn-outline btn-block btn-sm"
+                  onClick={() => {
+                    setModalPassword(managerPasswordPlain);
+                    setPwModalOpen(true);
+                  }}
+                  style={{ gap: '6px' }}
+                >
+                  <KeyRound className="ic" style={{ width: '14px', height: '14px' }} />
+                  <span>Change password</span>
+                </button>
+              </section>
 
-                <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '8px', backgroundColor: '#fffbeb', border: '1px solid #fef3c7', fontSize: '0.72rem', color: '#b45309' }}>
-                  <AlertCircle className="ic" style={{ flexShrink: 0 }} />
-                  <span>You must click "Save configurations" at the top right to commit ledger changes permanently.</span>
+              <section className="card card-pad">
+                <div className="mini-label">Configuration</div>
+                <div className="info-grid" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="info-row">
+                    <span className="info-k">
+                      <Globe className="ic" style={{ width: '15px', height: '15px' }} />
+                      Country
+                    </span>
+                    <span className="info-v">{tenant?.country || 'Georgia'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-k">
+                      <Coins className="ic" style={{ width: '15px', height: '15px' }} />
+                      Base currency
+                    </span>
+                    <span className="info-v">
+                      {baseCurrency} · {CURRENCIES[baseCurrency]?.sym}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-k">
+                      <Calendar className="ic" style={{ width: '15px', height: '15px' }} />
+                      Created
+                    </span>
+                    <span className="info-v">
+                      {tenant?.createdAt ? `${Math.round((new Date().getTime() - new Date(tenant.createdAt).getTime()) / 86400000)} days ago` : 'Just now'}
+                    </span>
+                  </div>
+                </div>
+                <div className="mini-label" style={{ marginTop: '18px' }}>Storefront languages</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {languages.map(code => (
+                    <span key={code} className={`lang-tag ${code === defaultLanguage ? 'def' : ''}`}>
+                      {code === defaultLanguage && <Star style={{ width: '12px', height: '12px', fill: '#fff' }} />}
+                      {LANGS[code] || code.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+              </section>
+
+              <section className="card">
+                <div className="card-head">
+                  <div className="card-title">
+                    <Banknote className="ic" />
+                    <span>Billing</span>
+                  </div>
+                  <span
+                    onClick={() => router.push('/super/billing')}
+                    className="btn btn-ghost btn-sm"
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <span>Open billing</span>
+                    <ArrowLeft className="ic" style={{ transform: 'rotate(180deg)', width: '14px', height: '14px' }} />
+                  </span>
+                </div>
+                <div className="card-pad" style={{ paddingTop: '6px' }}>
+                  <div className="billing-line">
+                    <span className="bk">Plan</span>
+                    <span className="bv">{activeTierObj.name} · {activeTierObj.tag}</span>
+                  </div>
+                  <div className="billing-line">
+                    <span className="bk">Amount</span>
+                    <span className="bv">${(billing.amount || 0).toFixed(2)} / {billing.cycle === 'annual' ? 'year' : 'month'}</span>
+                  </div>
+                  {billing.trial && (
+                    <div className="billing-line">
+                      <span className="bk">Free trial</span>
+                      <span className="bv" style={{ color: 'var(--accent-2)' }}>14 days</span>
+                    </div>
+                  )}
+                  <div className="billing-line">
+                    <span className="bk">Start date</span>
+                    <span className="bv">{fmtDate(billing.start)}</span>
+                  </div>
+                  <div className="billing-line">
+                    <span className="bk">Renewal</span>
+                    <span className="bv">{isSuspended ? '—' : fmtDate(billing.renewal)}</span>
+                  </div>
+                  <div className="billing-line">
+                    <span className="bk">Status</span>
+                    <span className="bv" style={{ color: isSuspended ? 'var(--neg)' : 'var(--pos)' }}>
+                      {isSuspended ? 'Paused' : 'Active'}
+                    </span>
+                  </div>
+                  <button
+                    className="btn btn-outline btn-block btn-sm"
+                    onClick={() => {
+                      setModalBillingCycle(billing.cycle || 'monthly');
+                      setModalBillingAmount(billing.amount || 29);
+                      setModalBillingStart(billing.start || '');
+                      setModalBillingRenewal(billing.renewal || '');
+                      setBillModalOpen(true);
+                    }}
+                    style={{ marginTop: '14px', gap: '6px' }}
+                  >
+                    <CalendarCog className="ic" style={{ width: '14px', height: '14px' }} />
+                    <span>Edit subscription</span>
+                  </button>
                 </div>
               </section>
             </div>
           </div>
         </main>
       </div>
+
+      {/* 1. Change Password Modal */}
+      {pwModalOpen && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-card" style={{ maxWidth: '480px' }}>
+            <button className="modal-x" onClick={() => setPwModalOpen(false)} aria-label="Close">
+              <X className="ic" />
+            </button>
+            <div className="modal-head">
+              <div className="modal-icon" style={{ background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <KeyRound className="ic" style={{ width: '20px', height: '20px' }} />
+              </div>
+              <div>
+                <h3>Manager password</h3>
+                <p>For {name}'s Dinelabs Manager login.</p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingBottom: '8px' }}>
+              <div className="field">
+                <label className="label">Manager email</label>
+                <input className="input" value={tenant?.managerEmail || 'N/A'} readOnly style={{ background: 'var(--surface-2)' }} />
+              </div>
+              <div className="field" style={{ marginBottom: '6px' }}>
+                <label className="label" htmlFor="pwVal">Password</label>
+                <div className="pw-field">
+                  <input
+                    className="input"
+                    id="pwVal"
+                    value={modalPassword}
+                    onChange={(e) => setModalPassword(e.target.value)}
+                    style={{ paddingRight: '80px' }}
+                  />
+                  <button type="button" className="pw-gen" onClick={() => setModalPassword(genPassword())} style={{ border: 'none', background: 'transparent' }}>
+                    <Wand2 className="ic" style={{ width: '13px', height: '13px' }} />
+                    <span>New</span>
+                  </button>
+                </div>
+              </div>
+              <div className="masq-warn" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <Info className="ic" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>Editing here sets a new password immediately. Share it with the store securely — they can change it later in Manager.</span>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setPwModalOpen(false)} type="button">Cancel</button>
+              <button className="btn btn-accent" onClick={handleSavePassword} type="button" style={{ gap: '6px' }}>
+                <Check className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Save password</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Edit Subscription Modal */}
+      {billModalOpen && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-card" style={{ maxWidth: '480px' }}>
+            <button className="modal-x" onClick={() => setBillModalOpen(false)} aria-label="Close">
+              <X className="ic" />
+            </button>
+            <div className="modal-head">
+              <div className="modal-icon" style={{ background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <CalendarCog className="ic" style={{ width: '20px', height: '20px' }} />
+              </div>
+              <div>
+                <h3>Edit subscription</h3>
+                <p>{name} · dinelabs.co/{slug}</p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingBottom: '8px' }}>
+              <div className="field">
+                <label className="label">Billing cycle</label>
+                <div className="chip-grid">
+                  <div
+                    className={`sel-chip radio ${modalBillingCycle === 'monthly' ? 'on' : ''}`}
+                    onClick={() => {
+                      setModalBillingCycle('monthly');
+                      // Auto-update amount based on cycle & tier
+                      setModalBillingAmount(activeTierObj.price || 29);
+                    }}
+                  >
+                    Monthly
+                  </div>
+                  <div
+                    className={`sel-chip radio ${modalBillingCycle === 'annual' ? 'on' : ''}`}
+                    onClick={() => {
+                      setModalBillingCycle('annual');
+                      setModalBillingAmount(activeTierObj.priceAnnual || (activeTierObj.price * 10) || 290);
+                    }}
+                  >
+                    Annual
+                  </div>
+                </div>
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="bAmount">Amount per period</label>
+                <div className="input-affix">
+                  <span className="pfx">$</span>
+                  <input
+                    className="input"
+                    id="bAmount"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={modalBillingAmount}
+                    onChange={(e) => setModalBillingAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label className="label" htmlFor="bStart">Start date</label>
+                  <input
+                    className="input"
+                    id="bStart"
+                    type="date"
+                    value={modalBillingStart}
+                    onChange={(e) => setModalBillingStart(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="bRenew">Renewal date</label>
+                  <input
+                    className="input"
+                    id="bRenew"
+                    type="date"
+                    value={modalBillingRenewal}
+                    onChange={(e) => setModalBillingRenewal(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="card-note" style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <Info className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Set renewal manually, or use the cycle to recompute it from the start date.</span>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  const startVal = modalBillingStart || iso(new Date());
+                  const days = modalBillingCycle === 'annual' ? 365 : 30;
+                  const calculatedRenewal = addDays(new Date(startVal + 'T00:00:00'), days);
+                  setModalBillingRenewal(iso(calculatedRenewal));
+                  showToast('Renewal recomputed');
+                }}
+                type="button"
+                style={{ gap: '6px' }}
+              >
+                <Wand2 className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Recompute renewal</span>
+              </button>
+              <div style={{ flex: 1 }}></div>
+              <button className="btn btn-ghost" onClick={() => setBillModalOpen(false)} type="button">Cancel</button>
+              <button className="btn btn-accent" onClick={handleSaveBilling} type="button" style={{ gap: '6px' }}>
+                <Check className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Save</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Masquerade Modal */}
+      {masqModalOpen && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-card" style={{ maxWidth: '480px' }}>
+            <button className="modal-x" onClick={() => setMasqModalOpen(false)} aria-label="Close">
+              <X className="ic" />
+            </button>
+            <div className="modal-head">
+              <div className="modal-icon masq-icon" style={{ background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <UserRoundCog className="ic" style={{ width: '20px', height: '20px' }} />
+              </div>
+              <div>
+                <h3>Masquerade as {name}</h3>
+                <p>Open their Dinelabs Manager exactly as the store sees it.</p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingBottom: '8px' }}>
+              <div className="masq-row">
+                {renderMonogram()}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="cname">{name}</div>
+                  <div className="cslug">dinelabs.co/<b>{slug}</b></div>
+                </div>
+                <span className={`tier t${activeTierObj.lv || 1}`}>
+                  <span className="lv">{activeTierObj.name}</span> · {activeTierObj.tag}
+                </span>
+              </div>
+              <div className="masq-warn" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <ShieldAlert className="ic" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>You'll be acting <b>on behalf of this store</b>. Actions are logged to the audit trail. You can exit masquerade at any time.</span>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setMasqModalOpen(false)} type="button">Cancel</button>
+              <button className="btn btn-accent" onClick={handleEnterMasquerade} type="button" style={{ gap: '6px' }}>
+                <Send className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Enter Manager</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-card" style={{ maxWidth: '470px' }}>
+            <button className="modal-x" onClick={() => setDeleteModalOpen(false)} aria-label="Close">
+              <X className="ic" />
+            </button>
+            <div className="modal-head">
+              <div className="modal-icon" style={{ background: 'var(--neg)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <Trash2 className="ic" style={{ width: '20px', height: '20px' }} />
+              </div>
+              <div>
+                <h3>Delete {name}?</h3>
+                <p>This permanently removes the tenant and all its data.</p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingBottom: '8px' }}>
+              <div className="masq-warn" style={{ background: 'var(--neg-bg)', color: '#9b3b40', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <ShieldAlert className="ic" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>This <b>cannot be undone</b>. The storefront, menu, orders and billing history for <b>dinelabs.co/{slug}</b> will be erased.</span>
+              </div>
+              <div className="field" style={{ marginTop: '14px', marginBottom: '2px' }}>
+                <label className="label" htmlFor="delConfirm">Type <b>{slug}</b> to confirm</label>
+                <input
+                  className="input"
+                  id="delConfirm"
+                  placeholder={slug}
+                  value={deleteConfirmSlug}
+                  onChange={(e) => setDeleteConfirmSlug(e.target.value)}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setDeleteModalOpen(false)} type="button">Cancel</button>
+              <button
+                className="btn btn-danger"
+                disabled={deleteConfirmSlug.trim() !== slug}
+                onClick={handleDeleteTenant}
+                type="button"
+                style={{ opacity: deleteConfirmSlug.trim() === slug ? 1 : 0.5, gap: '6px' }}
+              >
+                <Trash2 className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Delete permanently</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Suspend Confirmation Modal */}
+      {suspendModalOpen && (
+        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-card" style={{ maxWidth: '460px' }}>
+            <button className="modal-x" onClick={() => setSuspendModalOpen(false)} aria-label="Close">
+              <X className="ic" />
+            </button>
+            <div className="modal-head">
+              <div className="modal-icon" style={{ background: 'var(--neg)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <Pause className="ic" style={{ width: '20px', height: '20px' }} />
+              </div>
+              <div>
+                <h3>Suspend {name}?</h3>
+                <p>Ordering stops immediately on their storefront.</p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ paddingBottom: '8px' }}>
+              <div className="masq-warn" style={{ background: 'var(--neg-bg)', color: '#9b3b40', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                <Info className="ic" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>Customers will see a <b>"temporarily unavailable"</b> notice. No new orders are accepted. Menu, settings and data are kept safe and restored on reactivation. A suspended store can then be permanently deleted.</span>
+              </div>
+            </div>
+            <div className="modal-foot">
+              <button className="btn btn-ghost" onClick={() => setSuspendModalOpen(false)} type="button">Keep active</button>
+              <button className="btn btn-danger" onClick={handleToggleSuspend} type="button" style={{ gap: '6px' }}>
+                <Pause className="ic" style={{ width: '14px', height: '14px' }} />
+                <span>Suspend store</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Overlay */}
+      {toast && (
+        <div className="toast-wrap">
+          <div className="toast" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="ic">✓</span>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
