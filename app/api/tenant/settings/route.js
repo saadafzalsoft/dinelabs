@@ -105,6 +105,10 @@ export async function PUT(request) {
     if (body.minOrderValue !== undefined) updateObj.minOrderValue = parseFloat(body.minOrderValue);
     if (notifications !== undefined) updateObj.notifications = notifications;
     if (deliveryFee !== undefined) updateObj.deliveryFee = parseFloat(deliveryFee);
+    if (body.deliveryMode !== undefined) updateObj.deliveryMode = body.deliveryMode;
+    if (body.deliveryZones !== undefined) {
+      updateObj.deliveryZones = Array.isArray(body.deliveryZones) ? body.deliveryZones : [];
+    }
     
     // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin
     if (enabledModes !== undefined) {

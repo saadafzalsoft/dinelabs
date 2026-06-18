@@ -33,6 +33,7 @@ export default function CheckoutPage() {
   const [building, setBuilding] = useState('');
   const [floor, setFloor] = useState('');
   const [instructions, setInstructions] = useState('');
+  const [selectedZoneId, setSelectedZoneId] = useState('');
 
   const [paymentMethod, setPaymentMethod] = useState('cash-on-arrival'); // 'cash-on-arrival' | 'pay-at-counter' | 'billed-to-room'
   const [submitting, setSubmitting] = useState(false);
@@ -155,8 +156,18 @@ export default function CheckoutPage() {
   };
 
   const subtotal = cart.reduce((acc, item) => acc + item.totalPrice, 0);
+
+  const selectedZone = tenant?.deliveryMode === 'custom' && tenant?.deliveryZones
+    ? tenant.deliveryZones.find(z => z.id === selectedZoneId)
+    : null;
+
   // Delivery fee read from tenant settings (manager configurable)
-  const deliveryFee = mode === 'delivery' ? (tenant?.deliveryFee || 0) : 0.00;
+  const deliveryFee = mode === 'delivery' 
+    ? (tenant?.deliveryMode === 'custom' 
+      ? (selectedZone?.fee || 0) 
+      : (tenant?.deliveryFee || 0)) 
+    : 0.00;
+
   const total = subtotal + deliveryFee;
 
   const handleSubmit = async (e) => {
@@ -182,8 +193,17 @@ export default function CheckoutPage() {
     }
 
     if (mode === 'delivery') {
+      if (tenant?.deliveryMode === 'custom' && !selectedZoneId) {
+        setErrorMessage('Please select your delivery area');
+        return;
+      }
       if (!city.trim() || !street.trim() || !building.trim() || !floor.trim()) {
         setErrorMessage('All delivery address details (City, Street, Building, Floor) are required');
+        return;
+      }
+      const minOrder = tenant.minOrderValue || 0;
+      if (subtotal < minOrder) {
+        setErrorMessage(`Minimum order value for delivery is ${formatPrice(minOrder)}. Your subtotal is ${formatPrice(subtotal)}.`);
         return;
       }
     }
@@ -193,7 +213,7 @@ export default function CheckoutPage() {
 
     // Compile combined address for delivery
     const combinedAddress = mode === 'delivery'
-      ? `${city.trim()}, ${street.trim()}, ${building.trim()}, Floor ${floor.trim()}${instructions.trim() ? ` (Instructions: ${instructions.trim()})` : ''}`
+      ? `${selectedZone ? `[Area: ${selectedZone.name}] ` : ''}${city.trim()}, ${street.trim()}, ${building.trim()}, Floor ${floor.trim()}${instructions.trim() ? ` (Instructions: ${instructions.trim()})` : ''}`
       : '';
 
     // Compile phone with country code
@@ -357,7 +377,11 @@ export default function CheckoutPage() {
                       <Bike style={{ width: '14px', height: '14px' }} />
                       <span>Delivery</span>
                     </div>
-                    <div className="toggle-desc">{tenant.waitTimes?.delivery || 30} mins</div>
+                    <div className="toggle-desc">
+                      {tenant.deliveryMode === 'custom' && selectedZone
+                        ? `${selectedZone.time} mins`
+                        : `${tenant.waitTimes?.delivery || 30} mins`}
+                    </div>
                   </div>
                 )}
                 {tenant.enabledModes?.pickup && (
@@ -394,6 +418,26 @@ export default function CheckoutPage() {
                   <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800', marginBottom: '16px' }}>
                     Your Information
                   </h3>
+
+                  {tenant.deliveryMode === 'custom' && (
+                    <div className="form-group">
+                      <label className="form-label">Delivery Area</label>
+                      <select
+                        className="form-control"
+                        value={selectedZoneId}
+                        onChange={(e) => setSelectedZoneId(e.target.value)}
+                        required
+                        style={{ width: '100%', outline: 'none', fontWeight: '600', marginBottom: '16px' }}
+                      >
+                        <option value="">Select your delivery area...</option>
+                        {tenant.deliveryZones?.map(z => (
+                          <option key={z.id} value={z.id}>
+                            {z.name} (Fee: {formatPrice(z.fee)} · Time: {z.time} min)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   
                   <div className="form-group">
                     <label className="form-label">Name</label>
@@ -696,7 +740,11 @@ export default function CheckoutPage() {
                 <div>
                   <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Standard</div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {mode === 'delivery' ? `In ${tenant.waitTimes?.delivery || 30} mins` : `In ${tenant.waitTimes?.pickup || 15} mins`}
+                    {mode === 'delivery'
+                      ? (tenant.deliveryMode === 'custom' && selectedZone
+                          ? `In ${selectedZone.time} mins`
+                          : `In ${tenant.waitTimes?.delivery || 30} mins`)
+                      : `In ${tenant.waitTimes?.pickup || 15} mins`}
                   </span>
                 </div>
               </div>
