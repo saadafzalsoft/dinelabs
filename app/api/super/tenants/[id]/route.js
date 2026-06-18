@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const db = await getDb();
     
     const queryId = id.toString();
@@ -50,7 +50,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const db = await getDb();
     const queryId = id.toString();
 

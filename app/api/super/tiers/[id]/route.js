@@ -14,7 +14,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { name, tag, price, priceAnnual, caps, lv } = await request.json();
 
     const db = await getDb();
@@ -49,7 +49,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const db = await getDb();
 
     // Check how many tiers we have. Keep at least one tier.

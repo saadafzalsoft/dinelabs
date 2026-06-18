@@ -148,6 +148,10 @@ export default function SuperBillingPage() {
     });
   };
 
+  const moneyStr = (n, cur = 'USD') => {
+    return (CURRENCIES[cur]?.sym || '$') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   // Format date helper
   const fmtDate = (s) => {
     if (!s) return '—';
