@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { ObjectId } from 'mongodb';
 
 async function checkSuperAdmin(request) {
   const sessionCookie = request.cookies.get('dinelabs_session')?.value;
