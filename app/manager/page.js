@@ -45,12 +45,6 @@ export default function ManagerLoginPage() {
     <div className="split-layout">
       {/* Left side: Premium branding cover */}
       <div className="split-left-promo">
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', fontWeight: '900', marginBottom: '16px', letterSpacing: '-1.5px' }}>
-          DineLabs
-        </h1>
-        <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.5, maxWidth: '460px', fontWeight: '500' }}>
-          Accelerate table turnovers, eliminate printing costs, and drive upselling using frictionless dynamic catalogs.
-        </p>
       </div>
 
       {/* Right side: Modern clean login card */}

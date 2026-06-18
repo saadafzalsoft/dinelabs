@@ -15,7 +15,8 @@ import {
   FileText,
   ChevronDown,
   Check,
-  ShoppingCart
+  ShoppingCart,
+  SlidersHorizontal
 } from 'lucide-react';
 
 export default function StorefrontClient({ tenant, initialProducts, initialCategories, initialModifierGroups }) {
@@ -27,6 +28,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const LANGUAGES = {
     en: { label: 'English', flag: '🇬🇧', code: 'EN' },
@@ -36,6 +38,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     fr: { label: 'Français', flag: '🇫🇷', code: 'FR' },
   };
   const [activeCategory, setActiveCategory] = useState('all');
+  const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [mode, setMode] = useState('dine-in'); // 'dine-in' | 'pickup' | 'delivery'
   const [tableNo, setTableNo] = useState('');
@@ -497,12 +501,23 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               <Menu className="ic" style={{ width: '22px', height: '22px' }} />
             </button>
             
-            {/* Logo / Brand Name */}
-            <Link href={`/${tenant.slug}`} className="logo" style={{ margin: 0 }}>
-              {tenant.name.toLowerCase() === 'bar tartine' ? (
-                <>bar <span>tartine</span></>
-              ) : (
-                tenant.name
+            <Link href={`/${tenant.slug}`} className="logo" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {tenant.logoUrl && !logoError ? (
+                <img 
+                  src={tenant.logoUrl} 
+                  alt={tenant.name} 
+                  style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+                  onError={() => setLogoError(true)}
+                />
+              ) : null}
+              {(!tenant.logoUrl || logoError) && (
+                <span id="navbar-text-logo">
+                  {tenant.name.toLowerCase() === 'bar tartine' ? (
+                    <>bar <span>tartine</span></>
+                  ) : (
+                    tenant.name
+                  )}
+                </span>
               )}
             </Link>
           </div>
@@ -668,98 +683,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             );
           })}
 
-          {/* Top Fulfillment Switcher Redesign */}
-          {tenant.status === 'active' && (
-            <div style={{
-              display: 'flex',
-              backgroundColor: '#f3f4f6',
-              padding: '6px',
-              borderRadius: '16px',
-              marginBottom: '20px',
-              gap: '6px',
-              border: '1px solid var(--border-light, #e5e7eb)'
-            }}>
-              {tenant.enabledModes.dineIn && (
-                <button
-                  type="button"
-                  onClick={() => handleModeChange('dine-in')}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '10px 8px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    backgroundColor: mode === 'dine-in' ? '#000000' : 'transparent',
-                    color: mode === 'dine-in' ? '#ffffff' : '#4b5563',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    fontWeight: '700',
-                    fontSize: '0.8rem',
-                    gap: '4px'
-                  }}
-                >
-                  <Utensils style={{ width: '16px', height: '16px' }} />
-                  <span>{dict[lang].dineIn} {tableNo ? `(${tableNo})` : ''}</span>
-                </button>
-              )}
-              {tenant.enabledModes.pickup && (
-                <button
-                  type="button"
-                  onClick={() => handleModeChange('pickup')}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '10px 8px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    backgroundColor: mode === 'pickup' ? '#000000' : 'transparent',
-                    color: mode === 'pickup' ? '#ffffff' : '#4b5563',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    fontWeight: '700',
-                    fontSize: '0.8rem',
-                    gap: '4px'
-                  }}
-                >
-                  <ShoppingBag style={{ width: '16px', height: '16px' }} />
-                  <span>{dict[lang].pickup}</span>
-                </button>
-              )}
-              {tenant.enabledModes.delivery && (
-                <button
-                  type="button"
-                  onClick={() => handleModeChange('delivery')}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '10px 8px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    backgroundColor: mode === 'delivery' ? '#000000' : 'transparent',
-                    color: mode === 'delivery' ? '#ffffff' : '#4b5563',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    fontWeight: '700',
-                    fontSize: '0.8rem',
-                    gap: '4px'
-                  }}
-                >
-                  <Bike style={{ width: '16px', height: '16px' }} />
-                  <span>{dict[lang].delivery}</span>
-                </button>
-              )}
-            </div>
-          )}
-
           {/* Search bar */}
           <div className="search-container">
             <input 
@@ -775,8 +698,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           </div>
 
           {/* Categories Pills bar */}
-          <div className="categories-row-wrapper">
-            <div className="categories-pills-list">
+          <div className="categories-row-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="categories-pills-list" style={{ flex: 1 }}>
               <button 
                 onClick={() => setActiveCategory('all')}
                 className={`category-pill ${activeCategory === 'all' ? 'active' : ''}`}
@@ -795,6 +718,29 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 </button>
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsFilterPopupOpen(true)}
+              className="category-filter-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                border: '1px solid var(--line-2)',
+                backgroundColor: '#ffffff',
+                cursor: 'pointer',
+                flexShrink: 0,
+                color: 'var(--text-main)',
+                transition: 'all 0.2s'
+              }}
+              title="Filter Categories"
+            >
+              <SlidersHorizontal style={{ width: '16px', height: '16px' }} />
+            </button>
           </div>
 
           {/* 2-Column Product Grid list */}
@@ -861,10 +807,27 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
         </main>
 
         {/* Right shopping basket panel */}
-        <aside className="right-panel">
-          <h2 className="basket-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-            <ShoppingCart className="ic" style={{ width: '22px', height: '22px' }} />
-          </h2>
+        <aside className={`right-panel ${isMobileCartOpen ? 'active' : ''}`}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', marginBottom: '16px' }}>
+            <h2 className="basket-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto', fontFamily: 'var(--font-heading)', fontWeight: '800', fontSize: '20px' }}>
+              Basket
+            </h2>
+            <button 
+              type="button"
+              onClick={() => setIsMobileCartOpen(false)}
+              className="mobile-only-close-basket"
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                color: 'var(--text-muted)'
+              }}
+            >
+              ✕
+            </button>
+          </div>
 
           {/* Fulfillment toggles */}
           {tenant.status === 'active' && (
@@ -999,16 +962,21 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
       {cart.length > 0 && tenant.status === 'active' && !isClosed && (
-        <Link href={`/${tenant.slug}/checkout${(tableNo && mode === 'dine-in') ? `?table=${encodeURIComponent(tableNo)}` : ''}`} className="mobile-cart-float visible" style={{ textDecoration: 'none' }}>
+        <button 
+          type="button"
+          onClick={() => setIsMobileCartOpen(true)}
+          className="mobile-cart-float visible" 
+          style={{ border: 'none', font: 'inherit', width: 'calc(100% - 32px)', cursor: 'pointer', zIndex: 90 }}
+        >
           <div className="mobile-cart-left">
             <div className="mobile-cart-icon-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
               <ShoppingCart className="ic" style={{ width: '18px', height: '18px' }} />
               <span className="mobile-cart-badge">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
             </div>
-            <span className="mobile-cart-text">{dict[lang].checkout}</span>
+            <span className="mobile-cart-text">View Basket</span>
           </div>
           <span className="mobile-cart-price">{formatPrice(total)}</span>
-        </Link>
+        </button>
       )}
 
       {/* 
@@ -1382,6 +1350,127 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           ))}
         </div>
       </aside>
+
+      {/* Categories Filter Popup Modal */}
+      {isFilterPopupOpen && (
+        <>
+          <div 
+            className="filter-scrim" 
+            onClick={() => setIsFilterPopupOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              zIndex: 99999,
+              backdropFilter: 'blur(2px)'
+            }}
+          />
+          <div 
+            className="filter-popup pop-in"
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: '#ffffff',
+              borderRadius: '24px',
+              padding: '24px',
+              width: '90%',
+              maxWidth: '440px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+              zIndex: 100000,
+              fontFamily: 'inherit'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <SlidersHorizontal style={{ width: '18px', height: '18px' }} />
+                <span>Categories</span>
+              </h3>
+              <button 
+                onClick={() => setIsFilterPopupOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  color: 'var(--text-muted)'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
+              <button
+                onClick={() => {
+                  setActiveCategory('all');
+                  setIsFilterPopupOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: activeCategory === 'all' ? '1px solid var(--text-main)' : '1px solid var(--line-2)',
+                  backgroundColor: activeCategory === 'all' ? 'var(--bg-secondary)' : '#ffffff',
+                  fontWeight: activeCategory === 'all' ? '700' : '500',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <span>{dict[lang].all}</span>
+                {activeCategory === 'all' && <Check style={{ width: '16px', height: '16px' }} />}
+              </button>
+
+              {sortedCategories.map(cat => (
+                <button
+                  key={cat._id}
+                  onClick={() => {
+                    setActiveCategory(cat._id);
+                    setIsFilterPopupOpen(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: activeCategory === cat._id ? '1px solid var(--text-main)' : '1px solid var(--line-2)',
+                    backgroundColor: activeCategory === cat._id ? 'var(--bg-secondary)' : '#ffffff',
+                    fontWeight: activeCategory === cat._id ? '700' : '500',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span>{t(cat.name)}</span>
+                  {activeCategory === cat._id && <Check style={{ width: '16px', height: '16px' }} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Mobile Cart Scrim Overlay */}
+      {isMobileCartOpen && (
+        <div 
+          onClick={() => setIsMobileCartOpen(false)}
+          className="mobile-cart-scrim"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(1px)',
+            zIndex: 140
+          }}
+        />
+      )}
     </div>
   );
 }

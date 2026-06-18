@@ -106,7 +106,13 @@ export async function PUT(request, { params }) {
 
     // Send status update notification to customer asynchronously
     try {
-      const tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantId.toString()) });
+      const queryId = tenantId.toString();
+      let tenant = await db.collection('tenants').findOne({ _id: queryId });
+      if (!tenant) {
+        try {
+          tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+        } catch (e) {}
+      }
       if (tenant) {
         // Fire and forget – don't block the response
         sendOrderStatusUpdateNotification(order, tenant, status, deliveryMinutes).catch(err => {

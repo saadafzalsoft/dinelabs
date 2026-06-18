@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Bike, ShoppingBag, Utensils } from 'lucide-react';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -36,6 +37,10 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('cash-on-arrival'); // 'cash-on-arrival' | 'pay-at-counter' | 'billed-to-room'
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    localStorage.setItem(`dinelabs_mode_${storename}`, newMode);
+  };
 
   // Fetch tenant info and load cart from localStorage on mount
   useEffect(() => {
@@ -247,8 +252,43 @@ export default function CheckoutPage() {
 
   if (loading || !tenant) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'var(--font-heading)' }}>
-        <h2>Loading Checkout details...</h2>
+      <div className="main-viewport" style={{ backgroundColor: 'var(--bg-secondary)', minHeight: '100vh', padding: '40px 20px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Header Back button skeleton */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <div className="skeleton" style={{ width: '120px', height: '24px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '180px', height: '36px', borderRadius: '12px' }} />
+          </div>
+
+          <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', alignItems: 'start' }}>
+            {/* Left form skeleton */}
+            <div className="checkout-left" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="skeleton" style={{ width: '100%', height: '56px', borderRadius: '16px' }} />
+              <div className="card" style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="skeleton" style={{ width: '200px', height: '24px', borderRadius: '6px', marginBottom: '8px' }} />
+                  <div className="skeleton" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
+                  <div className="skeleton" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
+                  <div className="skeleton" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Right summary skeleton */}
+            <div className="checkout-right" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="card" style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="skeleton" style={{ width: '150px', height: '24px', borderRadius: '6px', marginBottom: '8px' }} />
+                  <div className="skeleton" style={{ width: '100%', height: '32px', borderRadius: '8px' }} />
+                  <div className="skeleton" style={{ width: '100%', height: '32px', borderRadius: '8px' }} />
+                  <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+                    <div className="skeleton" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -306,17 +346,44 @@ export default function CheckoutPage() {
             {/* Left Column: Fulfillment details & customer form info */}
             <div className="checkout-left" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Fulfillment toggle badges showing currently selected mode */}
-              <div style={{ display: 'flex', gap: '10px', backgroundColor: '#ffffff', padding: '6px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
-                <div style={{ flex: 1, textAlign: 'center', padding: '10px', borderRadius: '8px', fontWeight: '700', fontSize: '0.82rem', backgroundColor: mode === 'delivery' ? 'var(--bg-secondary)' : 'transparent', color: mode === 'delivery' ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                  🛵 Delivery
-                </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '10px', borderRadius: '8px', fontWeight: '700', fontSize: '0.82rem', backgroundColor: mode === 'pickup' ? 'var(--bg-secondary)' : 'transparent', color: mode === 'pickup' ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                  🛍️ Pick up
-                </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '10px', borderRadius: '8px', fontWeight: '700', fontSize: '0.82rem', backgroundColor: mode === 'dine-in' ? 'var(--bg-secondary)' : 'transparent', color: mode === 'dine-in' ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                  🍽️ Dine in
-                </div>
+              {/* Fulfillment toggles matching main page design */}
+              <div className="delivery-toggle-wrapper" style={{ marginBottom: '20px' }}>
+                {tenant.enabledModes?.delivery && (
+                  <div 
+                    onClick={() => handleModeChange('delivery')}
+                    className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
+                  >
+                    <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Bike style={{ width: '14px', height: '14px' }} />
+                      <span>Delivery</span>
+                    </div>
+                    <div className="toggle-desc">{tenant.waitTimes?.delivery || 30} mins</div>
+                  </div>
+                )}
+                {tenant.enabledModes?.pickup && (
+                  <div 
+                    onClick={() => handleModeChange('pickup')}
+                    className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
+                  >
+                    <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <ShoppingBag style={{ width: '14px', height: '14px' }} />
+                      <span>Pickup</span>
+                    </div>
+                    <div className="toggle-desc">{tenant.waitTimes?.pickup || 15} mins</div>
+                  </div>
+                )}
+                {tenant.enabledModes?.dineIn && (
+                  <div 
+                    onClick={() => handleModeChange('dine-in')}
+                    className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}
+                  >
+                    <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Utensils style={{ width: '14px', height: '14px' }} />
+                      <span>Dine-in</span>
+                    </div>
+                    <div className="toggle-desc">{tableNo ? tableNo : 'Table'}</div>
+                  </div>
+                )}
               </div>
 
               {/* ==========================================

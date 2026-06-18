@@ -428,7 +428,41 @@ function AddonsPageContent() {
 
 export default function ManagerAddonsPage() {
   return (
-    <Suspense fallback={<h3>Loading modifier add-ons...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in">
+        <div className="page-head">
+          <div>
+            <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+            <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+          </div>
+          <div className="skeleton" style={{ width: '120px', height: '40px', borderRadius: '10px' }} />
+        </div>
+        <div className="card">
+          <div className="toolbar" style={{ justifyContent: 'space-between', opacity: 0.5, padding: '16px 20px', display: 'flex' }}>
+            <div className="skeleton" style={{ width: '150px', height: '24px', borderRadius: '4px' }}></div>
+            <div className="skeleton" style={{ width: '120px', height: '20px', borderRadius: '4px' }}></div>
+          </div>
+          <div className="card-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', padding: '20px' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="mod-card" style={{ border: '1px solid var(--line)', borderRadius: '16px', padding: '20px', backgroundColor: '#ffffff', opacity: 0.7 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div className="skeleton" style={{ width: '100px', height: '16px', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ width: '60px', height: '18px', borderRadius: '12px' }} />
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  <div className="skeleton" style={{ width: '60px', height: '20px', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ width: '80px', height: '20px', borderRadius: '4px' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
+                  <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+                  <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    }>
       <AddonsPageContent />
     </Suspense>
   );

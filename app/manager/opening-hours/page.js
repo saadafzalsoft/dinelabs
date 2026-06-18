@@ -100,8 +100,18 @@ function OpeningHoursPageContent() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <h3 className="mut3">Loading opening hours...</h3>
+      <div className="fade-in" style={{ padding: '8px 0', maxWidth: '800px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+        </div>
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '80px', borderRadius: '8px' }} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -136,12 +146,8 @@ function OpeningHoursPageContent() {
             {openingHours.map((h, idx) => (
               <div 
                 key={idx} 
+                className="opening-hours-grid"
                 style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '200px 1fr auto', 
-                  alignItems: 'center', 
-                  padding: '18px 22px', 
-                  borderBottom: '1px solid var(--line)',
                   backgroundColor: h.isOpen ? 'transparent' : '#f9fafb'
                 }}
               >
@@ -205,7 +211,21 @@ function OpeningHoursPageContent() {
 
 export default function ManagerOpeningHoursPage() {
   return (
-    <Suspense fallback={<h3>Loading opening hours schedule...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in" style={{ padding: '8px 0', maxWidth: '800px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+        </div>
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '80px', borderRadius: '8px' }} />
+          </div>
+        </div>
+      </div>
+    }>
       <OpeningHoursPageContent />
     </Suspense>
   );

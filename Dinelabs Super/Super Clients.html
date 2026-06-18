@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Super — Restaurants</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="super.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .seg.sm button { font-size: 12.5px; padding: 5px 13px; }
+  .cl-scroll { overflow-x: auto; }
+  @media (max-width: 1100px){ .col-hide { display: none; } }
+</style>
+</head>
+<body data-page="clients">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Stores</h1>
+          <p class="page-sub">Every tenant on the platform — status, tier and live health.</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="filter-search">
+          <i class="ic" data-lucide="search"></i>
+          <input id="search" placeholder="Search stores…" autocomplete="off" />
+        </div>
+        <div class="seg sm" id="statusSeg">
+          <button data-s="all" class="active">All</button>
+          <button data-s="active">Active</button>
+          <button data-s="suspended">Suspended</button>
+        </div>
+        <select class="select" id="tierFilter" style="width:auto;height:38px"><option value="all">All tiers</option></select>
+        <div style="flex:1"></div>
+        <span class="cl-count" id="count">—</span>
+      </div>
+
+      <section class="card">
+        <div class="cl-scroll">
+          <table class="tbl cl-table">
+            <thead>
+              <tr>
+                <th>Store</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th class="col-hide">Modes</th>
+                <th style="text-align:right">Orders today</th>
+                <th style="text-align:right" class="col-hide">Revenue</th>
+                <th class="col-hide">Last order</th>
+                <th class="col-hide">Errors</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div id="emptyState"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="super-shell.js"></script>
+<script>
+renderSuperShell('clients');
+
+$('#tierFilter').innerHTML = '<option value="all">All tiers</option>' + window.TIERS.map(t => `<option value="${t.id}">${t.name} · ${t.tag}</option>`).join('');
+
+let q = '', statusF = 'all', tierF = 'all';
+
+function rowHTML(c) {
+  return `<tr data-id="${c.id}" class="${c.status === 'suspended' ? 'is-suspended' : ''}">
+    <td><div class="nm-cell">${monogram(c)}<div style="min-width:0"><div class="cname">${c.name}</div><div class="cslug">dinelabs.co/<b>${c.id}</b></div></div></div></td>
+    <td>${tierPill(c.tier)}</td>
+    <td>${statusPill(c.status)}</td>
+    <td class="col-hide">${modeIcons(c)}</td>
+    <td style="text-align:right"><span class="tnum" style="font-weight:800">${c.status === 'suspended' ? '—' : c.ordersToday}</span></td>
+    <td style="text-align:right" class="col-hide"><span class="tnum" style="font-weight:700">${c.status === 'suspended' ? '—' : moneyK(c.rev, c.cur)}</span></td>
+    <td class="col-hide">${freshness(c)}</td>
+    <td class="col-hide">${errCell(c)}</td>
+    <td><div class="row gap6" style="justify-content:flex-end" data-actions>
+      ${c.status === 'active'
+        ? `<button class="act-btn accent" title="Masquerade" data-act="masq"><i class="ic" data-lucide="user-round-cog"></i></button>
+           <button class="act-btn" title="Suspend" data-act="susp"><i class="ic" data-lucide="pause"></i></button>`
+        : `<button class="act-btn" title="Reactivate" data-act="susp"><i class="ic" data-lucide="play"></i></button>
+           <button class="act-btn" title="Delete store" data-act="del" style="color:var(--neg);border-color:#f0c5c7"><i class="ic" data-lucide="trash-2"></i></button>`}
+      <button class="act-btn" title="Open" data-act="open"><i class="ic" data-lucide="chevron-right"></i></button>
+    </div></td>
+  </tr>`;
+}
+
+function render() {
+  let list = window.CLIENTS.filter(c => {
+    if (statusF !== 'all' && c.status !== statusF) return false;
+    if (tierF !== 'all' && c.tier !== tierF) return false;
+    if (q && !(c.name.toLowerCase().includes(q) || c.id.includes(q) || c.country.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  $('#count').textContent = `${list.length} of ${window.CLIENTS.length} stores`;
+  const tbody = $('#rows'), empty = $('#emptyState');
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.innerHTML = `<div class="empty"><i class="ic" data-lucide="search-x"></i><h4>No stores match</h4><p>Try a different search or filter.</p></div>`;
+  } else {
+    empty.innerHTML = '';
+    tbody.innerHTML = list.map(rowHTML).join('');
+  }
+  lucide.createIcons();
+}
+
+$('#rows').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  const id = tr.dataset.id;
+  const actBtn = e.target.closest('[data-act]');
+  if (actBtn) {
+    e.stopPropagation();
+    const act = actBtn.dataset.act;
+    if (act === 'masq') return openMasquerade(id);
+    if (act === 'susp') return toggleSuspend(id, render);
+    if (act === 'del') return deleteClient(id, render);
+    if (act === 'open') return location.href = 'Super Client.html?id=' + id;
+    return;
+  }
+  location.href = 'Super Client.html?id=' + id;
+});
+
+$('#search').addEventListener('input', e => { q = e.target.value.toLowerCase().trim(); render(); });
+$$('#statusSeg button').forEach(b => b.addEventListener('click', () => { statusF = b.dataset.s; $$('#statusSeg button').forEach(x => x.classList.toggle('active', x === b)); render(); }));
+$('#tierFilter').addEventListener('change', e => { tierF = e.target.value; render(); });
+
+render();
+</script>
+</body>
+</html>

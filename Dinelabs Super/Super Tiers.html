@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Super — Tiers &amp; Features</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="super.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .tier-del { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line-2); background: #fff; color: var(--ink-3); display: grid; place-items: center; flex: none; }
+  .tier-del:hover { background: var(--neg-bg); color: var(--neg); border-color: transparent; }
+  .tier-del .ic { width: 16px; height: 16px; }
+  .core-note { display: flex; align-items: center; gap: 13px; padding: 14px 18px; margin-bottom: 18px; background: var(--accent-bg); border: 1px solid var(--accent-line); border-radius: var(--r); }
+  .core-note .ic { width: 18px; height: 18px; color: var(--accent-2); flex: none; }
+  .core-note .cn-t { font-weight: 700; font-size: 13.5px; color: var(--accent-2); }
+  .core-note .cn-s { font-size: 12.5px; color: var(--accent-2); opacity: .8; }
+</style>
+</head>
+<body data-page="tiers">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Tiers</h1>
+          <p class="page-sub">Build subscription tiers and the limits each one unlocks. Click a tier to manage it.</p>
+        </div>
+        <button class="btn btn-accent" id="addTierBtn"><i class="ic" data-lucide="plus"></i> New tier</button>
+      </div>
+
+      <section class="card">
+        <div class="card-head"><div class="card-title"><i class="ic" data-lucide="layers"></i>Subscription tiers</div><span class="card-note" id="tierCount">—</span></div>
+        <div id="tierList"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="super-shell.js"></script>
+<script>
+renderSuperShell('tiers');
+
+const clientCount = (tierId) => window.CLIENTS.filter(c => c.tier === tierId).length;
+const modeCount = (t) => Object.values(t.caps.modes).filter(Boolean).length;
+const chCount = (t) => Object.values(t.caps.channels).filter(Boolean).length;
+
+function renderList() {
+  $('#tierCount').textContent = `${window.TIERS.length} tier${window.TIERS.length === 1 ? '' : 's'}`;
+  $('#tierList').innerHTML = window.TIERS.map(t => `
+    <div class="tier-row" data-tier="${t.id}">
+      <span class="tier-mark t${t.lv}">${t.name.replace(/[^0-9]/g, '') || t.name.slice(0, 1)}</span>
+      <div class="tr-id">
+        <div class="tr-name">${t.name}</div>
+        <div class="tr-tag">${t.tag}</div>
+      </div>
+      <div class="tr-price">${money(t.price)}<span> /mo</span><div class="tr-tag" style="margin-top:3px">${money(t.priceAnnual != null ? t.priceAnnual : t.price * 10)} /yr</div></div>
+      <div class="tlimits">
+        <span class="tlimit"><i class="ic" data-lucide="utensils-crossed"></i>${productLimitLabel(t)} products</span>
+        <span class="tlimit"><i class="ic" data-lucide="languages"></i>${t.caps.maxTranslations} language${t.caps.maxTranslations > 1 ? 's' : ''}</span>
+        <span class="tlimit"><i class="ic" data-lucide="sliders-horizontal"></i>${modeCount(t)}/3 modes</span>
+        <span class="tlimit"><i class="ic" data-lucide="bell"></i>${chCount(t)}/3 channels</span>
+      </div>
+      <div class="tr-count">${clientCount(t.id)} store${clientCount(t.id) === 1 ? '' : 's'}</div>
+      <button class="tier-del" title="Delete tier" data-del="${t.id}"><i class="ic" data-lucide="trash-2"></i></button>
+      <span class="tr-go"><i class="ic" data-lucide="chevron-right"></i></span>
+    </div>`).join('');
+  $$('#tierList .tier-row').forEach(row => row.addEventListener('click', (e) => {
+    if (e.target.closest('[data-del]')) return;
+    openTierEditor(row.dataset.tier);
+  }));
+  $$('#tierList [data-del]').forEach(b => b.addEventListener('click', () => delTier(b.dataset.del)));
+  lucide.createIcons();
+}
+
+/* ---------- tier editor (create + edit) ---------- */
+function openTierEditor(tierId) {
+  const isNew = !tierId;
+  const t = isNew
+    ? { id: null, name: 'Tier ' + (window.TIERS.length + 1), tag: 'Custom', price: 99, priceAnnual: 990, lv: Math.min(3, window.TIERS.length + 1),
+        caps: { maxProducts: 50, maxTranslations: 1, langs: ['en'], modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, whatsapp: 0, telegram: 0 } } }
+    : JSON.parse(JSON.stringify(getTier(tierId)));
+
+  const langChips = Object.keys(LANGS).map(code =>
+    `<div class="sel-chip lang-chip ${t.caps.langs.includes(code) ? 'on' : ''}" data-lang="${code}"><span class="chk"><i class="ic" data-lucide="check"></i></span>${LANGS[code]}</div>`).join('');
+
+  const modeRow = (m) => `
+    <div class="limit-row">
+      <span class="lr-ic"><i class="ic" data-lucide="${MODES[m].icon}"></i></span>
+      <div class="lr-main"><div class="lr-name">${MODES[m].label}</div><div class="lr-sub">Allow this ordering mode</div></div>
+      <label class="switch"><input type="checkbox" data-mode="${m}" ${t.caps.modes[m] ? 'checked' : ''} /><span class="track"></span></label>
+    </div>`;
+  const chRow = (ch) => `
+    <div class="limit-row">
+      <span class="lr-ic"><i class="ic" data-lucide="${CHANNELS[ch].icon}"></i></span>
+      <div class="lr-main"><div class="lr-name">${CHANNELS[ch].label}</div><div class="lr-sub">Send order alerts via ${CHANNELS[ch].label}</div></div>
+      <label class="switch"><input type="checkbox" data-ch="${ch}" ${t.caps.channels[ch] ? 'checked' : ''} /><span class="track"></span></label>
+    </div>`;
+
+  openModal(`
+  <div class="modal-card is-form is-wide" style="flex-direction:column;max-height:calc(100vh - 48px)">
+    <button class="modal-x" data-close aria-label="Close"><i class="ic" data-lucide="x"></i></button>
+    <div class="modal-head">
+      <div class="modal-icon" style="background:var(--accent)"><i class="ic" data-lucide="layers"></i></div>
+      <div><h3>${isNew ? 'New tier' : 'Manage ' + t.name}</h3><p>Set pricing and the limits this tier unlocks.</p></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="fs-ic"><i class="ic" data-lucide="tag"></i></span><div><div class="fs-t">Identity &amp; price</div></div></div>
+        <div class="field-row">
+          <div class="field"><label class="label">Tier name</label><input class="input" id="eName" value="${t.name}" /></div>
+          <div class="field"><label class="label">Label</label><input class="input" id="eTag" value="${t.tag}" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="label">Monthly price</label><div class="input-affix"><span class="pfx">$</span><input class="input" id="ePrice" type="number" min="0" value="${t.price}" /></div></div>
+          <div class="field"><label class="label">Annual price</label><div class="input-affix"><span class="pfx">$</span><input class="input" id="ePriceAnnual" type="number" min="0" value="${t.priceAnnual != null ? t.priceAnnual : t.price * 10}" /></div></div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="fs-ic"><i class="ic" data-lucide="gauge"></i></span><div><div class="fs-t">Limits</div><div class="fs-s">Caps applied to stores on this tier</div></div></div>
+        <div class="limit-row">
+          <span class="lr-ic"><i class="ic" data-lucide="utensils-crossed"></i></span>
+          <div class="lr-main"><div class="lr-name">Products</div><div class="lr-sub">Maximum menu items</div></div>
+          <div class="lr-ctrl">
+            <div class="num-stepper" id="prodStepper"><button type="button" data-step="-1"><i class="ic" data-lucide="minus"></i></button><input id="eProducts" type="number" min="0" value="${t.caps.maxProducts || 0}" /><button type="button" data-step="1"><i class="ic" data-lucide="plus"></i></button></div>
+            <div class="sel-chip ${t.caps.maxProducts === 0 ? 'on' : ''}" id="eUnlimited" style="height:36px"><span class="chk"><i class="ic" data-lucide="check"></i></span>Unlimited</div>
+          </div>
+        </div>
+        <div class="limit-row">
+          <span class="lr-ic"><i class="ic" data-lucide="languages"></i></span>
+          <div class="lr-main"><div class="lr-name">Storefront translations</div><div class="lr-sub">How many languages a store can publish</div></div>
+          <div class="lr-ctrl"><div class="num-stepper" id="transStepper"><button type="button" data-step="-1"><i class="ic" data-lucide="minus"></i></button><input id="eTrans" type="number" min="1" max="8" value="${t.caps.maxTranslations}" /><button type="button" data-step="1"><i class="ic" data-lucide="plus"></i></button></div></div>
+        </div>
+        <div class="field" style="padding-top:14px;margin-bottom:2px">
+          <label class="label">Available languages <span class="opt">— the pool stores choose from</span></label>
+          <div class="chip-grid" id="eLangs">${langChips}</div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="fs-ic"><i class="ic" data-lucide="sliders-horizontal"></i></span><div><div class="fs-t">Ordering modes</div><div class="fs-s">Which channels this tier can switch on</div></div></div>
+        ${Object.keys(MODES).map(modeRow).join('')}
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-head"><span class="fs-ic"><i class="ic" data-lucide="bell"></i></span><div><div class="fs-t">Order channels</div><div class="fs-s">Notification channels available on this tier</div></div></div>
+        ${Object.keys(CHANNELS).map(chRow).join('')}
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close type="button">Cancel</button>
+      <button class="btn btn-accent" id="eSave" type="button"><i class="ic" data-lucide="check"></i>${isNew ? 'Create tier' : 'Save changes'}</button>
+    </div>
+  </div>`);
+
+  // steppers
+  const stepInput = (wrap, inp, min, max) => $$(`#${wrap} [data-step]`).forEach(b => b.addEventListener('click', () => {
+    let v = (+$(`#${inp}`).value || 0) + (+b.dataset.step);
+    if (min != null) v = Math.max(min, v); if (max != null) v = Math.min(max, v);
+    $(`#${inp}`).value = v;
+    if (inp === 'eProducts' && v > 0) $('#eUnlimited').classList.remove('on');
+  }));
+  stepInput('prodStepper', 'eProducts', 0, null);
+  stepInput('transStepper', 'eTrans', 1, 8);
+  $('#eUnlimited').addEventListener('click', () => {
+    $('#eUnlimited').classList.toggle('on');
+    if ($('#eUnlimited').classList.contains('on')) $('#eProducts').value = 0;
+    else if (+$('#eProducts').value === 0) $('#eProducts').value = 50;
+  });
+  $('#eProducts').addEventListener('input', () => { if (+$('#eProducts').value > 0) $('#eUnlimited').classList.remove('on'); });
+  $$('#eLangs .lang-chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('on')));
+
+  $('#eSave').addEventListener('click', () => {
+    const name = $('#eName').value.trim();
+    if (!name) { $('#eName').style.borderColor = 'var(--neg)'; toast('Give the tier a name', 'alert-circle'); return; }
+    const langs = $$('#eLangs .lang-chip.on').map(c => c.dataset.lang);
+    if (!langs.length) { toast('Pick at least one available language', 'languages'); return; }
+    let maxTrans = Math.min(+$('#eTrans').value || 1, langs.length);
+    const caps = {
+      maxProducts: $('#eUnlimited').classList.contains('on') ? 0 : (+$('#eProducts').value || 0),
+      maxTranslations: maxTrans,
+      langs,
+      modes: Object.fromEntries(Object.keys(MODES).map(m => [m, $(`[data-mode="${m}"]`).checked ? 1 : 0])),
+      channels: Object.fromEntries(Object.keys(CHANNELS).map(ch => [ch, $(`[data-ch="${ch}"]`).checked ? 1 : 0])),
+    };
+    const price = +$('#ePrice').value || 0;
+    const priceAnnual = +$('#ePriceAnnual').value || 0;
+    const tag = $('#eTag').value.trim() || 'Custom';
+    if (isNew) {
+      const lv = window.TIERS.length >= 3 ? 3 : window.TIERS.length + 1;
+      window.TIERS.push({ id: 't' + Date.now().toString(36), name, tag, price, priceAnnual, lv, caps });
+      toast(`${name} created`, 'layers');
+    } else {
+      const tt = getTier(tierId);
+      Object.assign(tt, { name, tag, price, priceAnnual, caps });
+      toast(`${name} updated`, 'check-circle-2');
+    }
+    saveTiers(); closeModal(); renderList();
+  });
+}
+
+$('#addTierBtn').addEventListener('click', () => openTierEditor(null));
+
+/* ---------- delete tier ---------- */
+function delTier(tid) {
+  const t = getTier(tid), n = clientCount(tid);
+  if (window.TIERS.length <= 1) { toast('Keep at least one tier', 'alert-circle'); return; }
+  const fallback = window.TIERS.find(x => x.id !== tid);
+  openModal(`
+  <div class="modal-card" style="max-width:450px">
+    <button class="modal-x" data-close aria-label="Close"><i class="ic" data-lucide="x"></i></button>
+    <div class="modal-head"><div class="modal-icon" style="background:var(--neg)"><i class="ic" data-lucide="trash-2"></i></div><div><h3>Delete ${t.name}?</h3><p>This removes the tier from the platform.</p></div></div>
+    <div class="modal-body" style="padding-bottom:8px">${n ? `<div class="masq-warn" style="background:var(--neg-bg);color:#9b3b40"><i class="ic" data-lucide="alert-triangle"></i><span><b>${n} store${n === 1 ? '' : 's'}</b> on this tier will be moved to <b>${fallback.name}</b>.</span></div>` : '<p class="mut" style="margin:0;font-size:13.5px">No stores are on this tier.</p>'}</div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close type="button">Cancel</button><button class="btn btn-danger" id="delGo" type="button"><i class="ic" data-lucide="trash-2"></i>Delete tier</button></div>
+  </div>`);
+  $('#delGo').addEventListener('click', () => {
+    window.CLIENTS.forEach(c => { if (c.tier === tid) c.tier = fallback.id; });
+    window.TIERS = window.TIERS.filter(x => x.id !== tid);
+    saveTiers(); saveClients(); closeModal(); renderList(); toast(`${t.name} deleted`, 'trash-2');
+  });
+}
+
+renderList();
+</script>
+</body>
+</html>

@@ -15,6 +15,10 @@ async function getAuthorizedTenantId(request) {
     return masqueradeData ? masqueradeData.tenantId : null;
   }
 
+  if (session.tenantId) {
+    return session.tenantId;
+  }
+
   try {
     const db = await getDb();
     const user = await db.collection('users').findOne({ email: session.email });

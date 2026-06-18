@@ -105,8 +105,18 @@ function NotificationsPageContent() {
 
   if (loading || !settings) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <h3 className="mut3">Loading notification settings...</h3>
+      <div className="fade-in" style={{ padding: '8px 0', maxWidth: '800px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+        </div>
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '80px', borderRadius: '8px' }} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -144,16 +154,7 @@ function NotificationsPageContent() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             
             {/* Dashboard Channel */}
-            <div 
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '48px 1fr auto', 
-                gap: '16px', 
-                padding: '22px', 
-                borderBottom: '1px solid var(--line)',
-                alignItems: 'flex-start'
-              }}
-            >
+            <div className="notifications-channel-grid">
               <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--ink)', color: '#ffffff', display: 'grid', placeItems: 'center' }}>
                 <LayoutDashboard style={{ width: '20px', height: '20px' }} />
               </div>
@@ -176,13 +177,8 @@ function NotificationsPageContent() {
 
             {/* Email Channel */}
             <div 
+              className="notifications-channel-grid"
               style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '48px 1fr auto', 
-                gap: '16px', 
-                padding: '22px', 
-                borderBottom: '1px solid var(--line)',
-                alignItems: 'flex-start',
                 backgroundColor: isEmailAssigned ? 'transparent' : 'rgba(176,106,0,0.025)'
               }}
             >
@@ -249,13 +245,8 @@ function NotificationsPageContent() {
 
             {/* WhatsApp Channel */}
             <div 
+              className="notifications-channel-grid"
               style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '48px 1fr auto', 
-                gap: '16px', 
-                padding: '22px', 
-                borderBottom: '1px solid var(--line)',
-                alignItems: 'flex-start',
                 backgroundColor: isWhatsappAssigned ? 'transparent' : 'rgba(176,106,0,0.025)'
               }}
             >
@@ -322,13 +313,8 @@ function NotificationsPageContent() {
 
             {/* Telegram Channel */}
             <div 
+              className="notifications-channel-grid"
               style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '48px 1fr auto', 
-                gap: '16px', 
-                padding: '22px', 
-                borderBottom: '1px solid var(--line)',
-                alignItems: 'flex-start',
                 backgroundColor: isTelegramAssigned ? 'transparent' : 'rgba(176,106,0,0.025)'
               }}
             >
@@ -408,7 +394,21 @@ function NotificationsPageContent() {
 
 export default function ManagerNotificationsPage() {
   return (
-    <Suspense fallback={<h3>Loading notification settings...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in" style={{ padding: '8px 0', maxWidth: '800px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+          <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+        </div>
+        <div className="card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '50px', borderRadius: '8px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '80px', borderRadius: '8px' }} />
+          </div>
+        </div>
+      </div>
+    }>
       <NotificationsPageContent />
     </Suspense>
   );

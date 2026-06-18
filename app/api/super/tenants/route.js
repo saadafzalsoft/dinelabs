@@ -76,7 +76,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications, logoUrl } = await request.json();
+    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications, logoUrl, billing } = await request.json();
 
     if (!slug || !name || !managerEmail || !managerPassword) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -113,6 +113,12 @@ export async function POST(request) {
       languages: languages || ['en', 'ar'],
       defaultLanguage: defaultLanguage || 'en',
       assignedNotifications: assignedNotifications || { email: true, whatsapp: false, telegram: false },
+      billing: billing || {
+        cycle: 'monthly',
+        amount: parseInt(tier) === 3 ? 199 : parseInt(tier) === 2 ? 79 : 29,
+        start: new Date().toISOString().slice(0, 10),
+        renewal: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      },
       ledger: [
         {
           date: new Date().toISOString(),
@@ -150,7 +156,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl } = await request.json();
+    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl, billing } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Tenant ID is required' }, { status: 400 });
@@ -168,11 +174,22 @@ export async function PUT(request) {
     if (ledger !== undefined) updateObj.ledger = ledger;
     if (assignedNotifications !== undefined) updateObj.assignedNotifications = assignedNotifications;
     if (logoUrl !== undefined) updateObj.logoUrl = logoUrl.trim();
+    if (billing !== undefined) updateObj.billing = billing;
 
-    const result = await db.collection('tenants').updateOne(
-      { _id: id.toString() },
+    const queryId = id.toString();
+    let result = await db.collection('tenants').updateOne(
+      { _id: queryId },
       { $set: updateObj }
     );
+
+    if (result.matchedCount === 0) {
+      try {
+        result = await db.collection('tenants').updateOne(
+          { _id: new ObjectId(queryId) },
+          { $set: updateObj }
+        );
+      } catch (e) {}
+    }
 
     if (result.matchedCount === 0) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });

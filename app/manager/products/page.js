@@ -1375,7 +1375,7 @@ function ProductsPageContent() {
                                       p.categories.map(catId => {
                                         const matchedCat = categories.find(c => c._id === catId);
                                         return matchedCat ? (
-                                          <span key={catId} className="tag" style={{ backgroundColor: 'var(--brand-red-light)', color: 'var(--brand-red)', fontWeight: '600' }}>
+                                          <span key={catId} className="tag" style={{ backgroundColor: 'var(--pos-bg)', color: 'var(--pos)', borderColor: 'transparent', fontWeight: '600' }}>
                                             {matchedCat.name.en}
                                           </span>
                                         ) : null;
@@ -1831,7 +1831,64 @@ const resetRail = () => {
 
 export default function ManagerProductsPage() {
   return (
-    <Suspense fallback={<h3>Loading catalog details...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in">
+        <div className="page-head">
+          <div>
+            <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+            <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+          </div>
+        </div>
+        <div className="card">
+          <div className="toolbar" style={{ height: '48px', opacity: 0.5 }}>
+            <div className="skeleton" style={{ width: '200px', height: '36px', borderRadius: '8px' }}></div>
+            <div className="skeleton" style={{ width: '150px', height: '36px', borderRadius: '8px', marginLeft: '12px' }}></div>
+            <div className="skeleton" style={{ width: '120px', height: '36px', borderRadius: '8px', marginLeft: 'auto' }}></div>
+          </div>
+          <div style={{ overflowX: 'auto', marginTop: '16px' }}>
+            <table className="tbl" style={{ minWidth: '720px' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}></th>
+                  <th style={{ width: '40px' }}></th>
+                  <th>Product</th>
+                  <th>Modifiers</th>
+                  <th>Price</th>
+                  <th>Availability</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <tr key={i}>
+                    <td><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }}></div></td>
+                    <td><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }}></div></td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '8px' }}></div>
+                        <div>
+                          <div className="skeleton" style={{ width: '140px', height: '16px', borderRadius: '4px', marginBottom: '6px' }}></div>
+                          <div className="skeleton" style={{ width: '220px', height: '12px', borderRadius: '4px' }}></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><div className="skeleton" style={{ width: '80px', height: '18px', borderRadius: '12px' }}></div></td>
+                    <td><div className="skeleton" style={{ width: '50px', height: '16px', borderRadius: '4px' }}></div></td>
+                    <td><div className="skeleton" style={{ width: '70px', height: '22px', borderRadius: '12px' }}></div></td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                        <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }>
       <ProductsPageContent />
     </Suspense>
   );

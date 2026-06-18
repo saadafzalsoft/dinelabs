@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Super — Store</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="super.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .back-link { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-3); font-weight: 700; font-size: 13px; margin-bottom: 14px; }
+  .back-link:hover { color: var(--ink); }
+  .back-link .ic { width: 15px; height: 15px; }
+  .kpis { margin-bottom: 18px; }
+  .billing-line { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .billing-line:last-child { border-bottom: 0; }
+  .billing-line .bk { color: var(--ink-2); font-weight: 600; }
+  .billing-line .bv { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lang-tag { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 11px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); font-size:12.5px; font-weight:700; }
+  .lang-tag.def { background: var(--ink); color: #fff; border-color: transparent; }
+  .limit-meter { margin-top: 4px; }
+  .lm-bar { height: 7px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin-top: 7px; }
+  .lm-bar > span { display: block; height: 100%; border-radius: 99px; background: var(--accent); }
+  .pw-reveal { display: flex; align-items: center; gap: 10px; }
+  .pw-reveal code { flex: 1; font-family: ui-monospace, Menlo, monospace; font-size: 13.5px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; letter-spacing: .02em; }
+</style>
+</head>
+<body data-page="clients">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<script src="super-shell.js"></script>
+<script>
+renderSuperShell('clients');
+
+const id = new URLSearchParams(location.search).get('id');
+let c = getClient(id);
+const content = $('#content');
+let pwShown = false;
+
+if (!c) {
+  content.innerHTML = `<a class="back-link" href="Super Clients.html"><i class="ic" data-lucide="arrow-left"></i>Stores</a>
+    <div class="card"><div class="empty"><i class="ic" data-lucide="store"></i><h4>Store not found</h4><p>It may have been removed. Head back to the list.</p></div></div>`;
+  lucide.createIcons();
+} else {
+  render();
+}
+
+/* keep store within its tier's caps after a tier change */
+function clampToTier() {
+  const caps = getTier(c.tier).caps;
+  Object.keys(MODES).forEach(m => { if (!caps.modes[m]) c.modes[m] = 0; });
+  Object.keys(CHANNELS).forEach(ch => { if (!caps.channels[ch]) c.channels[ch] = 0; });
+  c.langs = c.langs.filter(l => caps.langs.includes(l));
+  if (!c.langs.length) c.langs = [caps.langs[0]];
+  if (c.langs.length > caps.maxTranslations) c.langs = c.langs.slice(0, caps.maxTranslations);
+  if (!c.langs.includes(c.def)) c.def = c.langs[0];
+  saveClients();
+}
+
+function render() {
+  c = getClient(id);
+  const t = getTier(c.tier);
+  const caps = t.caps;
+  const susp = c.status === 'suspended';
+  const b = c.billing;
+  const langList = c.langs.map(l => `<span class="lang-tag ${l === c.def ? 'def' : ''}">${l === c.def ? '<i class="ic" data-lucide="star" style="width:12px;height:12px"></i>' : ''}${LANGS[l]}</span>`).join('');
+  const prodLimit = caps.maxProducts === 0 ? null : caps.maxProducts;
+  const prodPct = prodLimit ? Math.min(100, Math.round(c.products / prodLimit * 100)) : Math.min(100, c.products / 300 * 100);
+
+  content.innerHTML = `
+    <a class="back-link" href="Super Clients.html"><i class="ic" data-lucide="arrow-left"></i>Stores</a>
+
+    ${susp ? `<div class="susp-banner"><i class="ic" data-lucide="pause-circle"></i><div class="sb-main"><div class="sb-t">This store is suspended</div><div class="sb-s">Customers see a "temporarily unavailable" notice. Menu &amp; data are preserved. You can reactivate or permanently delete it.</div></div><button class="btn btn-sm" style="background:#fff;border:1px solid #f0c5c7;color:var(--neg)" id="reactivate"><i class="ic" data-lucide="play"></i>Reactivate</button></div>` : ''}
+
+    <div class="detail-head">
+      ${monogram(c, true)}
+      <div class="detail-id">
+        <div class="detail-name">${c.name} ${tierPill(c.tier)}</div>
+        <div class="detail-meta">
+          ${statusPill(c.status)}
+          <span class="dotsep"></span>
+          <span class="cslug">dinelabs.co/<b>${c.id}</b></span>
+          <span class="dotsep"></span>
+          <span class="cslug" style="display:inline-flex;align-items:center;gap:5px"><i class="ic" data-lucide="map-pin" style="width:13px;height:13px"></i>${c.country}</span>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <a class="btn btn-outline btn-sm" href="https://dinelabs.co/${c.id}" target="_blank" rel="noopener" style="height:40px"><i class="ic" data-lucide="external-link"></i>Storefront</a>
+        <button class="btn btn-outline btn-sm" id="suspBtn" style="height:40px">${susp ? '<i class="ic" data-lucide="play"></i>Reactivate' : '<i class="ic" data-lucide="pause"></i>Suspend'}</button>
+        ${susp ? `<button class="btn btn-danger btn-sm" id="delBtn" style="height:40px"><i class="ic" data-lucide="trash-2"></i>Delete</button>` : `<button class="btn btn-accent btn-sm" id="masqBtn" style="height:40px"><i class="ic" data-lucide="user-round-cog"></i>Masquerade</button>`}
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Orders today</span><span class="kpi-ic"><i class="ic" data-lucide="receipt-text"></i></span></div><div class="kpi-val tnum">${susp ? '—' : c.ordersToday}</div><div class="kpi-foot mut">live storefront</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Revenue · this week</span><span class="kpi-ic"><i class="ic" data-lucide="banknote"></i></span></div><div class="kpi-val tnum">${susp ? '—' : moneyK(c.rev, c.cur)}</div><div class="kpi-foot mut">${CURRENCIES[c.cur].name}</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Last order</span><span class="kpi-ic"><i class="ic" data-lucide="clock"></i></span></div><div class="kpi-val" style="font-size:24px">${susp ? '—' : freshLabel(c.lastMin)}</div><div class="kpi-foot mut">${susp ? 'paused' : 'most recent activity'}</div></div>
+      <div class="card kpi"><div class="kpi-top"><span class="kpi-label">Error rate</span><span class="kpi-ic"><i class="ic" data-lucide="activity"></i></span></div><div class="kpi-val tnum" style="font-size:26px">${susp ? '—' : c.err.toFixed(1) + '%'}</div><div class="kpi-foot ${c.err >= 2.5 ? 'down' : 'mut'}">${susp ? 'paused' : c.err >= 2.5 ? 'elevated — investigate' : 'within range'}</div></div>
+    </div>
+
+    <div class="detail-grid">
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="layers"></i>Plan &amp; limits</div>
+            <select class="select" id="tierSel" style="width:auto;height:34px;font-size:13px">${window.TIERS.map(tt => `<option value="${tt.id}" ${tt.id === c.tier ? 'selected' : ''}>${tt.name} · ${tt.tag} · ${money(tt.price)}/mo</option>`).join('')}</select>
+          </div>
+          <div class="card-pad" style="padding-top:10px">
+            <div class="mini-label">Always included</div>
+            <div class="chip-grid" style="margin-bottom:18px">${CORE_FEATURES.map(f => `<span class="core-chip"><i class="ic" data-lucide="${f.icon}"></i>${f.name}</span>`).join('')}</div>
+
+            <div class="mini-label">Limits on ${t.name}</div>
+            <div class="info-row"><span class="info-k"><i class="ic" data-lucide="utensils-crossed"></i>Products</span><span class="info-v">${c.products} <span class="mut3" style="font-weight:600">/ ${prodLimit ? prodLimit : 'Unlimited'}</span></span></div>
+            ${prodLimit ? `<div class="limit-meter"><div class="lm-bar"><span style="width:${prodPct}%;background:${prodPct >= 90 ? 'var(--neg)' : 'var(--accent)'}"></span></div></div>` : ''}
+            <div class="info-row" style="margin-top:6px"><span class="info-k"><i class="ic" data-lucide="languages"></i>Storefront translations</span><span class="info-v">${c.langs.length} <span class="mut3" style="font-weight:600">/ ${caps.maxTranslations}</span></span></div>
+            <div class="card-note" style="margin-top:14px;display:flex;align-items:center;gap:7px"><i class="ic" data-lucide="info" style="width:14px;height:14px"></i>Changing tier re-applies its limits. <a href="Super Tiers.html" style="color:var(--accent-2);font-weight:700">Manage tiers →</a></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="sliders-horizontal"></i>Ordering modes</div><span class="card-note">Limited by ${t.name}</span></div>
+          <div class="card-pad" style="padding-top:6px;padding-bottom:8px" id="modeRows"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="bell"></i>Order channels</div><span class="card-note">Where alerts are sent</span></div>
+          <div class="card-pad" style="padding-top:6px;padding-bottom:8px" id="chRows"></div>
+        </section>
+
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <section class="card card-pad">
+          <div class="mini-label">Manager login</div>
+          <div class="info-row" style="border-bottom:0;padding-bottom:8px"><span class="info-k"><i class="ic" data-lucide="mail"></i>Email</span><span class="info-v" style="font-weight:600">${c.email}</span></div>
+          <div class="pw-reveal" style="margin-bottom:12px">
+            <code id="pwText">${pwShown ? c.pass : '•'.repeat(Math.max(8, (c.pass || '').length))}</code>
+            <button class="act-btn" id="pwToggle" title="${pwShown ? 'Hide' : 'Reveal'}"><i class="ic" data-lucide="${pwShown ? 'eye-off' : 'eye'}"></i></button>
+            <button class="act-btn" id="pwCopy" title="Copy"><i class="ic" data-lucide="copy"></i></button>
+          </div>
+          <button class="btn btn-outline btn-block btn-sm" id="pwChange"><i class="ic" data-lucide="key-round"></i>Change password</button>
+        </section>
+
+        <section class="card card-pad">
+          <div class="mini-label">Configuration</div>
+          <div class="info-grid" style="grid-template-columns:1fr">
+            <div class="info-row"><span class="info-k"><i class="ic" data-lucide="globe"></i>Country</span><span class="info-v">${c.country}</span></div>
+            <div class="info-row"><span class="info-k"><i class="ic" data-lucide="coins"></i>Base currency</span><span class="info-v">${c.cur} · ${CURRENCIES[c.cur].sym}</span></div>
+            <div class="info-row"><span class="info-k"><i class="ic" data-lucide="calendar"></i>Created</span><span class="info-v">${c.created === 0 ? 'Just now' : c.created + ' days ago'}</span></div>
+          </div>
+          <div class="mini-label" style="margin-top:18px">Storefront languages</div>
+          <div class="row wrap gap8">${langList}</div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="credit-card"></i>Billing</div><a class="btn btn-ghost btn-sm" href="Super Billing.html">Open billing <i class="ic" data-lucide="arrow-right"></i></a></div>
+          <div class="card-pad" style="padding-top:6px">
+            <div class="billing-line"><span class="bk">Plan</span><span class="bv">${t.name} · ${t.tag}</span></div>
+            <div class="billing-line"><span class="bk">Amount</span><span class="bv">${usd(b.amount)} / ${b.cycle === 'annual' ? 'year' : 'month'}</span></div>
+            ${b.trial ? `<div class="billing-line"><span class="bk">Free trial</span><span class="bv" style="color:var(--accent-2)">14 days</span></div>` : ''}
+            <div class="billing-line"><span class="bk">Start date</span><span class="bv">${fmtDate(b.start)}</span></div>
+            <div class="billing-line"><span class="bk">Renewal</span><span class="bv">${susp ? '—' : fmtDate(b.renewal)}</span></div>
+            <div class="billing-line"><span class="bk">Status</span><span class="bv" style="color:${susp ? 'var(--neg)' : 'var(--pos)'}">${susp ? 'Paused' : 'Active'}</span></div>
+            <button class="btn btn-outline btn-block btn-sm" id="billEdit" style="margin-top:14px"><i class="ic" data-lucide="calendar-cog"></i>Edit subscription</button>
+          </div>
+        </section>
+
+      </div>
+    </div>`;
+
+  renderModeRows();
+  renderChannelRows();
+  lucide.createIcons();
+
+  // wiring
+  const mb = $('#masqBtn'); if (mb) mb.addEventListener('click', () => openMasquerade(c.id));
+  const doSuspend = () => toggleSuspend(c.id, render);
+  $('#suspBtn').addEventListener('click', doSuspend);
+  const re = $('#reactivate'); if (re) re.addEventListener('click', doSuspend);
+  const db = $('#delBtn'); if (db) db.addEventListener('click', () => deleteClient(c.id));
+  $('#tierSel').addEventListener('change', (e) => {
+    c.tier = e.target.value; saveClients(); clampToTier();
+    toast(`${c.name} moved to ${getTier(c.tier).name} — limits applied`, 'layers');
+    render();
+  });
+  $('#pwToggle').addEventListener('click', () => { pwShown = !pwShown; render(); });
+  $('#pwCopy').addEventListener('click', () => { navigator.clipboard?.writeText(c.pass || ''); toast('Password copied', 'copy'); });
+  $('#pwChange').addEventListener('click', () => openPasswordModal(c.id, render));
+  $('#billEdit').addEventListener('click', () => openBillingEdit(c.id, render));
+}
+
+function renderModeRows() {
+  const caps = getTier(c.tier).caps;
+  $('#modeRows').innerHTML = Object.keys(MODES).map(m => {
+    const allowed = !!caps.modes[m];
+    return `<div class="mode-row" style="${allowed ? '' : 'opacity:.55'}">
+      <span class="m-ic"><i class="ic" data-lucide="${MODES[m].icon}"></i></span>
+      <div style="flex:1"><div class="m-name">${MODES[m].label}</div><div class="m-sub">${allowed ? (c.modes[m] ? 'Accepting orders' : 'Turned off') : 'Not available on this tier'}</div></div>
+      ${allowed ? `<label class="switch"><input type="checkbox" data-mode="${m}" ${c.modes[m] ? 'checked' : ''} /><span class="track"></span></label>` : `<i class="ic" data-lucide="lock" style="width:16px;height:16px;color:var(--ink-3)"></i>`}
+    </div>`;
+  }).join('');
+  $$('#modeRows input[data-mode]').forEach(inp => inp.addEventListener('change', () => {
+    c.modes[inp.dataset.mode] = inp.checked ? 1 : 0; saveClients();
+    toast(`${MODES[inp.dataset.mode].label} ${inp.checked ? 'enabled' : 'disabled'} for ${c.name}`, inp.checked ? 'check-circle-2' : 'circle-slash');
+    renderModeRows(); lucide.createIcons();
+  }));
+}
+
+function renderChannelRows() {
+  const caps = getTier(c.tier).caps;
+  $('#chRows').innerHTML = Object.keys(CHANNELS).map(ch => {
+    const allowed = !!caps.channels[ch];
+    return `<div class="mode-row" style="${allowed ? '' : 'opacity:.55'}">
+      <span class="m-ic"><i class="ic" data-lucide="${CHANNELS[ch].icon}"></i></span>
+      <div style="flex:1"><div class="m-name">${CHANNELS[ch].label}</div><div class="m-sub">${allowed ? (c.channels[ch] ? 'Alerts on' : 'Turned off') : 'Not available on this tier'}</div></div>
+      ${allowed ? `<label class="switch"><input type="checkbox" data-ch="${ch}" ${c.channels[ch] ? 'checked' : ''} /><span class="track"></span></label>` : `<i class="ic" data-lucide="lock" style="width:16px;height:16px;color:var(--ink-3)"></i>`}
+    </div>`;
+  }).join('');
+  $$('#chRows input[data-ch]').forEach(inp => inp.addEventListener('change', () => {
+    c.channels[inp.dataset.ch] = inp.checked ? 1 : 0; saveClients();
+    toast(`${CHANNELS[inp.dataset.ch].label} ${inp.checked ? 'enabled' : 'disabled'} for ${c.name}`, inp.checked ? 'check-circle-2' : 'circle-slash');
+    renderChannelRows(); lucide.createIcons();
+  }));
+}
+
+function freshLabel(m) { return m < 60 ? `${m}m` : m < 1440 ? `${Math.round(m/60)}h` : `${Math.round(m/1440)}d`; }
+</script>
+</body>
+</html>

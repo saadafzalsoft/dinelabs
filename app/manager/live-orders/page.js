@@ -860,7 +860,58 @@ function LiveOrdersPageContent() {
 
 export default function ManagerLiveOrdersPage() {
   return (
-    <Suspense fallback={<h3 className="mut3">Loading live orders...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in">
+        <div className="page-head">
+          <div>
+            <div className="skeleton" style={{ width: '150px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+            <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+          </div>
+        </div>
+        
+        {/* Stats Row Skeleton */}
+        <div className="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="card stat" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+              <div>
+                <div className="skeleton" style={{ width: '40px', height: '24px', borderRadius: '4px', marginBottom: '6px' }} />
+                <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '3px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Board Columns Skeleton */}
+        <div className="board" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="col" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="col-head" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="skeleton" style={{ width: '12px', height: '12px', borderRadius: '50%' }} />
+                <div className="skeleton" style={{ width: '80px', height: '16px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ width: '20px', height: '16px', borderRadius: '4px', marginLeft: 'auto' }} />
+              </div>
+              <div className="col-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {[1, 2].map(j => (
+                  <div key={j} className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <div className="skeleton" style={{ width: '60px', height: '16px', borderRadius: '4px' }} />
+                      <div className="skeleton" style={{ width: '60px', height: '16px', borderRadius: '4px' }} />
+                    </div>
+                    <div className="skeleton" style={{ width: '120px', height: '14px', borderRadius: '4px' }} />
+                    <div className="skeleton" style={{ width: '90%', height: '12px', borderRadius: '3px' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+                      <div className="skeleton" style={{ width: '50px', height: '16px', borderRadius: '4px' }} />
+                      <div className="skeleton" style={{ width: '70px', height: '28px', borderRadius: '6px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
       <LiveOrdersPageContent />
     </Suspense>
   );

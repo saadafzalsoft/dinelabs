@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Super — Billing</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="super.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .bill-scroll { overflow-x: auto; }
+  @media (max-width: 1180px){ .b-hide { display: none; } }
+  .seg.sm button { font-size: 12.5px; padding: 5px 13px; }
+</style>
+</head>
+<body data-page="billing">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Billing</h1>
+          <p class="page-sub">Every store's subscription, renewal date and what's due. Stores due soon rise to the top.</p>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="toolbar">
+        <div class="filter-search">
+          <i class="ic" data-lucide="search"></i>
+          <input id="search" placeholder="Search stores…" autocomplete="off" />
+        </div>
+        <div class="seg sm" id="filterSeg">
+          <button data-f="all" class="active">All</button>
+          <button data-f="soon">Due soon</button>
+          <button data-f="overdue">Overdue</button>
+          <button data-f="paused">Paused</button>
+        </div>
+        <div class="seg sm" id="cycleSeg">
+          <button data-c="all" class="active">All cycles</button>
+          <button data-c="monthly">Monthly</button>
+          <button data-c="annual">Annual</button>
+        </div>
+        <div style="flex:1"></div>
+        <span class="cl-count" id="count">—</span>
+      </div>
+
+      <section class="card">
+        <div class="bill-scroll">
+          <table class="tbl bill-table">
+            <thead>
+              <tr>
+                <th>Store</th>
+                <th>Plan</th>
+                <th class="b-hide">Cycle</th>
+                <th style="text-align:right">Amount</th>
+                <th class="b-hide">Start date</th>
+                <th>Renewal</th>
+                <th style="text-align:right">Pending</th>
+                <th>Status</th>
+                <th style="text-align:right">Edit</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div id="emptyState"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="super-shell.js"></script>
+<script>
+renderSuperShell('billing');
+
+let q = '', filter = 'all', cycleF = 'all';
+
+function mrr(c) { const b = c.billing; return b.cycle === 'annual' ? b.amount / 12 : b.amount; }
+
+function renderKPIs() {
+  const active = window.CLIENTS.filter(c => c.status === 'active');
+  const totalMrr = active.reduce((s, c) => s + mrr(c), 0);
+  const dueSoon = active.filter(c => { const d = daysUntil(c.billing.renewal); return d >= 0 && d <= 7; });
+  const overdue = active.filter(c => daysUntil(c.billing.renewal) < 0);
+  const dueSoonAmt = dueSoon.reduce((s, c) => s + c.billing.amount, 0) + overdue.reduce((s, c) => s + c.billing.amount, 0);
+  const paused = window.CLIENTS.filter(c => c.status === 'suspended').length;
+  const cards = [
+    { label: 'Monthly recurring revenue', icon: 'banknote', val: usd(totalMrr), foot: `<i class="ic" data-lucide="trending-up"></i>across ${active.length} active stores`, cls: 'mut', accent: true },
+    { label: 'Pending this week', icon: 'hourglass', val: usd(dueSoonAmt), foot: `<i class="ic" data-lucide="calendar-clock"></i>${dueSoon.length + overdue.length} invoice${(dueSoon.length + overdue.length) === 1 ? '' : 's'} due`, cls: 'mut' },
+    { label: 'Overdue', icon: 'alert-circle', val: overdue.length, foot: overdue.length ? `<i class="ic" data-lucide="arrow-down-right"></i>needs follow-up` : `<i class="ic" data-lucide="circle-check"></i>all current`, cls: overdue.length ? 'down' : 'mut' },
+    { label: 'Paused subscriptions', icon: 'pause-circle', val: paused, foot: `<i class="ic" data-lucide="info"></i>not billing`, cls: 'mut' },
+  ];
+  $('#kpis').innerHTML = cards.map(c => `
+    <div class="card kpi ${c.accent ? 'accent' : ''}">
+      <div class="kpi-top"><span class="kpi-label">${c.label}</span><span class="kpi-ic"><i class="ic" data-lucide="${c.icon}"></i></span></div>
+      <div class="kpi-val tnum">${c.val}</div>
+      <div class="kpi-foot ${c.cls}">${c.foot}</div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function sortKey(c) {
+  const b = billingState(c);
+  if (b.cls === 'overdue') return [0, b.days];
+  if (b.cls === 'soon') return [1, b.days];
+  if (b.cls === 'ok') return [2, b.days];
+  return [3, 0]; // paused
+}
+
+function duePill(c) {
+  const b = billingState(c);
+  if (b.cls === 'paused') return `<span class="due-pill paused"><i class="ic" data-lucide="pause"></i>Paused</span>`;
+  if (b.cls === 'overdue') return `<span class="due-pill overdue"><i class="ic" data-lucide="alert-circle"></i>Overdue ${Math.abs(b.days)}d</span>`;
+  if (b.cls === 'soon') return `<span class="due-pill soon"><i class="ic" data-lucide="clock"></i>${b.days === 0 ? 'Due today' : 'Due in ' + b.days + 'd'}</span>`;
+  return `<span class="due-pill ok"><i class="ic" data-lucide="check"></i>In ${b.days}d</span>`;
+}
+
+function rowHTML(c) {
+  const b = billingState(c);
+  const overdue = b.cls === 'overdue', soon = b.cls === 'soon';
+  const dot = overdue ? '<span class="flag-dot" style="background:var(--neg);box-shadow:0 0 0 3px var(--neg-bg)"></span>'
+    : soon ? '<span class="flag-dot"></span>' : '<span style="width:8px;flex:none"></span>';
+  return `<tr data-id="${c.id}" class="${overdue ? 'overdue-row' : soon ? 'flagged' : ''}">
+    <td><div class="nm-cell" style="display:flex;align-items:center;gap:12px">${dot}${monogram(c)}<div style="min-width:0"><div class="cname">${c.name}</div><div class="cslug">dinelabs.co/<b>${c.id}</b></div></div></div></td>
+    <td>${tierPill(c.tier)}</td>
+    <td class="b-hide"><span class="cycle-tag">${c.billing.cycle}</span></td>
+    <td style="text-align:right"><span class="tnum" style="font-weight:800">${usd(c.billing.amount)}</span><div class="cslug">/${cyclePer(c.billing.cycle)}</div></td>
+    <td class="b-hide"><span class="fresh">${fmtDate(c.billing.start)}</span></td>
+    <td><span class="fresh" style="${c.status === 'suspended' ? 'color:var(--ink-3)' : ''}">${c.status === 'suspended' ? '—' : fmtDate(c.billing.renewal)}</span></td>
+    <td style="text-align:right"><span class="tnum" style="font-weight:700">${c.status === 'suspended' ? '—' : usd(b.pending)}</span></td>
+    <td>${duePill(c)}</td>
+    <td><div class="row gap6" style="justify-content:flex-end"><button class="act-btn accent" title="Edit subscription" data-act="edit"><i class="ic" data-lucide="calendar-cog"></i></button></div></td>
+  </tr>`;
+}
+
+function render() {
+  renderKPIs();
+  let list = window.CLIENTS.filter(c => {
+    if (q && !(c.name.toLowerCase().includes(q) || c.id.includes(q))) return false;
+    if (cycleF !== 'all' && c.billing.cycle !== cycleF) return false;
+    const b = billingState(c);
+    if (filter === 'soon' && b.cls !== 'soon' && b.cls !== 'overdue') return false;
+    if (filter === 'overdue' && b.cls !== 'overdue') return false;
+    if (filter === 'paused' && b.cls !== 'paused') return false;
+    return true;
+  });
+  list.sort((a, b) => { const ka = sortKey(a), kb = sortKey(b); return ka[0] - kb[0] || ka[1] - kb[1]; });
+  $('#count').textContent = `${list.length} of ${window.CLIENTS.length} stores`;
+  const tbody = $('#rows'), empty = $('#emptyState');
+  if (!list.length) {
+    tbody.innerHTML = '';
+    empty.innerHTML = `<div class="empty"><i class="ic" data-lucide="search-x"></i><h4>Nothing here</h4><p>No stores match this view.</p></div>`;
+  } else {
+    empty.innerHTML = '';
+    tbody.innerHTML = list.map(rowHTML).join('');
+  }
+  lucide.createIcons();
+}
+
+$('#rows').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  const id = tr.dataset.id;
+  if (e.target.closest('[data-act="edit"]')) { e.stopPropagation(); return openBillingEdit(id, render); }
+  location.href = 'Super Client.html?id=' + id;
+});
+$('#search').addEventListener('input', e => { q = e.target.value.toLowerCase().trim(); render(); });
+$$('#filterSeg button').forEach(b => b.addEventListener('click', () => { filter = b.dataset.f; $$('#filterSeg button').forEach(x => x.classList.toggle('active', x === b)); render(); }));
+$$('#cycleSeg button').forEach(b => b.addEventListener('click', () => { cycleF = b.dataset.c; $$('#cycleSeg button').forEach(x => x.classList.toggle('active', x === b)); render(); }));
+
+render();
+</script>
+</body>
+</html>

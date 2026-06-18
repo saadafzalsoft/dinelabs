@@ -8,7 +8,7 @@ import {
   MoveVertical,
   GripVertical,
   ArrowUpDown,
-  Check,
+  Star,
   Pencil,
   Trash2,
   FolderPlus,
@@ -147,8 +147,20 @@ function CategoriesPageContent() {
   };
 
   const handleTogglePinCategory = async (category) => {
+    const newPinnedState = !category.isPinned;
+    
+    // 1. Optimistic Update
+    setCategories(prev => prev.map(c => {
+      if (c._id === category._id) {
+        return { ...c, isPinned: newPinnedState };
+      }
+      if (newPinnedState === true) {
+        return { ...c, isPinned: false }; // only one category can be pinned at a time
+      }
+      return c;
+    }));
+
     try {
-      const newPinnedState = !category.isPinned;
       const res = await fetch('/api/categories', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -156,19 +168,15 @@ function CategoriesPageContent() {
       });
 
       if (res.ok) {
-        setCategories(categories.map(c => {
-          if (c._id === category._id) {
-            return { ...c, isPinned: newPinnedState };
-          }
-          if (newPinnedState === true) {
-            return { ...c, isPinned: false }; // only one categories can be pinned main storefront top
-          }
-          return c;
-        }));
         triggerToast(newPinnedState ? 'Category pinned storefront!' : 'Category unpinned');
+      } else {
+        fetchCategories();
+        alert('Failed to update category pin status');
       }
     } catch (e) {
       console.error(e);
+      fetchCategories();
+      alert('Error updating category pin status');
     }
   };
 
@@ -336,11 +344,21 @@ function CategoriesPageContent() {
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <button 
+                          type="button"
                           className={`star ${c.isPinned ? 'on' : ''}`}
                           onClick={() => handleTogglePinCategory(c)}
                           title={c.isPinned ? 'Pinned Main storefront' : 'Pin to storefront header'}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            display: 'inline-grid',
+                            placeItems: 'center',
+                            margin: '0 auto'
+                          }}
                         >
-                          <Check className="ic" />
+                          <Star className="ic" fill={c.isPinned ? "gold" : "none"} style={{ color: c.isPinned ? '#eab308' : '#9ca3af', width: '20px', height: '20px' }} />
                         </button>
                       </td>
                       <td>
@@ -413,7 +431,50 @@ function CategoriesPageContent() {
 
 export default function ManagerCategoriesPage() {
   return (
-    <Suspense fallback={<h3>Loading categories...</h3>}>
+    <Suspense fallback={
+      <div className="fade-in">
+        <div className="page-head">
+          <div>
+            <div className="skeleton" style={{ width: '180px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+            <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+          </div>
+          <div className="skeleton" style={{ width: '130px', height: '40px', borderRadius: '10px' }} />
+        </div>
+        <div className="card">
+          <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '18px 22px' }}>
+            <div className="skeleton" style={{ width: '120px', height: '20px', borderRadius: '4px' }} />
+          </div>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th style={{ width: '40px' }}></th>
+                <th>Category</th>
+                <th style={{ textAlign: 'center', width: '120px' }}>Pinned</th>
+                <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[1, 2, 3].map(i => (
+                <tr key={i}>
+                  <td><div className="skeleton" style={{ width: '16px', height: '16px', borderRadius: '4px' }}></div></td>
+                  <td>
+                    <div className="skeleton" style={{ width: '120px', height: '16px', borderRadius: '4px', marginBottom: '6px' }}></div>
+                    <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }}></div>
+                  </td>
+                  <td><div style={{ display: 'flex', justifyContent: 'center' }}><div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '50%' }}></div></div></td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                      <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '8px' }}></div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }>
       <CategoriesPageContent />
     </Suspense>
   );

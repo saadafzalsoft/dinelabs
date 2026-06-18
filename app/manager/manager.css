@@ -958,3 +958,122 @@ tr.drop-below td { box-shadow: inset 0 -2.5px 0 var(--ink); }
   border: 1px solid var(--line);
   animation: pulse 1.5s infinite ease-in-out;
 }
+
+/* ----- Mobile responsiveness refinements ----- */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 16px;
+    gap: 8px;
+  }
+  .topbar .crumb span,
+  .topbar .crumb span + span {
+    display: none;
+  }
+  /* Show only the active page label in crumb on mobile to save space */
+  .topbar .crumb b {
+    display: inline;
+  }
+  .topbar .btn span {
+    display: none;
+  }
+  .topbar .btn {
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    justify-content: center;
+  }
+}
+
+/* ----- Mobile responsive layout helper grids ----- */
+.sp-layout-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 28px;
+  padding: 22px;
+}
+@media (max-width: 768px) {
+  .sp-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 16px;
+  }
+  .sp-logo-col {
+    align-items: center !important;
+    text-align: center;
+  }
+  .sp-logo-col .sp-logo-hint {
+    max-width: 100% !important;
+  }
+}
+
+.opening-hours-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 768px) {
+  .opening-hours-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+    align-items: flex-start;
+  }
+}
+
+.notifications-channel-grid {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 16px;
+  padding: 22px;
+  border-bottom: 1px solid var(--line);
+  align-items: flex-start;
+}
+@media (max-width: 600px) {
+  .notifications-channel-grid {
+    grid-template-columns: 48px 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+  .notifications-channel-grid > div:last-child {
+    grid-column: 1 / -1;
+    padding-left: 64px;
+    margin-top: 4px;
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+
+.delivery-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 500px;
+}
+@media (max-width: 500px) {
+  .delivery-pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.type-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (max-width: 480px) {
+  .type-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .od-foot {
+    flex-wrap: wrap;
+  }
+  .od-foot .btn {
+    width: 100%;
+  }
+}

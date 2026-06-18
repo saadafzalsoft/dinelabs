@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import './super.css';
 
 export default function SuperLoginPage() {
   const router = useRouter();
@@ -44,12 +45,14 @@ export default function SuperLoginPage() {
     <div className="split-layout" style={{ gridTemplateColumns: '1fr' }}>
       <div className="split-right-form" style={{ backgroundColor: 'var(--bg-secondary)' }}>
         <div className="login-card" style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '28px', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', border: '1px solid var(--border-light)' }}>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', fontWeight: '900', marginBottom: '6px', textAlign: 'center', color: 'var(--brand-red)' }}>
-            DineLabs Super
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '32px', textAlign: 'center', fontWeight: '600' }}>
-            Ecosystem Operator Command Center
-          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>
+            <img src="/assets/dinelabs-super-logo.svg" alt="Dinelabs Super" style={{ width: '180px', height: 'auto', marginBottom: '12px' }} />
+            <span className="brand-tag">
+              <span className="dot" style={{ backgroundColor: '#1a1a1a' }}></span>
+              Super Console
+            </span>
+          </div>
 
           {error && (
             <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', fontSize: '0.85rem', fontWeight: '600', textAlign: 'center' }}>
@@ -86,9 +89,9 @@ export default function SuperLoginPage() {
               type="submit" 
               className="checkout-btn"
               disabled={submitting}
-              style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: submitting ? 'var(--text-muted)' : 'var(--text-main)' }}
+              style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: submitting ? 'var(--text-muted)' : '#1a1a1a', color: '#ffffff', borderRadius: '12px', fontWeight: 'bold' }}
             >
-              {submitting ? 'Authenticating...' : 'Sign In as Admin'}
+              {submitting ? 'Authenticating...' : 'Sign In as Operator'}
             </button>
           </form>
 

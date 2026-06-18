@@ -15,6 +15,10 @@ async function getAuthorizedTenantId(request) {
     return masqueradeData ? masqueradeData.tenantId : null;
   }
 
+  if (session.tenantId) {
+    return session.tenantId;
+  }
+
   try {
     const db = await getDb();
     const user = await db.collection('users').findOne({ email: session.email });
@@ -64,7 +68,13 @@ export async function POST(request) {
     const db = await getDb();
 
     // Check count for Tier 1 limits (Tier 1 limit: e.g., max 5 categories)
-    const tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantId.toString()) });
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
     if (tenant && tenant.tier === 1) {
       const count = await db.collection('categories').countDocuments({ tenantId: tenantId.toString() });
       if (count >= 5) {

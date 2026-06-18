@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dinelabs Super — Dashboard</title>
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="super.css" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  .dash-grid { display: grid; grid-template-columns: 1fr 380px; gap: 16px; align-items: stretch; }
+  @media (max-width: 1180px){ .dash-grid { grid-template-columns: 1fr; } }
+
+  /* chart */
+  .chart-wrap { position: relative; padding: 8px 8px 4px; }
+  .chart-svg { width: 100%; display: block; overflow: visible; }
+  .chart-tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; border-radius: 9px; padding: 8px 11px; font-size: 12px; font-weight: 600; transform: translate(-50%, -118%); white-space: nowrap; opacity: 0; transition: opacity .1s; box-shadow: var(--sh-md); z-index: 5; }
+  .chart-tip b { font-size: 14px; font-weight: 800; display: block; letter-spacing: -.02em; }
+  .chart-tip .tip-k { color: rgba(255,255,255,.6); font-weight: 600; font-size: 11px; }
+
+  /* tier donut */
+  .donut-wrap { position: relative; width: 170px; height: 170px; margin: 2px auto 16px; }
+  #donut { transform: rotate(-90deg); }
+  #donut circle { transition: stroke-dasharray .6s cubic-bezier(.2,.8,.2,1); }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1px; }
+  .donut-val { font-size: 27px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+  .donut-lbl { font-size: 10.5px; color: var(--ink-3); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+  .top-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .top-row + .top-row { border-top: 1px solid var(--line); }
+  .top-rank { width: 18px; font-weight: 800; color: var(--ink-3); font-size: 13px; text-align: center; flex: none; }
+  .top-right { text-align: right; margin-left: auto; }
+</style>
+</head>
+<body data-page="dashboard">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main-col">
+    <header class="topbar" id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Platform overview</h1>
+          <p class="page-sub">Aggregated health across every store on Dinelabs.</p>
+        </div>
+        <div class="seg" id="periodSeg">
+          <button data-p="today">Today</button>
+          <button data-p="week" class="active">Week</button>
+          <button data-p="month">Month</button>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="dash-grid">
+        <section class="card">
+          <div class="card-head">
+            <div><div class="card-title">Platform order volume</div><div class="card-note" id="chartHead">—</div></div>
+            <span class="pill pill-soft"><i class="ic" data-lucide="trending-up" style="width:13px;height:13px"></i> <span id="chartTrend">—</span></span>
+          </div>
+          <div class="card-pad" style="padding-top:8px">
+            <div class="chart-wrap" id="chartWrap"><svg class="chart-svg" id="chart" preserveAspectRatio="none"></svg><div class="chart-tip" id="chartTip"></div></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="layers"></i>Stores by tier</div><span class="card-note" id="tierTotal">—</span></div>
+          <div class="card-pad" style="padding-top:12px;padding-bottom:18px">
+            <div class="donut-wrap"><svg id="donut" viewBox="0 0 180 180" width="170" height="170"></svg><div class="donut-center"><div class="donut-val" id="donutVal">—</div><div class="donut-lbl">stores</div></div></div>
+            <div id="tierSplit"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="dash-grid" style="margin-top:16px">
+        <section class="card">
+          <div class="card-head">
+            <div class="card-title"><i class="ic" data-lucide="alert-triangle"></i>Needs attention</div>
+            <a class="btn btn-ghost btn-sm" href="Super Clients.html">Stores <i class="ic" data-lucide="arrow-right"></i></a>
+          </div>
+          <div id="attention"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><div class="card-title"><i class="ic" data-lucide="flame"></i>Top by volume</div><span class="card-note">Today</span></div>
+          <div class="card-pad" id="topClients" style="padding-top:6px;padding-bottom:10px"></div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="super-shell.js"></script>
+<script>
+renderSuperShell('dashboard');
+
+const CL = window.CLIENTS;
+const accentNow = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0177FB';
+const active = CL.filter(c => c.status === 'active');
+const suspended = CL.filter(c => c.status === 'suspended');
+
+/* period multipliers on the live "today" figures */
+const PERIODS = {
+  today: { mult: 1, labels: ['9a','11a','1p','3p','5p','7p','9p','11p'], shape: [.4,.7,1,.85,.6,1.1,1.3,.5], headline: 'Today · so far', trend: '+6.1% vs yesterday' },
+  week:  { mult: 6.4, labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], shape: [.82,.9,1,.95,1.15,1.4,1.25], headline: 'This week · Mon–Sun', trend: '+11.8% vs last week' },
+  month: { mult: 27, labels: ['W1','W2','W3','W4'], shape: [.92,1.05,1,1.12], headline: 'This month · last 30 days', trend: '+8.4% vs last month' },
+};
+let period = store.get('superPeriod', 'week');
+
+const totalOrdersToday = active.reduce((s, c) => s + c.ordersToday, 0);
+const totalRevToday = active.reduce((s, c) => s + c.rev, 0); // rev stored as ~weekly base; treat as platform revenue volume
+const avgErr = active.length ? active.reduce((s, c) => s + c.err, 0) / active.length : 0;
+
+function renderKPIs() {
+  const P = PERIODS[period];
+  const orders = Math.round(totalOrdersToday * P.mult);
+  const rev = totalRevToday * P.mult / 6.4; // normalise so week ~= stored
+  const cards = [
+    { label: 'Active stores', icon: 'store', val: active.length, foot: `<i class="ic" data-lucide="circle-check"></i>${suspended.length} suspended`, cls: 'mut', accent: true },
+    { label: 'Orders ' + ({today:'today',week:'this week',month:'this month'}[period]), icon: 'receipt-text', val: fmt(orders), foot: `<i class="ic" data-lucide="arrow-up-right"></i>${P.trend.match(/[\d.]+%/)[0]}<span>vs prev</span>`, cls: 'up' },
+    { label: 'Revenue volume', icon: 'banknote', val: '$' + fmt(rev), foot: `<i class="ic" data-lucide="arrow-up-right"></i>9.2%<span>across all stores</span>`, cls: 'up' },
+    { label: 'Avg error rate', icon: 'activity', val: avgErr.toFixed(1) + '%', foot: `<i class="ic" data-lucide="circle-check"></i>${active.filter(c=>c.err>=2.5).length} clients elevated`, cls: avgErr >= 2 ? 'down' : 'mut' },
+  ];
+  $('#kpis').innerHTML = cards.map(c => `
+    <div class="card kpi ${c.accent ? 'accent' : ''}">
+      <div class="kpi-top"><span class="kpi-label">${c.label}</span><span class="kpi-ic"><i class="ic" data-lucide="${c.icon}"></i></span></div>
+      <div class="kpi-val tnum">${c.val}</div>
+      <div class="kpi-foot ${c.cls}">${c.foot}</div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+/* ---- area chart ---- */
+function smooth(pts) {
+  if (pts.length < 2) return '';
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) { const [x0,y0]=pts[i],[x1,y1]=pts[i+1]; const cx=(x0+x1)/2; d += ` C ${cx} ${y0}, ${cx} ${y1}, ${x1} ${y1}`; }
+  return d;
+}
+function renderChart() {
+  const P = PERIODS[period];
+  const base = totalOrdersToday * P.mult / P.shape.reduce((a,b)=>a+b,0) * P.shape.length / P.shape.length;
+  const data = P.shape.map(s => Math.round(totalOrdersToday * P.mult / P.shape.length * s));
+  const labels = P.labels;
+  const svg = $('#chart'), wrap = $('#chartWrap');
+  const W = wrap.clientWidth - 16, H = 260, padL = 42, padR = 8, padT = 18, padB = 26;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('height', H); svg.innerHTML = '';
+  const max = Math.max(...data) * 1.2;
+  const xstep = (W - padL - padR) / (data.length - 1);
+  const xAt = i => padL + i * xstep, yAt = v => padT + (1 - v / max) * (H - padT - padB);
+  for (let i = 0; i <= 4; i++) { const v = max/4*i, y = yAt(v);
+    svg.appendChild(el('line', { x1: padL, x2: W-padR, y1: y, y2: y, stroke: '#f0f0f0', 'stroke-width': 1 }));
+    svg.appendChild(el('text', { x: padL-8, y: y+4, 'text-anchor': 'end', 'font-size': 11, fill: '#9a9a9a', 'font-family': 'Hanken Grotesk', 'font-weight': 600 }, document.createTextNode(fmt(v))));
+  }
+  labels.forEach((lb, i) => svg.appendChild(el('text', { x: xAt(i), y: H-6, 'text-anchor': 'middle', 'font-size': 11.5, fill: '#9a9a9a', 'font-family': 'Hanken Grotesk', 'font-weight': 600 }, document.createTextNode(lb))));
+  const pts = data.map((v,i)=>[xAt(i),yAt(v)]);
+  const line = smooth(pts), area = line + ` L ${xAt(data.length-1)} ${H-padB} L ${padL} ${H-padB} Z`;
+  const grad = el('linearGradient', { id: 'ag', x1: 0, y1: 0, x2: 0, y2: 1 });
+  const ACC = accentNow();
+  grad.appendChild(el('stop', { offset: '0%', 'stop-color': ACC, 'stop-opacity': .15 }));
+  grad.appendChild(el('stop', { offset: '100%', 'stop-color': ACC, 'stop-opacity': 0 }));
+  const defs = el('defs'); defs.appendChild(grad); svg.appendChild(defs);
+  svg.appendChild(el('path', { d: area, fill: 'url(#ag)' }));
+  svg.appendChild(el('path', { d: line, fill: 'none', stroke: ACC, 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+  const guide = el('line', { x1:0,x2:0,y1:padT,y2:H-padB, stroke: ACC, 'stroke-width':1, 'stroke-dasharray':'4 4', opacity:0 });
+  const dot = el('circle', { r:5, fill: ACC, stroke:'#fff', 'stroke-width':2.5, opacity:0 });
+  svg.appendChild(guide); svg.appendChild(dot);
+  const tip = $('#chartTip'), hit = el('rect', { x:0,y:0,width:W,height:H,fill:'transparent' }); svg.appendChild(hit);
+  hit.addEventListener('mousemove', e => {
+    const r = svg.getBoundingClientRect(); const mx = (e.clientX-r.left)/r.width*W;
+    let i = Math.max(0, Math.min(data.length-1, Math.round((mx-padL)/xstep)));
+    const x = xAt(i), y = yAt(data[i]);
+    guide.setAttribute('x1',x); guide.setAttribute('x2',x); guide.setAttribute('opacity',.5);
+    dot.setAttribute('cx',x); dot.setAttribute('cy',y); dot.setAttribute('opacity',1);
+    tip.style.opacity=1; tip.style.left=(x/W*100)+'%'; tip.style.top=(y/H*260)+'px';
+    tip.innerHTML = `<span class="tip-k">${labels[i]}</span><b>${fmt(data[i])} orders</b>`;
+  });
+  hit.addEventListener('mouseleave', () => { guide.setAttribute('opacity',0); dot.setAttribute('opacity',0); tip.style.opacity=0; });
+  const P2 = PERIODS[period];
+  $('#chartHead').textContent = P2.headline + ' · ' + fmt(totalOrdersToday * P2.mult) + ' orders';
+  $('#chartTrend').textContent = P2.trend;
+}
+
+/* ---- tier donut ---- */
+function renderTierSplit() {
+  const tiers = window.TIERS;
+  const counts = tiers.map(t => ({ t, n: CL.filter(c => c.tier === t.id).length }));
+  const total = CL.length;
+  const shades = { 1: '#cfd0d4', 2: accentNow(), 3: '#0a0a0a' };
+  $('#donutVal').textContent = total;
+  $('#tierTotal').textContent = total + ' total';
+  const r = 64, C = 2 * Math.PI * r, sw = 24, svg = $('#donut'); svg.innerHTML = '';
+  svg.appendChild(el('circle', { cx:90, cy:90, r, fill:'none', stroke:'#f0f0f0', 'stroke-width':sw }));
+  let off = 0;
+  counts.forEach(({ t, n }) => {
+    const frac = n / total;
+    const seg = el('circle', { cx:90, cy:90, r, fill:'none', stroke: shades[t.lv], 'stroke-width': sw, 'stroke-dasharray': `0 ${C}`, 'stroke-dashoffset': -off*C });
+    svg.appendChild(seg);
+    setTimeout(() => seg.setAttribute('stroke-dasharray', `${frac*C} ${C}`), 60);
+    off += frac;
+  });
+  $('#tierSplit').innerHTML = counts.map(({ t, n }) => `
+    <div class="tsplit-row">
+      <span class="tier t${t.lv}" style="min-width:108px">${t.name} · ${t.tag}</span>
+      <div class="tsplit-bar"><span style="width:0%;background:${shades[t.lv]}" data-w="${(n/total*100).toFixed(0)}%"></span></div>
+      <span class="tnum" style="font-weight:800;font-size:14px">${n}</span>
+    </div>`).join('');
+  setTimeout(() => $$('#tierSplit .tsplit-bar > span').forEach(s => s.style.width = s.dataset.w), 80);
+  lucide.createIcons();
+}
+
+/* ---- needs attention ---- */
+function renderAttention() {
+  const items = [];
+  suspended.forEach(c => items.push({ c, reason: 'Suspended — ordering paused', icon: 'pause', sev: 2 }));
+  active.filter(c => c.err >= 2.5).forEach(c => items.push({ c, reason: `Elevated error rate · ${c.err.toFixed(1)}%`, icon: 'activity', sev: 2 }));
+  active.filter(c => c.lastMin > 20).forEach(c => items.push({ c, reason: `No orders in ${Math.round(c.lastMin/60)||1}h`, icon: 'clock', sev: 1 }));
+  const seen = new Set(); const list = items.filter(i => !seen.has(i.c.id) && seen.add(i.c.id)).sort((a,b)=>b.sev-a.sev).slice(0, 6);
+  if (!list.length) { $('#attention').innerHTML = `<div class="empty"><i class="ic" data-lucide="check-circle-2"></i><h4>All clear</h4><p>Every store is healthy.</p></div>`; lucide.createIcons(); return; }
+  $('#attention').innerHTML = list.map(({ c, reason, icon }) => `
+    <div class="att-row" onclick="location.href='Super Client.html?id=${c.id}'">
+      ${monogram(c)}
+      <div class="att-main"><div class="cname">${c.name}</div><div class="att-reason"><i class="ic" data-lucide="${icon}"></i>${reason}</div></div>
+      ${statusPill(c.status)}
+      <i class="ic" data-lucide="chevron-right" style="width:16px;height:16px;color:var(--ink-3)"></i>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+/* ---- top by volume ---- */
+function renderTop() {
+  const top = [...active].sort((a,b)=>b.ordersToday-a.ordersToday).slice(0, 5);
+  const max = top[0].ordersToday;
+  $('#topClients').innerHTML = top.map((c, i) => `
+    <div class="top-row" style="cursor:pointer" onclick="location.href='Super Client.html?id=${c.id}'">
+      <span class="top-rank">${i+1}</span>
+      ${monogram(c)}
+      <div style="min-width:0;flex:1"><div class="cname">${c.name}</div><div class="cslug">${c.country}</div></div>
+      <div class="top-right"><div class="tnum" style="font-weight:800;font-size:14px">${c.ordersToday}</div><div class="cslug">orders</div></div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function renderAll() { renderKPIs(); renderChart(); }
+document.addEventListener('accentchange', () => { renderChart(); renderTierSplit(); });
+$$('#periodSeg button').forEach(b => {
+  b.classList.toggle('active', b.dataset.p === period);
+  b.addEventListener('click', () => { period = b.dataset.p; store.set('superPeriod', period); $$('#periodSeg button').forEach(x => x.classList.toggle('active', x === b)); renderAll(); });
+});
+renderAll();
+renderTierSplit();
+renderAttention();
+renderTop();
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(renderChart, 150); });
+</script>
+</body>
+</html>

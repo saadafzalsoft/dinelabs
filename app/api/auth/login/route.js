@@ -24,10 +24,15 @@ export async function POST(request) {
       );
     }
 
-    // Get tenant info if role is manager
     let tenantSlug = null;
     if (user.role === 'manager' && user.tenantId) {
-      const tenant = await db.collection('tenants').findOne({ _id: new ObjectId(user.tenantId.toString()) });
+      const queryId = user.tenantId.toString();
+      let tenant = await db.collection('tenants').findOne({ _id: queryId });
+      if (!tenant) {
+        try {
+          tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+        } catch (e) {}
+      }
       if (tenant) {
         tenantSlug = tenant.slug;
       }

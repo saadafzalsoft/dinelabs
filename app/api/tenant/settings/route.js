@@ -14,6 +14,10 @@ async function getAuthorizedTenantId(request) {
     return masqueradeData ? masqueradeData.tenantId : null;
   }
 
+  if (session.tenantId) {
+    return session.tenantId;
+  }
+
   try {
     const db = await getDb();
     const user = await db.collection('users').findOne({ email: session.email });
@@ -42,7 +46,13 @@ export async function GET(request) {
       if (!tenantId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
-      tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantId.toString()) });
+      const queryId = tenantId.toString();
+      tenant = await db.collection('tenants').findOne({ _id: queryId });
+      if (!tenant) {
+        try {
+          tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+        } catch (e) {}
+      }
     }
 
     if (!tenant) {
@@ -71,7 +81,13 @@ export async function PUT(request) {
     // Check count for Tier restrictions
     // E.g., Tier 1 might be limited to a single location (which they are) and specific ordering modes toggled by Super Admin.
     // Pro (Tier 2/3) can modify custom wait times and currencies.
-    const tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantId.toString()) });
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
@@ -97,10 +113,18 @@ export async function PUT(request) {
       }
     }
 
-    await db.collection('tenants').updateOne(
-      { _id: new ObjectId(tenantId.toString()) },
+    const updateResult = await db.collection('tenants').updateOne(
+      { _id: queryId },
       { $set: updateObj }
     );
+    if (updateResult.matchedCount === 0) {
+      try {
+        await db.collection('tenants').updateOne(
+          { _id: new ObjectId(queryId) },
+          { $set: updateObj }
+        );
+      } catch (e) {}
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

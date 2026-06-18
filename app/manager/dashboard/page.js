@@ -331,8 +331,71 @@ export default function ManagerDashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <h3 className="mut3">Loading dashboard details...</h3>
+      <div className="fade-in">
+        {/* Page Head Skeleton */}
+        <div className="page-head" style={{ marginBottom: '24px' }}>
+          <div>
+            <div className="skeleton" style={{ width: '280px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+            <div className="skeleton" style={{ width: '360px', height: '16px', borderRadius: '4px' }} />
+          </div>
+          <div className="skeleton" style={{ width: '160px', height: '40px', borderRadius: '10px' }} />
+        </div>
+
+        {/* Quick Actions Skeleton */}
+        <div className="quick" style={{ marginBottom: '24px' }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="card" style={{ height: '70px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
+              <div style={{ flex: 1 }}>
+                <div className="skeleton" style={{ width: '100px', height: '14px', borderRadius: '4px', marginBottom: '6px' }} />
+                <div className="skeleton" style={{ width: '140px', height: '10px', borderRadius: '3px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* KPIs Cards Skeleton */}
+        <div className="kpis" style={{ marginBottom: '24px' }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="card kpi" style={{ padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div className="skeleton" style={{ width: '100px', height: '12px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
+              </div>
+              <div className="skeleton" style={{ width: '120px', height: '32px', borderRadius: '8px', marginBottom: '12px' }} />
+              <div className="skeleton" style={{ width: '80px', height: '12px', borderRadius: '4px' }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts & Grids Skeletons */}
+        <div className="dash-grid">
+          <div className="card" style={{ height: '380px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div>
+                <div className="skeleton" style={{ width: '100px', height: '18px', borderRadius: '4px', marginBottom: '8px' }} />
+                <div className="skeleton" style={{ width: '200px', height: '12px', borderRadius: '4px' }} />
+              </div>
+              <div className="skeleton" style={{ width: '120px', height: '28px', borderRadius: '6px' }} />
+            </div>
+            <div className="skeleton" style={{ width: '100%', height: '240px', borderRadius: '12px' }} />
+          </div>
+
+          <div className="card" style={{ height: '380px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div className="skeleton" style={{ width: '100px', height: '18px', borderRadius: '4px' }} />
+              <div className="skeleton" style={{ width: '60px', height: '12px', borderRadius: '4px' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'center', height: '240px' }}>
+              <div className="skeleton" style={{ width: '130px', height: '130px', borderRadius: '50%' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                <div className="skeleton" style={{ width: '100%', height: '12px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ width: '90%', height: '12px', borderRadius: '4px' }} />
+                <div className="skeleton" style={{ width: '80%', height: '12px', borderRadius: '4px' }} />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -222,8 +222,47 @@ function ManagerLayoutContent({ children }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'var(--font)' }}>
-        <h2>Loading portal session...</h2>
+      <div className="layout" style={{ fontFamily: 'var(--font)' }}>
+        {/* Sidebar Skeleton */}
+        <aside className="sidebar" style={{ top: '0', borderRight: '1px solid var(--line)' }}>
+          <div className="brand" style={{ opacity: 0.5 }}>
+            <div className="skeleton" style={{ width: '34px', height: '34px', borderRadius: '9px' }} />
+            <div>
+              <div className="skeleton" style={{ width: '80px', height: '16px', borderRadius: '4px', marginBottom: '6px' }} />
+              <div className="skeleton" style={{ width: '50px', height: '10px', borderRadius: '3px' }} />
+            </div>
+          </div>
+          <div className="nav" style={{ opacity: 0.5, display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="skeleton" style={{ width: '60px', height: '12px', borderRadius: '3px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '32px', borderRadius: '8px' }} />
+                <div className="skeleton" style={{ width: '90%', height: '32px', borderRadius: '8px' }} />
+              </div>
+            ))}
+          </div>
+        </aside>
+        
+        {/* Main Column Skeleton */}
+        <div className="main-col">
+          <header className="topbar" style={{ opacity: 0.5 }}>
+            <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: '6px' }} />
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
+              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
+              <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+            </div>
+          </header>
+          <main className="content" style={{ opacity: 0.5 }}>
+            <div style={{ marginBottom: '24px' }}>
+              <div className="skeleton" style={{ width: '240px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+              <div className="skeleton" style={{ width: '400px', height: '16px', borderRadius: '4px' }} />
+            </div>
+            <div className="card" style={{ padding: '24px' }}>
+              <div className="skeleton" style={{ width: '100%', height: '200px', borderRadius: '12px' }} />
+            </div>
+          </main>
+        </div>
       </div>
     );
   }
@@ -389,14 +428,29 @@ function ManagerLayoutContent({ children }) {
         </div>
       )}
 
+      {/* Mobile sidebar scrim */}
+      {mobileOpen && (
+        <div 
+          onClick={() => setMobileOpen(false)} 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10,10,10,0.3)',
+            backdropFilter: 'blur(1.5px)',
+            zIndex: 90,
+            display: 'block'
+          }}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className={`sidebar ${mobileOpen ? 'open' : ''}`} style={{ top: session.isMasquerading ? '40px' : '0' }}>
+      <aside className={`sidebar ${mobileOpen ? 'open' : ''}`} style={{ top: session.isMasquerading ? '40px' : '0', zIndex: mobileOpen ? 100 : 40 }}>
         <div className="brand">
-          <div className="brand-mark">D</div>
-          <div>
-            <div className="brand-name">Dinelabs</div>
-            <div className="brand-sub">MANAGER</div>
-          </div>
+          <img 
+            src="/assets/dinelabs-logo.png" 
+            alt="Dinelabs Manager" 
+            style={{ height: '24px', width: 'auto', display: 'block' }} 
+          />
         </div>
 
         <nav className="nav">
@@ -430,8 +484,16 @@ function ManagerLayoutContent({ children }) {
         {/* User Account bottom chip with logout menu */}
         <div className="nav-foot">
           <div className="user-chip" onClick={handleLogout} title="Click to Sign out">
-            <div className="avatar">
-              {getInitials(activeName)}
+            <div className="avatar" style={{ overflow: 'hidden' }}>
+              {session?.tenantLogoUrl ? (
+                <img 
+                  src={session.tenantLogoUrl} 
+                  alt="Restaurant Logo" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                getInitials(activeName)
+              )}
             </div>
             <div className="user-meta">
               <div className="user-name">{activeName}</div>
@@ -455,8 +517,16 @@ function ManagerLayoutContent({ children }) {
             <Menu className="ic" />
           </button>
           
-          <div className="crumb">
-            <Store style={{ width: '15px', height: '15px' }} />
+          <div className="crumb" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {session?.tenantLogoUrl ? (
+              <img 
+                src={session.tenantLogoUrl} 
+                alt="Logo" 
+                style={{ width: '20px', height: '20px', borderRadius: '4px', objectFit: 'contain', backgroundColor: '#fff', border: '1px solid var(--line)' }} 
+              />
+            ) : (
+              <Store style={{ width: '15px', height: '15px' }} />
+            )}
             <span>{activeName}</span>
             <span style={{ color: 'var(--line-strong)' }}>/</span>
             <b>{getCrumbLabel()}</b>
@@ -529,8 +599,47 @@ function ManagerLayoutContent({ children }) {
 export default function ManagerLayout({ children }) {
   return (
     <Suspense fallback={
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#fafafa', fontFamily: 'var(--font-sans)', color: 'var(--ink-2)' }}>
-        <h3 style={{ fontWeight: '500' }}>Loading manager portal...</h3>
+      <div className="layout" style={{ fontFamily: 'var(--font)' }}>
+        {/* Sidebar Skeleton */}
+        <aside className="sidebar" style={{ top: '0', borderRight: '1px solid var(--line)' }}>
+          <div className="brand" style={{ opacity: 0.5 }}>
+            <div className="skeleton" style={{ width: '34px', height: '34px', borderRadius: '9px' }} />
+            <div>
+              <div className="skeleton" style={{ width: '80px', height: '16px', borderRadius: '4px', marginBottom: '6px' }} />
+              <div className="skeleton" style={{ width: '50px', height: '10px', borderRadius: '3px' }} />
+            </div>
+          </div>
+          <div className="nav" style={{ opacity: 0.5, display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="skeleton" style={{ width: '60px', height: '12px', borderRadius: '3px' }} />
+                <div className="skeleton" style={{ width: '100%', height: '32px', borderRadius: '8px' }} />
+                <div className="skeleton" style={{ width: '90%', height: '32px', borderRadius: '8px' }} />
+              </div>
+            ))}
+          </div>
+        </aside>
+        
+        {/* Main Column Skeleton */}
+        <div className="main-col">
+          <header className="topbar" style={{ opacity: 0.5 }}>
+            <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: '6px' }} />
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
+              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
+              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
+              <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+            </div>
+          </header>
+          <main className="content" style={{ opacity: 0.5 }}>
+            <div style={{ marginBottom: '24px' }}>
+              <div className="skeleton" style={{ width: '240px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
+              <div className="skeleton" style={{ width: '400px', height: '16px', borderRadius: '4px' }} />
+            </div>
+            <div className="card" style={{ padding: '24px' }}>
+              <div className="skeleton" style={{ width: '100%', height: '200px', borderRadius: '12px' }} />
+            </div>
+          </main>
+        </div>
       </div>
     }>
       <ManagerLayoutContent>{children}</ManagerLayoutContent>

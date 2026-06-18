@@ -108,7 +108,7 @@ export async function GET(request) {
       if (masqueradeData) {
         tenantId = masqueradeData.tenantId;
       }
-    } else {
+    } else if (!tenantId) {
       try {
         const db = await getDb();
         const user = await db.collection('users').findOne({ email: session.email });
