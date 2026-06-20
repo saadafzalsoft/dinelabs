@@ -299,7 +299,7 @@ function ManagerLayoutContent({ children }) {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/manager');
+      window.location.href = '/manager';
     } catch (e) {
       console.error('Logout failed', e);
     }

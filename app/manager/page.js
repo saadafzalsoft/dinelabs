@@ -31,9 +31,9 @@ export default function ManagerLoginPage() {
 
       // Successful login
       if (data.role === 'superadmin') {
-        router.push('/super/dashboard');
+        window.location.href = '/super/dashboard';
       } else {
-        router.push('/manager/dashboard');
+        window.location.href = '/manager/dashboard';
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');

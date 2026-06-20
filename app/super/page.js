@@ -34,7 +34,7 @@ export default function SuperLoginPage() {
         throw new Error('Access denied. Super Admin only.');
       }
 
-      router.push('/super/dashboard');
+      window.location.href = '/super/dashboard';
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
       setSubmitting(false);

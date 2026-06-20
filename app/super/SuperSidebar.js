@@ -11,7 +11,7 @@ export default function SuperSidebar({ mobileOpen, setMobileOpen }) {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/super');
+      window.location.href = '/super';
     } catch (e) {
       console.error(e);
     }
