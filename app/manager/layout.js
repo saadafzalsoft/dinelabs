@@ -335,7 +335,7 @@ function ManagerLayoutContent({ children }) {
     setTimeout(() => el.remove(), 2500);
   };
 
-  if (loading || (session && cacheLoading)) {
+  if (loading) {
     return (
       <div className="layout" style={{ fontFamily: 'var(--font)' }}>
         {/* Sidebar Skeleton */}
