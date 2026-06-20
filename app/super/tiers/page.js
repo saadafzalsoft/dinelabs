@@ -6,8 +6,10 @@ import { Menu, ShieldCheck, LifeBuoy, Layers, Plus, Trash2, ChevronRight, X, Che
 import '../../manager/manager.css';
 import '../super.css';
 import SuperSidebar from '../SuperSidebar';
+import { useSuperAdmin } from '../layout';
 
-const LANGS = { en: 'English', ka: 'Georgian', ru: 'Russian', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', ar: 'Arabic' };
+import { WORLD_LANGUAGES } from '../../../lib/constants';
+import SearchSelect from '../../components/SearchSelect';
 
 const MODES = {
   delivery: { label: 'Delivery', icon: 'bike' },
@@ -28,9 +30,7 @@ const CORE_FEATURES = [
 
 export default function SuperTiersPage() {
   const router = useRouter();
-  const [tiers, setTiers] = useState([]);
-  const [tenants, setTenants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tenants, tiers, loading, refreshData } = useSuperAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Modal States
@@ -52,26 +52,6 @@ export default function SuperTiersPage() {
   const [eLangs, setELangs] = useState(['en']);
   const [eModes, setEModes] = useState({ delivery: false, pickup: true, dinein: false });
   const [eChannels, setEChannels] = useState({ email: true, whatsapp: false, telegram: false });
-
-  const fetchData = async () => {
-    try {
-      const tiersRes = await fetch('/api/super/tiers');
-      const tiersData = await tiersRes.json();
-      setTiers(tiersData.tiers || []);
-
-      const tenantsRes = await fetch('/api/super/tenants');
-      const tenantsData = await tenantsRes.json();
-      setTenants(tenantsData.tenants || []);
-    } catch (err) {
-      console.error('Failed fetching tiers dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const getClientCount = (tierId) => {
     return tenants.filter(c => {
@@ -191,7 +171,7 @@ export default function SuperTiersPage() {
       if (res.ok) {
         alert(isNew ? 'New tier created successfully!' : 'Tier updated successfully!');
         setEditorOpen(false);
-        fetchData();
+        refreshData();
       } else {
         const data = await res.json();
         alert(data.error || 'Failed saving tier settings.');
@@ -214,7 +194,7 @@ export default function SuperTiersPage() {
         alert('Tier successfully deleted. All stores mapped to this tier have been migrated.');
         setDeleteOpen(false);
         setTierToDelete(null);
-        fetchData();
+        refreshData();
       } else {
         const data = await res.json();
         alert(data.error || 'Failed deleting tier.');
@@ -372,7 +352,7 @@ export default function SuperTiersPage() {
 
       {/* Editor Modal Overlay */}
       {editorOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card is-form is-wide" style={{ flexDirection: 'column', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}>
             <button className="modal-x" onClick={() => setEditorOpen(false)}>
               <X className="ic" />
@@ -479,22 +459,44 @@ export default function SuperTiersPage() {
 
                   {/* Available Languages */}
                   <div className="field" style={{ marginTop: '14px' }}>
-                    <label className="label">Available Languages <span className="opt">— pool this tier is allowed to select</span></label>
-                    <div className="chip-grid">
-                      {Object.keys(LANGS).map(code => {
-                        const isSelected = eLangs.includes(code);
-                        return (
-                          <div 
-                            key={code}
-                            className={`sel-chip lang-chip ${isSelected ? 'on' : ''}`}
-                            onClick={() => toggleLanguage(code)}
+                    <label className="label" style={{ fontWeight: '700', fontSize: '13px', color: 'var(--ink-2)' }}>Available Languages <span className="opt">— pool this tier is allowed to select</span></label>
+                    <div className="chip-grid" style={{ marginBottom: '10px' }}>
+                      {eLangs.map(code => (
+                        <div 
+                          key={code}
+                          className="sel-chip on"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 10px', fontSize: '12.5px' }}
+                        >
+                          <span>{WORLD_LANGUAGES[code]?.flag || '🌐'} {WORLD_LANGUAGES[code]?.label || code.toUpperCase()}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (eLangs.length === 1) return;
+                              setELangs(eLangs.filter(l => l !== code));
+                            }}
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--accent-2)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                            title="Remove"
+                            disabled={eLangs.length === 1}
                           >
-                            <span className="chk"><Check className="ic" style={{ opacity: isSelected ? 1 : 0 }} /></span>
-                            <span>{LANGS[code]}</span>
-                          </div>
-                        );
-                      })}
+                            <X className="ic" style={{ width: '13px', height: '13px' }} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
+
+                    {eLangs.length < Object.keys(WORLD_LANGUAGES).length && (
+                      <SearchSelect
+                        options={Object.keys(WORLD_LANGUAGES)
+                          .filter(code => !eLangs.includes(code))
+                          .map(code => ({
+                            value: code,
+                            label: `${WORLD_LANGUAGES[code].flag} ${WORLD_LANGUAGES[code].label}`,
+                            subtitle: WORLD_LANGUAGES[code].code
+                          }))}
+                        onChange={(code) => setELangs([...eLangs, code])}
+                        placeholder="Add a language to this tier's pool..."
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -564,7 +566,7 @@ export default function SuperTiersPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '450px', padding: '24px' }}>
             <button className="modal-x" onClick={() => setDeleteOpen(false)}>
               <X className="ic" />

@@ -18,7 +18,7 @@ export async function GET(request) {
     const db = await getDb();
     const tenants = await db.collection('tenants').find({}).toArray();
     const users = await db.collection('users').find({ role: 'manager' }).toArray();
-    const orders = await db.collection('orders').find({}).toArray();
+    const orders = await db.collection('orders').find({}, { projection: { tenantId: 1, total: 1, createdAt: 1 } }).toArray();
     
     let totalOrdersCount = 0;
     let platformRevenueSum = 0;
@@ -76,7 +76,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications, logoUrl, billing } = await request.json();
+    const { slug, name, managerEmail, managerPassword, tier, enabledModes, languages, baseCurrency, defaultLanguage, assignedNotifications, logoUrl, billing, country } = await request.json();
 
     if (!slug || !name || !managerEmail || !managerPassword) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -110,6 +110,7 @@ export async function POST(request) {
       enabledModes: enabledModes || { dineIn: true, pickup: true, delivery: true },
       openingHours: daysOfWeek.map(day => ({ day, open: '09:00', close: '22:00', isOpen: true })),
       waitTimes: { delivery: 40, pickup: 20 },
+      country: country || 'Georgia',
       baseCurrency: baseCurrency || 'USD',
       languages: languages || ['en', 'ar'],
       defaultLanguage: defaultLanguage || 'en',
@@ -157,7 +158,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl, billing, managerPassword } = await request.json();
+    const { id, status, tier, enabledModes, languages, baseCurrency, defaultLanguage, ledger, assignedNotifications, logoUrl, billing, managerPassword, country } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Tenant ID is required' }, { status: 400 });
@@ -190,6 +191,7 @@ export async function PUT(request) {
     if (languages !== undefined) updateObj.languages = languages;
     if (baseCurrency !== undefined) updateObj.baseCurrency = baseCurrency;
     if (defaultLanguage !== undefined) updateObj.defaultLanguage = defaultLanguage;
+    if (country !== undefined) updateObj.country = country;
     if (ledger !== undefined) updateObj.ledger = ledger;
     if (assignedNotifications !== undefined) updateObj.assignedNotifications = assignedNotifications;
     if (logoUrl !== undefined) updateObj.logoUrl = logoUrl.trim();

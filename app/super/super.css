@@ -5,12 +5,12 @@
    ============================================================ */
 
 :root {
-  --accent: #1a1a1a;
-  --accent-2: #000000;
-  --accent-3: #000000;
-  --accent-bg: #f0f0f0;
-  --accent-bg-2: #e6e6e6;
-  --accent-line: #d6d6d6;
+  --accent: #4f46e5;
+  --accent-2: #4338ca;
+  --accent-3: #3730a3;
+  --accent-bg: #eef2ff;
+  --accent-bg-2: #e0e7ff;
+  --accent-line: #c7d2fe;
 }
 
 ::selection { background: var(--accent); color: #fff; }
@@ -450,7 +450,51 @@
 .modal-head p { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-2) !important; padding-right: 30px; }
 
 .modal-body { padding: 22px 24px 4px; overflow-y: auto; flex: 1; }
-.modal-foot {
-  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-  padding: 16px 24px; border-top: 1px solid var(--line); background: var(--surface);
+
+/* ============================================================
+   Modal Overlay & Card styling (missing from super layout)
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background-color: var(--surface, #ffffff);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  transform: scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-overlay.active .modal-card {
+  transform: scale(1);
+}
+
+.modal-card.is-wide {
+  max-width: 720px;
+}
+.modal-card.is-form {
+  max-height: calc(100vh - 48px);
 }

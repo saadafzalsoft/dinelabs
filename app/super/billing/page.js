@@ -6,6 +6,7 @@ import { Menu, ShieldCheck, LifeBuoy, CreditCard, Banknote, Hourglass, AlertCirc
 import '../../manager/manager.css';
 import '../super.css';
 import SuperSidebar from '../SuperSidebar';
+import { useSuperAdmin } from '../layout';
 
 const CURRENCIES = {
   USD: { sym: '$', name: 'US Dollar' },
@@ -21,9 +22,7 @@ const moneyStr = (n, cur = 'USD') => {
 
 export default function SuperBillingPage() {
   const router = useRouter();
-  const [tenants, setTenants] = useState([]);
-  const [tiers, setTiers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tenants, tiers, loading, refreshData } = useSuperAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Filters State
@@ -41,26 +40,6 @@ export default function SuperBillingPage() {
   const [bAmount, setBAmount] = useState('');
   const [bStart, setBStart] = useState('');
   const [bRenewal, setBRenewal] = useState('');
-
-  const fetchData = async () => {
-    try {
-      const res = await fetch('/api/super/tenants');
-      const data = await res.json();
-      setTenants(data.tenants || []);
-
-      const tiersRes = await fetch('/api/super/tiers');
-      const tiersData = await tiersRes.json();
-      setTiers(tiersData.tiers || []);
-    } catch (err) {
-      console.error('Failed fetching billing dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const getDaysUntil = (dateStr) => {
     if (!dateStr) return 0;
@@ -203,7 +182,7 @@ export default function SuperBillingPage() {
       if (res.ok) {
         alert('Subscription billing details successfully saved!');
         setEditModalOpen(false);
-        fetchData();
+        refreshData();
       } else {
         alert('Failed saving subscription details');
       }
@@ -447,7 +426,7 @@ export default function SuperBillingPage() {
 
       {/* Edit Subscription Modal Overlay */}
       {editModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card is-form" style={{ maxWidth: '450px', padding: '24px' }}>
             <button className="modal-x" onClick={() => setEditModalOpen(false)}>
               <X className="ic" />

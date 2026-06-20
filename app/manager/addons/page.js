@@ -14,12 +14,13 @@ import {
   MinusCircle,
   Info
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function AddonsPageContent() {
   const router = useRouter();
+  const { modifierGroups: contextModifierGroups, loading, refreshModifierGroups } = useManager();
 
   const [modifierGroups, setModifierGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // Form states: Modifier Group
   const [isModifierOpen, setIsModifierOpen] = useState(false);
@@ -29,26 +30,17 @@ function AddonsPageContent() {
   const [groupOptions, setGroupOptions] = useState([{ name: '', price: '0.00' }]);
   const [savingGroup, setSavingGroup] = useState(false);
 
-  const fetchModifierGroups = async () => {
-    try {
-      const res = await fetch('/api/modifier-groups');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        setModifierGroups(await res.json());
-      }
-    } catch (err) {
-      console.error('Error fetching modifier groups', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    setModifierGroups(contextModifierGroups);
+  }, [contextModifierGroups]);
 
   useEffect(() => {
-    fetchModifierGroups();
-  }, []);
+    refreshModifierGroups();
+  }, [refreshModifierGroups]);
+
+  const fetchModifierGroups = () => {
+    refreshModifierGroups();
+  };
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -133,6 +125,7 @@ function AddonsPageContent() {
         const data = await res.json();
         if (res.ok) {
           setModifierGroups([...modifierGroups, data.modifierGroup]);
+          refreshModifierGroups();
           closeModifierDrawer();
           triggerToast(`Created "${groupName}"`);
         } else {
@@ -157,6 +150,7 @@ function AddonsPageContent() {
       });
       if (res.ok) {
         setModifierGroups(modifierGroups.filter(g => g._id !== id));
+        refreshModifierGroups();
         triggerToast(`Deleted "${name}"`);
       } else {
         alert('Failed deleting modifier group');

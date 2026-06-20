@@ -2,28 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, ShieldCheck, LifeBuoy, Store, Search, Plus, UserCheck, Play, Pause, Trash2, ChevronRight, X, Sparkles, RefreshCw, Layers, CreditCard, Gift, Calendar, Globe } from 'lucide-react';
+import { Menu, ShieldCheck, LifeBuoy, Store, Search, Plus, UserCheck, Play, Pause, Trash2, ChevronRight, X, Sparkles, RefreshCw, Layers, CreditCard, Gift, Calendar, Globe, Check } from 'lucide-react';
 import '../../manager/manager.css';
 import '../super.css';
 import SuperSidebar from '../SuperSidebar';
+import { useSuperAdmin } from '../layout';
 
-const COUNTRIES = ['Georgia', 'United Arab Emirates', 'United Kingdom', 'Germany', 'Spain', 'Italy', 'France', 'United States'];
-
-const CURRENCIES = {
-  USD: { sym: '$', name: 'US Dollar' },
-  EUR: { sym: '€', name: 'Euro' },
-  GBP: { sym: '£', name: 'British Pound' },
-  GEL: { sym: '₾', name: 'Georgian Lari' },
-  AED: { sym: 'د.إ', name: 'UAE Dirham' },
-};
-
-const LANGS = { en: 'English', ka: 'Georgian', ru: 'Russian', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian', ar: 'Arabic' };
+import { WORLD_LANGUAGES, WORLD_COUNTRIES, WORLD_CURRENCIES } from '../../../lib/constants';
+import SearchSelect from '../../components/SearchSelect';
 
 export default function SuperRestaurantsPage() {
   const router = useRouter();
-  const [tenants, setTenants] = useState([]);
-  const [tiers, setTiers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tenants, tiers, loading, refreshData } = useSuperAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Filters state
@@ -52,30 +42,12 @@ export default function SuperRestaurantsPage() {
   const [cDefaultLanguage, setCDefaultLanguage] = useState('en');
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch('/api/super/tenants');
-      const data = await res.json();
-      setTenants(data.tenants || []);
-
-      const tiersRes = await fetch('/api/super/tiers');
-      const tiersData = await tiersRes.json();
-      setTiers(tiersData.tiers || []);
-      
-      if (tiersData.tiers && tiersData.tiers.length > 0) {
-        setCTier(tiersData.tiers[0]._id);
-        setCAmount(tiersData.tiers[0].price);
-      }
-    } catch (err) {
-      console.error('Failed to fetch stores data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (tiers && tiers.length > 0) {
+      if (!cTier) setCTier(tiers[0]._id);
+      if (!cAmount) setCAmount(tiers[0].price);
+    }
+  }, [tiers, cTier, cAmount]);
 
   // Password Generator
   const genPassword = () => {
@@ -176,6 +148,7 @@ export default function SuperRestaurantsPage() {
         managerPassword: cPass,
         tier: cTier.replace('t', ''), // store numeric tier (e.g. 1, 2, 3)
         baseCurrency: cCur,
+        country: cCountry,
         languages: cLanguages,
         defaultLanguage: cDefaultLanguage,
         enabledModes: {
@@ -219,7 +192,7 @@ export default function SuperRestaurantsPage() {
         }
         setCCycle('monthly');
         setCTrial(false);
-        fetchData();
+        refreshData();
       } else {
         alert(data.error || 'Failed onboarding restaurant client.');
       }
@@ -246,7 +219,7 @@ export default function SuperRestaurantsPage() {
 
       if (res.ok) {
         alert(`Restaurant is now ${nextStatus}!`);
-        fetchData();
+        refreshData();
       } else {
         alert('Failed updating restaurant status');
       }
@@ -268,7 +241,7 @@ export default function SuperRestaurantsPage() {
         alert('Restaurant environment successfully deleted.');
         setDeleteModalOpen(false);
         setSelectedTenantForDelete(null);
-        fetchData();
+        refreshData();
       } else {
         alert('Failed deleting restaurant storefront');
       }
@@ -312,8 +285,8 @@ export default function SuperRestaurantsPage() {
   };
 
   // Helper formatting values
-  const moneyStr = (n, cur = 'USD') => (CURRENCIES[cur]?.sym || '$') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const moneyK = (n, cur = 'USD') => (CURRENCIES[cur]?.sym || '$') + (n >= 1000 ? (n / 1000).toFixed(1) + 'k' : Math.round(n).toLocaleString('en-US'));
+  const moneyStr = (n, cur = 'USD') => (WORLD_CURRENCIES[cur]?.sym || '$') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const moneyK = (n, cur = 'USD') => (WORLD_CURRENCIES[cur]?.sym || '$') + (n >= 1000 ? (n / 1000).toFixed(1) + 'k' : Math.round(n).toLocaleString('en-US'));
   
   const getSelectedTierObject = () => {
     return tiers.find(t => t._id === cTier) || { caps: { maxTranslations: 1, langs: ['en'] } };
@@ -583,7 +556,7 @@ export default function SuperRestaurantsPage() {
 
       {/* Onboarding Dialog Modal */}
       {createModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card is-form is-wide" style={{ flexDirection: 'column', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}>
             <button className="modal-x" onClick={() => setCreateModalOpen(false)}>
               <X className="ic" />
@@ -773,29 +746,25 @@ export default function SuperRestaurantsPage() {
                   <div className="field-row">
                     <div className="field">
                       <label className="label">Country</label>
-                      <select 
-                        className="select" 
+                      <SearchSelect
                         value={cCountry}
-                        onChange={(e) => setCCountry(e.target.value)}
-                      >
-                        {COUNTRIES.map(ct => (
-                          <option key={ct} value={ct}>{ct}</option>
-                        ))}
-                      </select>
+                        onChange={(val) => setCCountry(val)}
+                        options={WORLD_COUNTRIES}
+                        placeholder="Search & select country..."
+                      />
                     </div>
                     <div className="field">
                       <label className="label">Base Currency</label>
-                      <select 
-                        className="select" 
+                      <SearchSelect
                         value={cCur}
-                        onChange={(e) => setCCur(e.target.value)}
-                      >
-                        {Object.keys(CURRENCIES).map(code => (
-                          <option key={code} value={code}>
-                            {code} · {CURRENCIES[code].sym} {CURRENCIES[code].name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setCCur(val)}
+                        options={Object.keys(WORLD_CURRENCIES).map(code => ({
+                          value: code,
+                          label: `${code} · ${WORLD_CURRENCIES[code].sym} ${WORLD_CURRENCIES[code].name}`,
+                          subtitle: `${WORLD_CURRENCIES[code].name} (${WORLD_CURRENCIES[code].sym})`
+                        }))}
+                        placeholder="Search & select currency..."
+                      />
                     </div>
                   </div>
 
@@ -809,25 +778,53 @@ export default function SuperRestaurantsPage() {
                           <label className="label">
                             Storefront Languages <span className="opt">— Choose up to {maxLangs} language(s) allowed by this tier</span>
                           </label>
-                          <div className="chip-grid">
-                            {Object.keys(LANGS).map(code => {
-                              const isSupported = pool.includes(code);
-                              const isSelected = cLanguages.includes(code);
-                              return (
-                                <div 
-                                  key={code}
-                                  className={`sel-chip ${isSelected ? 'on' : ''} ${!isSupported ? 'disabled' : ''}`}
-                                  onClick={() => isSupported && handleLanguageToggle(code, pool, maxLangs)}
-                                  style={{ opacity: isSupported ? 1 : 0.4, cursor: isSupported ? 'pointer' : 'not-allowed' }}
+                          <div className="chip-grid" style={{ marginBottom: '10px' }}>
+                            {cLanguages.map(code => (
+                              <div 
+                                key={code}
+                                className="sel-chip on"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 10px', fontSize: '12.5px' }}
+                              >
+                                <span>{WORLD_LANGUAGES[code]?.flag || '🌐'} {WORLD_LANGUAGES[code]?.label || code.toUpperCase()}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (cLanguages.length === 1) return;
+                                    const nextLangs = cLanguages.filter(l => l !== code);
+                                    setCLanguages(nextLangs);
+                                    if (cDefaultLanguage === code) {
+                                      setCDefaultLanguage(nextLangs[0]);
+                                    }
+                                  }}
+                                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--accent-2)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                                  title="Remove"
+                                  disabled={cLanguages.length === 1}
                                 >
-                                  <span className="chk">
-                                    <Check className="ic" style={{ opacity: isSelected ? 1 : 0 }} />
-                                  </span>
-                                  <span>{LANGS[code]}</span>
-                                </div>
-                              );
-                            })}
+                                  <X className="ic" style={{ width: '13px', height: '13px' }} />
+                                </button>
+                              </div>
+                            ))}
                           </div>
+
+                          {cLanguages.length < maxLangs && pool.filter(code => !cLanguages.includes(code)).length > 0 && (
+                            <SearchSelect
+                              options={pool
+                                .filter(code => !cLanguages.includes(code))
+                                .map(code => ({
+                                  value: code,
+                                  label: `${WORLD_LANGUAGES[code]?.flag || '🌐'} ${WORLD_LANGUAGES[code]?.label || code.toUpperCase()}`,
+                                  subtitle: WORLD_LANGUAGES[code]?.code || code.toUpperCase()
+                                }))}
+                              onChange={(code) => {
+                                if (cLanguages.length >= maxLangs) {
+                                  alert(`This tier allows a maximum of ${maxLangs} translation languages.`);
+                                  return;
+                                }
+                                setCLanguages([...cLanguages, code]);
+                              }}
+                              placeholder="Add a language..."
+                            />
+                          )}
                         </div>
 
                         <div className="field">
@@ -839,7 +836,7 @@ export default function SuperRestaurantsPage() {
                                 className={`sel-chip radio ${cDefaultLanguage === code ? 'on' : ''}`}
                                 onClick={() => setCDefaultLanguage(code)}
                               >
-                                <span>{LANGS[code]}</span>
+                                <span>{WORLD_LANGUAGES[code]?.flag || '🌐'} {WORLD_LANGUAGES[code]?.label || code.toUpperCase()}</span>
                               </div>
                             ))}
                           </div>
@@ -863,7 +860,7 @@ export default function SuperRestaurantsPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="modal-overlay active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-card" style={{ maxWidth: '450px', padding: '24px' }}>
             <button className="modal-x" onClick={() => setDeleteModalOpen(false)}>
               <X className="ic" />

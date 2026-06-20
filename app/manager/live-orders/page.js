@@ -24,13 +24,13 @@ import {
   StickyNote,
   AlertCircle
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function LiveOrdersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loading, refreshOrders } = useManager();
   const [channelFilter, setChannelFilter] = useState(''); // '' | 'delivery' | 'pickup' | 'dine-in'
   
   // Local storage cleared completed orders ids to keep Kanban board clean
@@ -61,26 +61,12 @@ function LiveOrdersPageContent() {
     }
   }, []);
 
-  // Fetch orders and poll every 5 seconds for real-time order queuing
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch('/api/orders');
-      if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
-      }
-    } catch (err) {
-      console.error('Failed fetching live orders queue', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Poll orders refresh via context helper every 5 seconds while on the live-orders page
   useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
+    refreshOrders();
+    const interval = setInterval(refreshOrders, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshOrders]);
 
   // Check if there is an orderNo query scanning parameter to highlight & auto-open
   useEffect(() => {
@@ -186,14 +172,8 @@ function LiveOrdersPageContent() {
       });
 
       if (res.ok) {
-        // Optimistic UI state update
-        setOrders(prev =>
-          prev.map(o => o._id === orderId ? {
-            ...o,
-            status: newStatus,
-            ...(deliveryMinutes !== null ? { deliveryMinutes } : {})
-          } : o)
-        );
+        // Refresh context orders cache
+        refreshOrders();
         
         // Update selected order in state if it's currently open
         if (selectedOrder && selectedOrder._id === orderId) {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useManager } from '../layout';
 import {
   Clock,
   Save,
@@ -11,32 +12,18 @@ import {
 
 function OpeningHoursPageContent() {
   const router = useRouter();
+  const { tenantSettings, loading: contextLoading, refreshTenantSettings } = useManager();
 
   const [openingHours, setOpeningHours] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fetchHours = async () => {
-    try {
-      const res = await fetch('/api/tenant/settings');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setOpeningHours(data.openingHours || []);
-      }
-    } catch (err) {
-      console.error('Error fetching opening hours', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = contextLoading;
 
   useEffect(() => {
-    fetchHours();
-  }, []);
+    if (tenantSettings) {
+      setOpeningHours(tenantSettings.openingHours || []);
+    }
+  }, [tenantSettings]);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -86,6 +73,7 @@ function OpeningHoursPageContent() {
       });
 
       if (res.ok) {
+        await refreshTenantSettings();
         triggerToast('Opening hours saved successfully!');
       } else {
         alert('Failed saving opening hours');

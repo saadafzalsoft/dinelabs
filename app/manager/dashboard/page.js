@@ -21,13 +21,11 @@ import {
   ShoppingBag,
   Utensils
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 export default function ManagerDashboardPage() {
   const [period, setPeriod] = useState('week'); // 'today' | 'week' | 'month'
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [restaurantName, setRestaurantName] = useState('My Restaurant');
-  const [categoriesCount, setCategoriesCount] = useState(0);
+  const { session, orders, categories, loading } = useManager();
 
   // Mouse hover state for chart tooltip
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -35,33 +33,8 @@ export default function ManagerDashboardPage() {
   const [tooltipY, setTooltipY] = useState(0);
   const chartSvgRef = useRef(null);
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      try {
-        const sessionRes = await fetch('/api/auth/session');
-        if (sessionRes.ok) {
-          const sessionData = await sessionRes.json();
-          setRestaurantName(sessionData.tenantName || 'My Restaurant');
-        }
-
-        const ordersRes = await fetch('/api/orders');
-        if (ordersRes.ok) {
-          setOrders(await ordersRes.json());
-        }
-
-        const catsRes = await fetch('/api/categories');
-        if (catsRes.ok) {
-          const catsData = await catsRes.json();
-          setCategoriesCount(catsData.length);
-        }
-      } catch (err) {
-        console.error('Error loading dashboard stats', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchDashboardData();
-  }, []);
+  const restaurantName = session?.tenantName || 'My Restaurant';
+  const categoriesCount = categories.length;
 
   const formatPrice = (amount) => {
     return '$' + parseFloat(amount).toFixed(2);

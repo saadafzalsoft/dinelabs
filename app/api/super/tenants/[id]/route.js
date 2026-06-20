@@ -45,8 +45,8 @@ export async function GET(request, { params }) {
     }
     tenant.managerEmail = manager ? manager.email : 'N/A';
 
-    // Get orders for stats
-    const tenantOrders = await db.collection('orders').find({ tenantId: queryId }).toArray();
+    // Get orders for stats (projecting only necessary fields for performance)
+    const tenantOrders = await db.collection('orders').find({ tenantId: queryId }, { projection: { total: 1, createdAt: 1 } }).toArray();
     const ordersCount = tenantOrders.length;
     
     const now = new Date();

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { WORLD_LANGUAGES } from '../../lib/constants';
 import {
   Menu,
   X,
@@ -30,13 +31,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  const LANGUAGES = {
-    en: { label: 'English', flag: '🇬🇧', code: 'EN' },
-    ar: { label: 'العربية', flag: '🇱🇧', code: 'AR' },
-    ru: { label: 'Русский', flag: '🇷🇺', code: 'RU' },
-    es: { label: 'Español', flag: '🇪🇸', code: 'ES' },
-    fr: { label: 'Français', flag: '🇫🇷', code: 'FR' },
-  };
+  const LANGUAGES = WORLD_LANGUAGES;
   const [activeCategory, setActiveCategory] = useState('all');
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);

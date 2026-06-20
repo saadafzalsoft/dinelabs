@@ -14,6 +14,7 @@ import {
   Map
 } from 'lucide-react';
 import '../manager.css';
+import { useManager } from '../layout';
 
 const CURRENCY_SYM = {
   USD: '$', EUR: '€', GBP: '£', GEL: '₾', TRY: '₺', RUB: '₽', UAH: '₴', INR: '₹', JPY: '¥', PLN: 'zł',
@@ -22,9 +23,9 @@ const CURRENCY_SYM = {
 
 function DeliveryPageContent() {
   const router = useRouter();
+  const { tenantSettings, loading, refreshTenantSettings } = useManager();
 
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Delivery settings states
@@ -55,38 +56,22 @@ function DeliveryPageContent() {
     return () => clearTimeout(timer);
   };
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch('/api/tenant/settings');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data);
-        setDeliveryEnabled(data.enabledModes?.delivery ?? true);
-        setDeliveryWait(data.waitTimes?.delivery ?? 30);
-        setDeliveryFee(data.deliveryFee ?? 2.50);
-        setMinOrderValue(data.minOrderValue ?? 12.00);
-        setBaseCurrency(data.baseCurrency || 'USD');
-        setDeliveryMode(data.deliveryMode || 'general');
-        setDeliveryZones(data.deliveryZones || [
-          { id: 'z1', name: 'City centre', fee: 3.00, time: 20 },
-          { id: 'z2', name: 'North side',  fee: 5.00, time: 35 },
-          { id: 'z3', name: 'Riverside',   fee: 6.00, time: 45 }
-        ]);
-      }
-    } catch (err) {
-      console.error('Error fetching settings', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (tenantSettings) {
+      setSettings(tenantSettings);
+      setDeliveryEnabled(tenantSettings.enabledModes?.delivery ?? true);
+      setDeliveryWait(tenantSettings.waitTimes?.delivery ?? 30);
+      setDeliveryFee(tenantSettings.deliveryFee ?? 2.50);
+      setMinOrderValue(tenantSettings.minOrderValue ?? 12.00);
+      setBaseCurrency(tenantSettings.baseCurrency || 'USD');
+      setDeliveryMode(tenantSettings.deliveryMode || 'general');
+      setDeliveryZones(tenantSettings.deliveryZones || [
+        { id: 'z1', name: 'City centre', fee: 3.00, time: 20 },
+        { id: 'z2', name: 'North side',  fee: 5.00, time: 35 },
+        { id: 'z3', name: 'Riverside',   fee: 6.00, time: 45 }
+      ]);
+    }
+  }, [tenantSettings]);
 
   const handleSaveSettings = async () => {
     if (saving) return;
@@ -121,6 +106,7 @@ function DeliveryPageContent() {
       });
 
       if (res.ok) {
+        refreshTenantSettings();
         triggerToast('Delivery settings saved successfully!', 'check');
       } else {
         alert('Failed to save settings');

@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Store,
   Check
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function StoreProfilePageContent() {
   const router = useRouter();
+  const { tenantSettings, loading, refreshTenantSettings } = useManager();
 
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Profile states
@@ -20,31 +21,15 @@ function StoreProfilePageContent() {
   const [logoUrl, setLogoUrl] = useState('');
   const [address, setAddress] = useState('');
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch('/api/tenant/settings');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data);
-        setName(data.name || '');
-        setSlug(data.slug || '');
-        setLogoUrl(data.logoUrl || '');
-        setAddress(data.address || '');
-      }
-    } catch (err) {
-      console.error('Error fetching profile settings', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (tenantSettings) {
+      setSettings(tenantSettings);
+      setName(tenantSettings.name || '');
+      setSlug(tenantSettings.slug || '');
+      setLogoUrl(tenantSettings.logoUrl || '');
+      setAddress(tenantSettings.address || '');
+    }
+  }, [tenantSettings]);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -103,6 +88,7 @@ function StoreProfilePageContent() {
       });
 
       if (res.ok) {
+        refreshTenantSettings();
         triggerToast('Store profile saved successfully!');
       } else {
         alert('Failed to save settings');
@@ -256,7 +242,7 @@ function StoreProfilePageContent() {
   );
 }
 
-export default function RefactoredStoreProfilePage() {
+export default function StoreProfilePage() {
   return (
     <Suspense fallback={
       <div className="fade-in" style={{ padding: '8px 0', maxWidth: '800px' }}>

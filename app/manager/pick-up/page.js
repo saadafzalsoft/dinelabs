@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useManager } from '../layout';
 import {
   ShoppingBag,
   Check,
@@ -12,9 +13,9 @@ import {
 
 function PickupPageContent() {
   const router = useRouter();
+  const { tenantSettings, loading: contextLoading, refreshTenantSettings } = useManager();
 
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // Pick-up settings states
@@ -23,31 +24,17 @@ function PickupPageContent() {
   const [address, setAddress] = useState('');
   const [googleMapsLink, setGoogleMapsLink] = useState('');
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch('/api/tenant/settings');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data);
-        setPickupEnabled(data.enabledModes?.pickup ?? true);
-        setPickupWait(data.waitTimes?.pickup ?? 20);
-        setAddress(data.address ?? '');
-        setGoogleMapsLink(data.googleMapsLink ?? '');
-      }
-    } catch (err) {
-      console.error('Error fetching settings', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = contextLoading;
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (tenantSettings) {
+      setSettings(tenantSettings);
+      setPickupEnabled(tenantSettings.enabledModes?.pickup ?? true);
+      setPickupWait(tenantSettings.waitTimes?.pickup ?? 20);
+      setAddress(tenantSettings.address ?? '');
+      setGoogleMapsLink(tenantSettings.googleMapsLink ?? '');
+    }
+  }, [tenantSettings]);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -88,6 +75,7 @@ function PickupPageContent() {
       });
 
       if (res.ok) {
+        await refreshTenantSettings();
         triggerToast('Pick-up settings saved successfully!');
       } else {
         alert('Failed to save settings');

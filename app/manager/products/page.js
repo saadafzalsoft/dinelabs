@@ -18,26 +18,53 @@ import {
   ImageUp,
   UploadCloud,
   FileDown,
-  FileSpreadsheet,
+  ArrowUpRight,
+  Sparkles,
   SearchX,
+  ToggleLeft,
+  ToggleRight,
+  TrendingUp,
   Save,
   FolderPlus,
   SlidersHorizontal,
   Star,
   Ruler,
   MinusCircle,
-  Info
+  Info,
+  FileSpreadsheet
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function ProductsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = 'products'; // Fixed to products page, other tabs removed
 
+  const {
+    products: contextProducts,
+    categories: contextCategories,
+    modifierGroups: contextModifierGroups,
+    loading,
+    refreshProducts,
+    refreshCategories,
+    refreshModifierGroups
+  } = useManager();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [modifierGroups, setModifierGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setProducts(contextProducts);
+    setCategories(contextCategories);
+    setModifierGroups(contextModifierGroups);
+  }, [contextProducts, contextCategories, contextModifierGroups]);
+
+  const fetchCatalogData = () => {
+    refreshProducts();
+    refreshCategories();
+    refreshModifierGroups();
+  };
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState('');
@@ -160,28 +187,7 @@ function ProductsPageContent() {
     setDraggedType(null);
   };
 
-  // Load all catalog data
-  const fetchCatalogData = async () => {
-    try {
-      const prodRes = await fetch('/api/products');
-      const catRes = await fetch('/api/categories');
-      const modRes = await fetch('/api/modifier-groups');
 
-      if (prodRes.ok && catRes.ok && modRes.ok) {
-        setProducts(await prodRes.json());
-        setCategories(await catRes.json());
-        setModifierGroups(await modRes.json());
-      }
-    } catch (err) {
-      console.error('Error fetching catalog data', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCatalogData();
-  }, []);
 
   const triggerToast = (msg, icon) => {
     const el = document.createElement('div');

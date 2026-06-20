@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Bike, ShoppingBag, Utensils } from 'lucide-react';
+import SearchSelect from '../../components/SearchSelect';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -422,20 +423,17 @@ export default function CheckoutPage() {
                   {tenant.deliveryMode === 'custom' && (
                     <div className="form-group">
                       <label className="form-label">Delivery Area</label>
-                      <select
-                        className="form-control"
+                      <SearchSelect
                         value={selectedZoneId}
-                        onChange={(e) => setSelectedZoneId(e.target.value)}
-                        required
-                        style={{ width: '100%', outline: 'none', fontWeight: '600', marginBottom: '16px' }}
-                      >
-                        <option value="">Select your delivery area...</option>
-                        {tenant.deliveryZones?.map(z => (
-                          <option key={z.id} value={z.id}>
-                            {z.name} (Fee: {formatPrice(z.fee)} · Time: {z.time} min)
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => setSelectedZoneId(val)}
+                        options={tenant.deliveryZones?.map(z => ({
+                          value: z.id,
+                          label: `${z.name} (Fee: ${formatPrice(z.fee)} · Time: ${z.time} min)`,
+                          subtitle: z.name
+                        })) || []}
+                        placeholder="Search & select your delivery area..."
+                        style={{ width: '100%', marginBottom: '16px' }}
+                      />
                     </div>
                   )}
                   

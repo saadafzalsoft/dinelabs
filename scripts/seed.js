@@ -304,7 +304,7 @@ async function seed() {
 
   const superAdmin = {
     email: 'super@dinelabs.co',
-    password: x,
+    password: hashedSuperPassword,
     role: 'superadmin',
     tenantId: null,
     createdAt: new Date(),

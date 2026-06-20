@@ -6,6 +6,7 @@ import { Menu, ShieldCheck, LifeBuoy, TrendingUp, Layers, AlertTriangle, Flame, 
 import '../../manager/manager.css';
 import '../super.css';
 import SuperSidebar from '../SuperSidebar';
+import { useSuperAdmin } from '../layout';
 
 const PERIODS = {
   today: { mult: 1, labels: ['9a','11a','1p','3p','5p','7p','9p','11p'], shape: [0.4, 0.7, 1, 0.85, 0.6, 1.1, 1.3, 0.5], headline: 'Today · so far', trend: '+6.1% vs yesterday' },
@@ -15,9 +16,7 @@ const PERIODS = {
 
 export default function SuperDashboardPage() {
   const router = useRouter();
-  const [tenants, setTenants] = useState([]);
-  const [tiers, setTiers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tenants, tiers, loading } = useSuperAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [period, setPeriod] = useState('week');
 
@@ -25,29 +24,6 @@ export default function SuperDashboardPage() {
   const chartRef = useRef(null);
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-
-  const fetchData = async () => {
-    try {
-      // Fetch tenants
-      const tenantsRes = await fetch('/api/super/tenants');
-      const tenantsData = await tenantsRes.json();
-      
-      // Fetch tiers
-      const tiersRes = await fetch('/api/super/tiers');
-      const tiersData = await tiersRes.json();
-
-      setTenants(tenantsData.tenants || []);
-      setTiers(tiersData.tiers || []);
-    } catch (err) {
-      console.error('Failed fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // Format money helper
   const usd = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

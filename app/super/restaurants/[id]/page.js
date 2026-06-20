@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import '../../../manager/manager.css';
 import '../../super.css';
 import SuperSidebar from '../../SuperSidebar';
+import { useSuperAdmin } from '../../layout';
 import {
   ArrowLeft,
   Play,
@@ -45,24 +46,8 @@ import {
   UtensilsCrossed
 } from 'lucide-react';
 
-const CURRENCIES = {
-  USD: { sym: '$', name: 'US Dollar' },
-  EUR: { sym: '€', name: 'Euro' },
-  GBP: { sym: '£', name: 'British Pound' },
-  GEL: { sym: '₾', name: 'Georgian Lari' },
-  AED: { sym: 'د.إ', name: 'UAE Dirham' },
-};
-
-const LANGS = {
-  en: 'English',
-  ka: 'Georgian',
-  ru: 'Russian',
-  es: 'Spanish',
-  fr: 'French',
-  de: 'German',
-  it: 'Italian',
-  ar: 'Arabic'
-};
+import { WORLD_LANGUAGES, WORLD_COUNTRIES, WORLD_CURRENCIES } from '../../../../lib/constants';
+import SearchSelect from '../../../components/SearchSelect';
 
 const CORE_FEATURES = [
   { name: 'Live orders board', icon: ReceiptText },
@@ -102,15 +87,15 @@ const freshLabel = (m) => {
 export default function RestaurantDetailPage() {
   const router = useRouter();
   const { id } = useParams();
+  const { tiers, refreshData } = useSuperAdmin();
 
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // Tenant / Tiers Data
+  // Tenant Data
   const [tenant, setTenant] = useState(null);
-  const [tiers, setTiers] = useState([]);
 
   // Managed States
   const [name, setName] = useState('');
@@ -119,6 +104,7 @@ export default function RestaurantDetailPage() {
   const [tier, setTier] = useState(1);
   const [status, setStatus] = useState('active');
   const [baseCurrency, setBaseCurrency] = useState('USD');
+  const [country, setCountry] = useState('Georgia');
   const [languages, setLanguages] = useState(['en', 'ka']);
   const [defaultLanguage, setDefaultLanguage] = useState('en');
   const [enabledModes, setEnabledModes] = useState({ dineIn: true, pickup: true, delivery: true });
@@ -240,11 +226,6 @@ export default function RestaurantDetailPage() {
 
   const fetchDetails = async () => {
     try {
-      // Fetch Tiers
-      const tiersRes = await fetch('/api/super/tiers');
-      const tiersData = await tiersRes.json();
-      setTiers(tiersData.tiers || []);
-
       // Fetch Tenant details
       console.log('Fetching details for restaurant ID:', id);
       const res = await fetch(`/api/super/tenants/${id}`);
@@ -258,6 +239,7 @@ export default function RestaurantDetailPage() {
         setTier(t.tier || 1);
         setStatus(t.status || 'active');
         setBaseCurrency(t.baseCurrency || 'USD');
+        setCountry(t.country || 'Georgia');
         setLanguages(t.languages || ['en', 'ka']);
         setDefaultLanguage(t.defaultLanguage || 'en');
         setEnabledModes({
@@ -278,6 +260,9 @@ export default function RestaurantDetailPage() {
         });
         setLedger(t.ledger || []);
         setManagerPasswordPlain(t.managerPasswordPlain || '');
+        
+        // Asynchronously refresh layout context cache to sync dashboard stats
+        refreshData();
       } else {
         console.error('Fetch failed for ID:', id, 'status:', res.status);
         alert(`Restaurant details not found for ID: "${id}" (status: ${res.status})`);
@@ -356,6 +341,7 @@ export default function RestaurantDetailPage() {
           id,
           tier: parseInt(tier),
           baseCurrency,
+          country,
           languages,
           defaultLanguage,
           enabledModes,
@@ -737,8 +723,8 @@ export default function RestaurantDetailPage() {
                 <span className="kpi-label">Revenue · this week</span>
                 <span className="kpi-ic"><Banknote className="ic" /></span>
               </div>
-              <div className="kpi-val tnum">{isSuspended ? '—' : (CURRENCIES[baseCurrency]?.sym || '$') + (tenant?.revenueThisWeek ?? 0).toLocaleString('en-US')}</div>
-              <div className="kpi-foot mut">{CURRENCIES[baseCurrency]?.name || 'US Dollar'}</div>
+               <div className="kpi-val tnum">{isSuspended ? '—' : (WORLD_CURRENCIES[baseCurrency]?.sym || '$') + (tenant?.revenueThisWeek ?? 0).toLocaleString('en-US')}</div>
+              <div className="kpi-foot mut">{WORLD_CURRENCIES[baseCurrency]?.name || 'US Dollar'}</div>
             </div>
             <div className="card kpi">
               <div className="kpi-top">
@@ -905,41 +891,120 @@ export default function RestaurantDetailPage() {
 
               <section className="card card-pad">
                 <div className="mini-label">Configuration</div>
-                <div className="info-grid" style={{ gridTemplateColumns: '1fr' }}>
-                  <div className="info-row">
-                    <span className="info-k">
-                      <Globe className="ic" style={{ width: '15px', height: '15px' }} />
-                      Country
-                    </span>
-                    <span className="info-v">{tenant?.country || 'Georgia'}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div className="field">
+                    <label className="label" style={{ fontWeight: '700', fontSize: '12px', color: 'var(--ink-2)' }}>Country</label>
+                    <SearchSelect
+                      value={country}
+                      onChange={(val) => setCountry(val)}
+                      options={WORLD_COUNTRIES}
+                      placeholder="Search & select country..."
+                    />
                   </div>
-                  <div className="info-row">
-                    <span className="info-k">
-                      <Coins className="ic" style={{ width: '15px', height: '15px' }} />
-                      Base currency
-                    </span>
-                    <span className="info-v">
-                      {baseCurrency} · {CURRENCIES[baseCurrency]?.sym}
-                    </span>
+                  
+                  <div className="field">
+                    <label className="label" style={{ fontWeight: '700', fontSize: '12px', color: 'var(--ink-2)' }}>Base currency</label>
+                    <SearchSelect
+                      value={baseCurrency}
+                      onChange={(val) => setBaseCurrency(val)}
+                      options={Object.keys(WORLD_CURRENCIES).map(code => ({
+                        value: code,
+                        label: `${code} · ${WORLD_CURRENCIES[code].sym} ${WORLD_CURRENCIES[code].name}`,
+                        subtitle: `${WORLD_CURRENCIES[code].name} (${WORLD_CURRENCIES[code].sym})`
+                      }))}
+                      placeholder="Search & select currency..."
+                    />
                   </div>
-                  <div className="info-row">
-                    <span className="info-k">
-                      <Calendar className="ic" style={{ width: '15px', height: '15px' }} />
+
+                  {(() => {
+                    const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || { caps: { maxTranslations: 1, langs: ['en'] } };
+                    const caps = activeTierObj.caps || { maxTranslations: 1, langs: ['en'] };
+                    const pool = caps.langs || ['en'];
+                    const maxLangs = caps.maxTranslations || 1;
+
+                    return (
+                      <>
+                        <div className="field">
+                          <label className="label" style={{ fontWeight: '700', fontSize: '12px', color: 'var(--ink-2)' }}>
+                            Storefront Languages <span className="opt">— Choose up to {maxLangs}</span>
+                          </label>
+                          <div className="chip-grid" style={{ marginBottom: '8px' }}>
+                            {languages.map(code => (
+                              <div 
+                                key={code}
+                                className="sel-chip on"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '32px', padding: '0 8px', fontSize: '12px' }}
+                              >
+                                <span>{WORLD_LANGUAGES[code]?.flag || '🌐'} {WORLD_LANGUAGES[code]?.label || code.toUpperCase()}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (languages.length === 1) return;
+                                    const nextLangs = languages.filter(l => l !== code);
+                                    setLanguages(nextLangs);
+                                    if (defaultLanguage === code) {
+                                      setDefaultLanguage(nextLangs[0]);
+                                    }
+                                  }}
+                                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--accent-2)', padding: '2px', display: 'flex', alignItems: 'center' }}
+                                  title="Remove"
+                                  disabled={languages.length === 1}
+                                >
+                                  <X className="ic" style={{ width: '12px', height: '12px' }} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {languages.length < maxLangs && pool.filter(code => !languages.includes(code)).length > 0 && (
+                            <SearchSelect
+                              options={pool
+                                .filter(code => !languages.includes(code))
+                                .map(code => ({
+                                  value: code,
+                                  label: `${WORLD_LANGUAGES[code]?.flag || '🌐'} ${WORLD_LANGUAGES[code]?.label || code.toUpperCase()}`,
+                                  subtitle: WORLD_LANGUAGES[code]?.code || code.toUpperCase()
+                                }))}
+                              onChange={(code) => {
+                                if (languages.length >= maxLangs) {
+                                  alert(`This tier allows a maximum of ${maxLangs} translation languages.`);
+                                  return;
+                                }
+                                setLanguages([...languages, code]);
+                              }}
+                              placeholder="Add language..."
+                            />
+                          )}
+                        </div>
+
+                        <div className="field">
+                          <label className="label" style={{ fontWeight: '700', fontSize: '12px', color: 'var(--ink-2)' }}>Default language</label>
+                          <div className="chip-grid">
+                            {languages.map(code => (
+                              <div 
+                                key={code}
+                                className={`sel-chip radio ${defaultLanguage === code ? 'on' : ''}`}
+                                onClick={() => setDefaultLanguage(code)}
+                                style={{ height: '32px', padding: '0 10px', fontSize: '12px' }}
+                              >
+                                <span>{WORLD_LANGUAGES[code]?.flag || '🌐'} {WORLD_LANGUAGES[code]?.label || code.toUpperCase()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+
+                  <div className="info-row" style={{ borderTop: '1px solid var(--line)', paddingTop: '10px', marginTop: '4px' }}>
+                    <span className="info-k" style={{ fontSize: '11.5px' }}>
+                      <Calendar className="ic" style={{ width: '13px', height: '13px' }} />
                       Created
                     </span>
-                    <span className="info-v">
+                    <span className="info-v" style={{ fontSize: '11.5px' }}>
                       {tenant?.createdAt ? `${Math.round((new Date().getTime() - new Date(tenant.createdAt).getTime()) / 86400000)} days ago` : 'Just now'}
                     </span>
                   </div>
-                </div>
-                <div className="mini-label" style={{ marginTop: '18px' }}>Storefront languages</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {languages.map(code => (
-                    <span key={code} className={`lang-tag ${code === defaultLanguage ? 'def' : ''}`}>
-                      {code === defaultLanguage && <Star style={{ width: '12px', height: '12px', fill: '#fff' }} />}
-                      {LANGS[code] || code.toUpperCase()}
-                    </span>
-                  ))}
                 </div>
               </section>
 

@@ -5,23 +5,28 @@ import { useRouter } from 'next/navigation';
 import {
   Layers,
   Plus,
-  MoveVertical,
+  Bookmark,
+  Sparkles,
   GripVertical,
-  ArrowUpDown,
-  Star,
-  Pencil,
+  CheckCheck,
+  Edit2,
   Trash2,
-  FolderPlus,
   X,
   Save,
-  SearchX
+  SearchX,
+  MoveVertical,
+  ArrowUpDown,
+  FolderPlus,
+  Star,
+  Pencil
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function CategoriesPageContent() {
   const router = useRouter();
+  const { categories: contextCategories, loading, refreshCategories } = useManager();
   
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [savingCategory, setSavingCategory] = useState(false);
   const [showReorderHint, setShowReorderHint] = useState(true);
   
@@ -33,6 +38,10 @@ function CategoriesPageContent() {
   // Drag and drop states
   const [draggedId, setDraggedId] = useState(null);
 
+  useEffect(() => {
+    setCategories(contextCategories);
+  }, [contextCategories]);
+
   const handleDragStart = (e, id) => {
     setDraggedId(id);
     e.dataTransfer.effectAllowed = 'move';
@@ -43,55 +52,47 @@ function CategoriesPageContent() {
     e.preventDefault();
   };
 
-  const handleDrop = async (e, targetId) => {
+  const handleDrop = async (e, id) => {
     e.preventDefault();
-    if (!draggedId || draggedId === targetId) return;
+    if (draggedId === null || draggedId === id) return;
 
-    const fromIndex = categories.findIndex(c => c._id === draggedId);
-    const toIndex = categories.findIndex(c => c._id === targetId);
-    if (fromIndex !== -1 && toIndex !== -1) {
+    const draggedIdx = categories.findIndex(c => c._id === draggedId);
+    const targetIdx = categories.findIndex(c => c._id === id);
+
+    if (draggedIdx !== -1 && targetIdx !== -1) {
       const updated = [...categories];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(toIndex, 0, moved);
+      const [draggedItem] = updated.splice(draggedIdx, 1);
+      updated.splice(targetIdx, 0, draggedItem);
+
+      // Re-assign ordering fields sequentially
+      updated.forEach((cat, index) => {
+        cat.order = index;
+      });
+
       setCategories(updated);
 
+      // Persist sorting changes to server API
       try {
-        const reorderedIds = updated.map(c => c._id);
         const res = await fetch('/api/categories', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reorderedIds })
+          body: JSON.stringify({
+            categories: updated.map(c => ({ id: c._id, order: c.order }))
+          })
         });
         if (res.ok) {
-          triggerToast('Categories reordered successfully');
+          refreshCategories();
+        } else {
+          console.error('Failed to persist categories sorting order');
+          refreshCategories(); // Revert on failure
         }
       } catch (err) {
-        console.error(err);
+        console.error('Failed to save category order', err);
+        refreshCategories(); // Revert on failure
       }
     }
     setDraggedId(null);
   };
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        setCategories(await res.json());
-      }
-    } catch (err) {
-      console.error('Error fetching categories', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -117,7 +118,7 @@ function CategoriesPageContent() {
           })
         });
         if (res.ok) {
-          fetchCategories();
+          refreshCategories();
           closeCategoryDrawer();
           triggerToast(`Saved "${catName}"`);
         } else {
@@ -133,6 +134,7 @@ function CategoriesPageContent() {
         const data = await res.json();
         if (res.ok) {
           setCategories([...categories, data.category]);
+          refreshCategories();
           closeCategoryDrawer();
           triggerToast(`Created "${catName}"`);
         } else {
@@ -169,13 +171,14 @@ function CategoriesPageContent() {
 
       if (res.ok) {
         triggerToast(newPinnedState ? 'Category pinned storefront!' : 'Category unpinned');
+        refreshCategories();
       } else {
-        fetchCategories();
+        refreshCategories();
         alert('Failed to update category pin status');
       }
     } catch (e) {
       console.error(e);
-      fetchCategories();
+      refreshCategories();
       alert('Error updating category pin status');
     }
   };
@@ -191,6 +194,7 @@ function CategoriesPageContent() {
       });
       if (res.ok) {
         setCategories(categories.filter(c => c._id !== id));
+        refreshCategories();
         triggerToast(`Deleted "${name}"`);
       } else {
         alert('Failed deleting category');

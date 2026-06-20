@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Bell,
@@ -13,12 +13,13 @@ import {
   Lock,
   LayoutDashboard
 } from 'lucide-react';
+import { useManager } from '../layout';
 
 function NotificationsPageContent() {
   const router = useRouter();
+  const { tenantSettings, loading, refreshTenantSettings } = useManager();
 
   const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // States
@@ -29,33 +30,17 @@ function NotificationsPageContent() {
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [telegramChatId, setTelegramChatId] = useState('');
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch('/api/tenant/settings');
-      if (res.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data);
-        setEmailEnabled(data.notifications?.emailEnabled || false);
-        setEmailRecipient(data.notifications?.emailRecipient || '');
-        setWhatsappEnabled(data.notifications?.whatsappEnabled || false);
-        setWhatsappRecipient(data.notifications?.whatsappRecipient || '');
-        setTelegramEnabled(data.notifications?.telegramEnabled || false);
-        setTelegramChatId(data.notifications?.telegramChatId || '');
-      }
-    } catch (err) {
-      console.error('Error fetching settings', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (tenantSettings) {
+      setSettings(tenantSettings);
+      setEmailEnabled(tenantSettings.notifications?.emailEnabled || false);
+      setEmailRecipient(tenantSettings.notifications?.emailRecipient || '');
+      setWhatsappEnabled(tenantSettings.notifications?.whatsappEnabled || false);
+      setWhatsappRecipient(tenantSettings.notifications?.whatsappRecipient || '');
+      setTelegramEnabled(tenantSettings.notifications?.telegramEnabled || false);
+      setTelegramChatId(tenantSettings.notifications?.telegramChatId || '');
+    }
+  }, [tenantSettings]);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -91,6 +76,7 @@ function NotificationsPageContent() {
       });
 
       if (res.ok) {
+        refreshTenantSettings();
         triggerToast('Notification channels saved successfully!');
       } else {
         alert('Failed to save settings');

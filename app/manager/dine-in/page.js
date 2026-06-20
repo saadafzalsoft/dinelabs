@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useManager } from '../layout';
 import {
   Armchair,
   Plus,
@@ -19,10 +20,16 @@ import {
 
 function DineInPageContent() {
   const router = useRouter();
+  const { 
+    tenantSettings, 
+    tables: contextTables, 
+    loading: contextLoading, 
+    refreshTenantSettings, 
+    refreshTables 
+  } = useManager();
 
   const [settings, setSettings] = useState(null);
   const [tables, setTables] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   // States
@@ -40,34 +47,20 @@ function DineInPageContent() {
   const dragCtxRef = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
 
-  const fetchData = async () => {
-    try {
-      const settingsRes = await fetch('/api/tenant/settings');
-      if (settingsRes.status === 401) {
-        router.push('/manager');
-        return;
-      }
-      if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
-        setSettings(settingsData);
-        setDineInEnabled(settingsData.enabledModes?.dineIn ?? true);
-      }
-
-      const tablesRes = await fetch('/api/tables');
-      if (tablesRes.ok) {
-        const tablesData = await tablesRes.json();
-        setTables(tablesData);
-      }
-    } catch (err) {
-      console.error('Error fetching dine-in data', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = contextLoading;
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (tenantSettings) {
+      setSettings(tenantSettings);
+      setDineInEnabled(tenantSettings.enabledModes?.dineIn ?? true);
+    }
+  }, [tenantSettings]);
+
+  useEffect(() => {
+    if (contextTables) {
+      setTables(contextTables);
+    }
+  }, [contextTables]);
 
   const triggerToast = (msg) => {
     const el = document.createElement('div');
@@ -101,6 +94,7 @@ function DineInPageContent() {
       });
 
       if (res.ok) {
+        await refreshTenantSettings();
         triggerToast('Dine-in status updated successfully!');
       } else {
         alert('Failed to save settings');
@@ -134,7 +128,7 @@ function DineInPageContent() {
 
       const data = await res.json();
       if (res.ok) {
-        setTables(prev => [...prev, data.table]);
+        await refreshTables();
         setNewTableName('');
         triggerToast(`Added table ${name}`);
       } else {
@@ -156,7 +150,7 @@ function DineInPageContent() {
       });
 
       if (res.ok) {
-        setTables(prev => prev.filter(t => t._id !== id));
+        await refreshTables();
         triggerToast(`Deleted ${name}`);
       } else {
         alert('Failed deleting table');
@@ -184,7 +178,7 @@ function DineInPageContent() {
       });
 
       if (res.ok) {
-        setTables(prev => prev.map(t => t._id === table._id ? { ...t, name } : t));
+        await refreshTables();
         triggerToast('Table renamed successfully');
       } else {
         alert('Failed to rename table');
@@ -262,7 +256,7 @@ function DineInPageContent() {
       }
 
       try {
-        await fetch('/api/tables', {
+        const res = await fetch('/api/tables', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -271,6 +265,9 @@ function DineInPageContent() {
             y: table.y
           })
         });
+        if (res.ok) {
+          await refreshTables();
+        }
       } catch (err) {
         console.error('Failed saving table coordinates', err);
       }

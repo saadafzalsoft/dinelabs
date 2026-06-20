@@ -1,9 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import './manager.css';
+import { WORLD_LANGUAGES } from '../../lib/constants';
+
+export const ManagerContext = createContext(null);
+
+export function useManager() {
+  const context = useContext(ManagerContext);
+  if (!context) {
+    throw new Error('useManager must be used within a ManagerProvider');
+  }
+  return context;
+}
 import {
   LayoutDashboard,
   ReceiptText,
@@ -33,6 +44,12 @@ function ManagerLayoutContent({ children }) {
   const currentTab = searchParams.get('tab') || '';
   
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
+  
+  useEffect(() => {
+    setNavigating(false);
+  }, [pathname, searchParams]);
+
   const [session, setSession] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -40,6 +57,115 @@ function ManagerLayoutContent({ children }) {
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const prevPendingCountRef = React.useRef(0);
+
+  // Cache state variables for manager dashboard and subpages
+  const [orders, setOrders] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [modifierGroups, setModifierGroups] = useState([]);
+  const [tenantSettings, setTenantSettings] = useState(null);
+  const [tables, setTables] = useState([]);
+  const [cacheLoading, setCacheLoading] = useState(true);
+
+  const fetchCacheData = async () => {
+    try {
+      const [ordersRes, catsRes, prodsRes, modsRes, settingsRes, tablesRes] = await Promise.all([
+        fetch('/api/orders'),
+        fetch('/api/categories'),
+        fetch('/api/products'),
+        fetch('/api/modifier-groups'),
+        fetch('/api/tenant/settings'),
+        fetch('/api/tables')
+      ]);
+
+      const [ordersData, catsData, prodsData, modsData, settingsData, tablesData] = await Promise.all([
+        ordersRes.ok ? ordersRes.json() : [],
+        catsRes.ok ? catsRes.json() : [],
+        prodsRes.ok ? prodsRes.json() : [],
+        modsRes.ok ? modsRes.json() : [],
+        settingsRes.ok ? settingsRes.json() : null,
+        tablesRes.ok ? tablesRes.json() : []
+      ]);
+
+      setOrders(ordersData);
+      setCategories(catsData);
+      setProducts(prodsData);
+      setModifierGroups(modsData);
+      setTenantSettings(settingsData);
+      setTables(tablesData);
+
+      const pendingCount = ordersData.filter(o => o.status === 'pending').length;
+      setPendingOrdersCount(pendingCount);
+    } catch (err) {
+      console.error('Failed to load manager data cache:', err);
+    } finally {
+      setCacheLoading(false);
+    }
+  };
+
+  const refreshOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+        setPendingOrdersCount(data.filter(o => o.status === 'pending').length);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) setCategories(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshProducts = async () => {
+    try {
+      const res = await fetch('/api/products');
+      if (res.ok) setProducts(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshModifierGroups = async () => {
+    try {
+      const res = await fetch('/api/modifier-groups');
+      if (res.ok) setModifierGroups(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshTenantSettings = async () => {
+    try {
+      const res = await fetch('/api/tenant/settings');
+      if (res.ok) setTenantSettings(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshTables = async () => {
+    try {
+      const res = await fetch('/api/tables');
+      if (res.ok) setTables(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+      fetchCacheData();
+    }
+  }, [session]);
 
   // Map icon names to components
   const iconsMap = {
@@ -56,43 +182,46 @@ function ManagerLayoutContent({ children }) {
     'bell': Bell,
   };
 
-  const LANGUAGES = {
-    en: { label: 'English', flag: '🇬🇧' },
-    ar: { label: 'العربية · Arabic', flag: '🇱🇧' },
-    ru: { label: 'Русский · Russian', flag: '🇷🇺' },
-    es: { label: 'Español · Spanish', flag: '🇪🇸' },
-    fr: { label: 'Français · French', flag: '🇫🇷' },
-  };
+  const LANGUAGES = WORLD_LANGUAGES;
 
-  // Fetch session status on load and path change
+  // Verify session once on mount
   useEffect(() => {
-    async function checkSession() {
-      const isLoginRoute = pathname === '/manager';
-      
+    async function initSession() {
       try {
         const res = await fetch('/api/auth/session');
         const data = await res.json();
-
         if (res.ok && data.authenticated) {
           setSession(data);
-          if (isLoginRoute) {
-            router.push(data.role === 'superadmin' ? '/super/dashboard' : '/manager/dashboard');
-          }
         } else {
           setSession(null);
-          if (!isLoginRoute) {
+          if (window.location.pathname !== '/manager') {
             router.push('/manager');
           }
         }
       } catch (err) {
         console.error('Session verify failed', err);
-        if (!isLoginRoute) router.push('/manager');
+        if (window.location.pathname !== '/manager') router.push('/manager');
       } finally {
         setLoading(false);
       }
     }
-    checkSession();
-  }, [pathname, router]);
+    initSession();
+  }, []); // Run ONLY once on mount!
+
+  // Guard routing on pathname changes
+  useEffect(() => {
+    if (loading) return;
+    const isLoginRoute = pathname === '/manager';
+    if (session) {
+      if (isLoginRoute) {
+        router.push(session.role === 'superadmin' ? '/super/dashboard' : '/manager/dashboard');
+      }
+    } else {
+      if (!isLoginRoute) {
+        router.push('/manager');
+      }
+    }
+  }, [pathname, session, loading, router]);
 
   // Load language settings from localStorage
   useEffect(() => {
@@ -104,25 +233,11 @@ function ManagerLayoutContent({ children }) {
     }
   }, []);
 
-  // Poll active pending orders count for sidebar badge
+  // Poll active pending orders count for sidebar badge and context
   useEffect(() => {
     if (!session) return;
-    
-    async function fetchPendingCount() {
-      try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-          const data = await res.json();
-          const pendingCount = data.filter(o => o.status === 'pending').length;
-          setPendingOrdersCount(pendingCount);
-        }
-      } catch (err) {
-        console.error('Failed to fetch pending orders count', err);
-      }
-    }
-
-    fetchPendingCount();
-    const interval = setInterval(fetchPendingCount, 10000);
+    refreshOrders();
+    const interval = setInterval(refreshOrders, 10000);
     return () => clearInterval(interval);
   }, [session]);
 
@@ -220,7 +335,7 @@ function ManagerLayoutContent({ children }) {
     setTimeout(() => el.remove(), 2500);
   };
 
-  if (loading) {
+  if (loading || (session && cacheLoading)) {
     return (
       <div className="layout" style={{ fontFamily: 'var(--font)' }}>
         {/* Sidebar Skeleton */}
@@ -267,9 +382,12 @@ function ManagerLayoutContent({ children }) {
     );
   }
 
-  // If not logged in, render login page without layout
+  // If not logged in, render login page only if on the login path
   if (!session) {
-    return <>{children}</>;
+    if (pathname === '/manager') {
+      return <>{children}</>;
+    }
+    return null;
   }
 
   const activeSlug = session.isMasquerading ? session.masqueradeTenantSlug : session.tenantSlug;
@@ -340,7 +458,57 @@ function ManagerLayoutContent({ children }) {
   };
 
   return (
-    <div className="layout">
+    <ManagerContext.Provider value={{
+      session,
+      orders,
+      categories,
+      products,
+      modifierGroups,
+      tenantSettings,
+      tables,
+      loading: cacheLoading || loading,
+      refreshOrders,
+      refreshCategories,
+      refreshProducts,
+      refreshModifierGroups,
+      refreshTenantSettings,
+      refreshTables
+    }}>
+      <div className="layout">
+        {navigating && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(255, 255, 255, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 99999,
+            animation: 'dl-fadeIn 0.2s ease'
+          }}>
+            <div className="spinner" style={{
+              width: '40px',
+              height: '40px',
+              border: '3px solid var(--line-2, #e5e7eb)',
+              borderTopColor: 'var(--ink, #000)',
+              borderRadius: '50%',
+              animation: 'dl-spin 0.8s linear infinite',
+              marginBottom: '16px'
+            }} />
+            <span style={{ fontSize: '14.5px', fontWeight: '700', color: 'var(--ink, #000)' }}>Loading portal...</span>
+            <style dangerouslySetInnerHTML={{ __html: `
+              @keyframes dl-spin {
+                to { transform: rotate(360deg); }
+              }
+              @keyframes dl-fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+            `}} />
+          </div>
+        )}
       {/* Live Order Received Toast Notification Banner */}
       {showNotificationBanner && pendingOrdersCount > 0 && (
         <div style={{
@@ -466,7 +634,12 @@ function ManagerLayoutContent({ children }) {
                   <Link
                     key={item.id}
                     href={href}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      if (pathname !== item.path) {
+                        setNavigating(true);
+                      }
+                    }}
                     className={`nav-item ${isActive ? 'active' : ''}`}
                   >
                     {IconComponent && <IconComponent className="ic" />}
@@ -593,6 +766,7 @@ function ManagerLayoutContent({ children }) {
         </main>
       </div>
     </div>
+    </ManagerContext.Provider>
   );
 }
 
