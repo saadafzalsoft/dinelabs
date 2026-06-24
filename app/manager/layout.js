@@ -275,7 +275,7 @@ function ManagerLayoutContent({ children }) {
   useEffect(() => {
     if (!session) return;
     refreshOrders();
-    const interval = setInterval(refreshOrders, 10000);
+    const interval = setInterval(refreshOrders, 30000);
     return () => clearInterval(interval);
   }, [session]);
 
@@ -505,6 +505,8 @@ function ManagerLayoutContent({ children }) {
       tenantSettings,
       tables,
       loading: cacheLoading || loading,
+      lang,
+      setLang,
       refreshOrders,
       refreshCategories,
       refreshProducts,
@@ -784,17 +786,22 @@ function ManagerLayoutContent({ children }) {
 
             <div className={`lang-menu ${langMenuOpen ? 'open' : ''}`}>
               <div className="lang-menu-head">Store Language</div>
-              {Object.keys(LANGUAGES).map(code => (
-                <button
-                  key={code}
-                  className={`lang-opt ${code === lang ? 'active' : ''}`}
-                  onClick={() => handleLangChange(code)}
-                >
-                  <span style={{ fontSize: '1.2rem' }}>{LANGUAGES[code].flag}</span>
-                  <span>{LANGUAGES[code].label}</span>
-                  {code === lang && <Check className="ic check-ic" />}
-                </button>
-              ))}
+              {Object.keys(LANGUAGES)
+                .filter(code => {
+                  if (!tenantSettings || !tenantSettings.languages || !tenantSettings.languages.length) return true;
+                  return tenantSettings.languages.includes(code);
+                })
+                .map(code => (
+                  <button
+                    key={code}
+                    className={`lang-opt ${code === lang ? 'active' : ''}`}
+                    onClick={() => handleLangChange(code)}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>{LANGUAGES[code].flag}</span>
+                    <span>{LANGUAGES[code].label}</span>
+                    {code === lang && <Check className="ic check-ic" />}
+                  </button>
+                ))}
             </div>
           </div>
         </header>
@@ -812,7 +819,7 @@ function ManagerLayoutContent({ children }) {
               {/* Left Panel */}
               <div className="support-modal-left">
                 <div className="support-icon-wrap">
-                  <LifeBuoy style={{ width: '24px', height: '24px', color: '#ffffff' }} />
+                  <i className="fa-solid fa-life-ring" style={{ fontSize: '24px', color: '#ffffff' }}></i>
                 </div>
                 <h3 className="support-left-title">We're here to help</h3>
                 <p className="support-left-desc">
@@ -822,11 +829,11 @@ function ManagerLayoutContent({ children }) {
                 
                 <div className="support-info-items">
                   <div className="support-info-item">
-                    <Clock style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+                    <i className="fa-regular fa-clock" style={{ fontSize: '14px', color: 'var(--ink-3)' }}></i>
                     <span>Typically replies within ~6 hours</span>
                   </div>
                   <div className="support-info-item">
-                    <Store style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+                    <i className="fa-solid fa-store" style={{ fontSize: '14px', color: 'var(--ink-3)' }}></i>
                     <span>Your store keeps running meanwhile</span>
                   </div>
                 </div>
@@ -834,11 +841,11 @@ function ManagerLayoutContent({ children }) {
                 <div className="support-direct-reach">
                   <div className="direct-reach-label">Reach us directly</div>
                   <a href="mailto:support@dinelabs.co" className="direct-reach-link">
-                    <span className="direct-reach-icon">✉</span>
+                    <span className="direct-reach-icon"><i className="fa-solid fa-envelope"></i></span>
                     <span>support@dinelabs.co</span>
                   </a>
                   <a href="tel:+995322606060" className="direct-reach-link">
-                    <span className="direct-reach-icon">📞</span>
+                    <span className="direct-reach-icon"><i className="fa-solid fa-phone"></i></span>
                     <span>+995 322 60 60 60</span>
                   </a>
                 </div>
@@ -853,7 +860,7 @@ function ManagerLayoutContent({ children }) {
                     <div className="form-group-wrap">
                       <label className="support-form-label">Your name</label>
                       <div className="input-with-icon">
-                        <span className="input-icon">👤</span>
+                        <span className="input-icon"><i className="fa-solid fa-user"></i></span>
                         <input 
                           type="text" 
                           className="support-input" 
@@ -873,7 +880,7 @@ function ManagerLayoutContent({ children }) {
                           className={`reach-tab ${reachMethod === 'whatsapp' ? 'active' : ''}`}
                           onClick={() => setReachMethod('whatsapp')}
                         >
-                          <span className="tab-icon">💬</span>
+                          <span className="tab-icon"><i className="fa-brands fa-whatsapp"></i></span>
                           <span>WhatsApp</span>
                         </button>
                         <button 
@@ -881,7 +888,7 @@ function ManagerLayoutContent({ children }) {
                           className={`reach-tab ${reachMethod === 'email' ? 'active' : ''}`}
                           onClick={() => setReachMethod('email')}
                         >
-                          <span className="tab-icon">✉</span>
+                          <span className="tab-icon"><i className="fa-solid fa-envelope"></i></span>
                           <span>Email</span>
                         </button>
                       </div>
@@ -891,7 +898,7 @@ function ManagerLayoutContent({ children }) {
                       <div className="form-group-wrap">
                         <label className="support-form-label">WhatsApp number</label>
                         <div className="input-with-icon">
-                          <span className="input-icon">📞</span>
+                          <span className="input-icon"><i className="fa-solid fa-phone"></i></span>
                           <input 
                             type="tel" 
                             className="support-input" 
@@ -906,7 +913,7 @@ function ManagerLayoutContent({ children }) {
                       <div className="form-group-wrap">
                         <label className="support-form-label">Email address</label>
                         <div className="input-with-icon">
-                          <span className="input-icon">✉</span>
+                          <span className="input-icon"><i className="fa-solid fa-envelope"></i></span>
                           <input 
                             type="email" 
                             className="support-input" 
@@ -942,13 +949,13 @@ function ManagerLayoutContent({ children }) {
                   </form>
                 ) : (
                   <div className="support-success-view">
-                    <div className="success-icon-badge">✓</div>
+                    <div className="success-icon-badge"><i className="fa-solid fa-check"></i></div>
                     <h3 className="success-title">Message sent — thanks, {supportName}</h3>
                     <p className="success-desc">
                       A Dinelabs teammate will reply by {reachMethod === 'whatsapp' ? 'WhatsApp at ' + supportPhone : 'email at ' + supportEmail} shortly, usually within a few hours.
                     </p>
                     <button type="button" className="ticket-badge-btn" onClick={closeSupportModal}>
-                      <span>🎫</span>
+                      <span><i className="fa-solid fa-ticket"></i></span>
                       <span>Ticket {ticketNo}</span>
                     </button>
                   </div>

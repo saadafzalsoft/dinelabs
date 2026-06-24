@@ -340,6 +340,15 @@ function NotificationsPageContent() {
                         <span>Active</span>
                       </div>
                     )}
+                    <div style={{ marginTop: '12px', padding: '12px 16px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '10px', fontSize: '0.8rem', color: '#0369a1', lineHeight: '1.45' }}>
+                      <strong>💬 Telegram Bot Setup Guide:</strong>
+                      <ol style={{ paddingLeft: '16px', marginTop: '6px', marginBottom: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <li>Find the bot <strong>@DinelabsOrdersBot</strong> on Telegram (or search in the app).</li>
+                        <li>Click <strong>Start</strong> (or send <code>/start</code>) to initiate a chat with the bot.</li>
+                        <li>Retrieve your unique Telegram Chat ID. You can easily find it by messaging <strong>@userinfobot</strong> on Telegram.</li>
+                        <li>Copy the numeric Chat ID, paste it above, enable the channel, and click <strong>Save changes</strong>.</li>
+                      </ol>
+                    </div>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '14px' }}>

@@ -18,7 +18,7 @@ import { useManager } from '../layout';
 
 function AddonsPageContent() {
   const router = useRouter();
-  const { modifierGroups: contextModifierGroups, loading, refreshModifierGroups } = useManager();
+  const { modifierGroups: contextModifierGroups, loading, refreshModifierGroups, lang } = useManager();
 
   const [modifierGroups, setModifierGroups] = useState([]);
 
@@ -93,7 +93,8 @@ function AddonsPageContent() {
       const payload = {
         name: groupName,
         type: groupType,
-        options: filteredOptions
+        options: filteredOptions,
+        lang: lang
       };
 
       if (editingGroup) {
@@ -162,11 +163,11 @@ function AddonsPageContent() {
 
   const loadGroupForEdit = (group) => {
     setEditingGroup(group);
-    setGroupName(group.name.en || '');
+    setGroupName(group.name[lang] || group.name.en || '');
     setGroupType(group.type);
     
     const optionsForForm = group.options.map(o => ({
-      name: typeof o.name === 'object' ? (o.name.en || '') : o.name,
+      name: typeof o.name === 'object' ? (o.name[lang] || o.name.en || '') : o.name,
       price: o.price.toString()
     }));
     setGroupOptions(optionsForForm);
@@ -249,7 +250,7 @@ function AddonsPageContent() {
                 modifierGroups.map(grp => (
                   <div key={grp._id} className="mod-card" style={{ border: '1px solid var(--line)', borderRadius: '16px', padding: '20px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '180px' }}>
                     <div className="mod-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                      <span className="mod-title" style={{ fontWeight: '700', fontSize: '1rem' }}>{grp.name.en}</span>
+                      <span className="mod-title" style={{ fontWeight: '700', fontSize: '1rem' }}>{grp.name[lang] || grp.name.en}</span>
                       <span className="pill pill-soft" style={{ fontSize: '10px', fontWeight: '700', padding: '3px 8px', textTransform: 'uppercase' }}>
                         {grp.type === 'variations' ? 'Sizes' : grp.type === 'addons' ? 'Add-on' : 'Removal'}
                       </span>
@@ -257,7 +258,7 @@ function AddonsPageContent() {
 
                     <div className="mod-opts" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flexGrow: 1, alignContent: 'flex-start', marginBottom: '16px' }}>
                       {grp.options?.map((opt, oIdx) => {
-                        const nameLabel = typeof opt.name === 'object' ? opt.name.en : opt.name;
+                        const nameLabel = typeof opt.name === 'object' ? (opt.name[lang] || opt.name.en || '') : opt.name;
                         return (
                           <span key={oIdx} className="tag" style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#1f2937', fontWeight: '600' }}>
                             {nameLabel} {parseFloat(opt.price) > 0 ? `(+$${parseFloat(opt.price).toFixed(2)})` : ''}
@@ -276,7 +277,7 @@ function AddonsPageContent() {
                       </button>
                       <button 
                         className="iconbtn del" 
-                        onClick={() => handleDeleteGroup(grp._id, grp.name.en)}
+                        onClick={() => handleDeleteGroup(grp._id, grp.name[lang] || grp.name.en)}
                         title="Delete"
                       >
                         <Trash2 className="ic" />

@@ -45,7 +45,11 @@ export async function GET(request) {
       .sort({ order: 1 })
       .toArray();
 
-    return NextResponse.json(products);
+    const response = NextResponse.json(products);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error('Products API GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -59,7 +63,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, description, price, imageUrl, categories, modifierGroups, isFeatured, variations, addons, removals } = await request.json();
+    const { name, description, price, discountedPrice, imageUrl, categories, modifierGroups, isFeatured, variations, addons, removals, lang = 'en' } = await request.json();
 
     if (!name || !price) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -79,14 +83,14 @@ export async function POST(request) {
     const tenantLangs = tenant?.languages || ['en', 'ar'];
 
     // Auto translate text on creation
-    const nameMap = await createTranslationMap(name, tenantLangs);
-    const descMap = await createTranslationMap(description || '', tenantLangs);
+    const nameMap = await createTranslationMap(name, tenantLangs, lang);
+    const descMap = await createTranslationMap(description || '', tenantLangs, lang);
 
     const processOptionsWithTranslations = async (optionsList) => {
       if (!optionsList || !Array.isArray(optionsList)) return [];
       const processed = [];
       for (const opt of optionsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs, lang) : opt.name;
         processed.push({
           name: nameMap,
           price: opt.price !== undefined ? parseFloat(opt.price) : 0
@@ -99,7 +103,7 @@ export async function POST(request) {
       if (!removalsList || !Array.isArray(removalsList)) return [];
       const processed = [];
       for (const opt of removalsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs, lang) : opt.name;
         processed.push({ name: nameMap });
       }
       return processed;
@@ -125,6 +129,7 @@ export async function POST(request) {
       variations: await processOptionsWithTranslations(variations),
       addons: await processOptionsWithTranslations(addons),
       removals: await processRemovalsWithTranslations(removals),
+      discountedPrice: parseFloat(discountedPrice) || 0,
       order: 99,
       createdAt: new Date(),
     };
@@ -145,7 +150,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { id, isBulkAction, productIds, isAvailable, categories, reorderedIds } = body;
+    const { id, isBulkAction, productIds, isAvailable, categories, reorderedIds, lang = 'en' } = body;
 
     const db = await getDb();
 
@@ -222,7 +227,12 @@ export async function PUT(request) {
       if (!optionsList || !Array.isArray(optionsList)) return [];
       const processed = [];
       for (const opt of optionsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
+        let nameMap;
+        if (typeof opt.name === 'object' && opt.name !== null && (opt.name[lang] || opt.name.en || opt.name.ar)) {
+          nameMap = opt.name;
+        } else {
+          nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs, lang) : opt.name;
+        }
         processed.push({
           name: nameMap,
           price: opt.price !== undefined ? parseFloat(opt.price) : 0
@@ -235,7 +245,12 @@ export async function PUT(request) {
       if (!removalsList || !Array.isArray(removalsList)) return [];
       const processed = [];
       for (const opt of removalsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
+        let nameMap;
+        if (typeof opt.name === 'object' && opt.name !== null && (opt.name[lang] || opt.name.en || opt.name.ar)) {
+          nameMap = opt.name;
+        } else {
+          nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs, lang) : opt.name;
+        }
         processed.push({ name: nameMap });
       }
       return processed;
@@ -243,10 +258,10 @@ export async function PUT(request) {
 
     const updateObj = {};
     if (body.name !== undefined) {
-      updateObj.name = await createTranslationMap(body.name, tenantLangs);
+      updateObj.name = await createTranslationMap(body.name, tenantLangs, lang);
     }
     if (body.description !== undefined) {
-      updateObj.description = await createTranslationMap(body.description || '', tenantLangs);
+      updateObj.description = await createTranslationMap(body.description || '', tenantLangs, lang);
     }
     if (body.price !== undefined) {
       updateObj.price = parseFloat(body.price);
@@ -277,6 +292,9 @@ export async function PUT(request) {
     }
     if (body.order !== undefined) {
       updateObj.order = parseInt(body.order);
+    }
+    if (body.discountedPrice !== undefined) {
+      updateObj.discountedPrice = parseFloat(body.discountedPrice) || 0;
     }
 
     await db.collection('products').updateOne(

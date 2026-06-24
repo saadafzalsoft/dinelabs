@@ -391,16 +391,16 @@ export default function SuperTiersPage() {
                   <div className="field-row">
                     <div className="field">
                       <label className="label">Monthly price</label>
-                      <div className="input-affix" style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <span className="pfx" style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px' }}>$</span>
-                        <input className="input" type="number" value={ePrice} onChange={(e) => setEPrice(e.target.value)} required style={{ border: 'none' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14.5px', fontWeight: '600', color: 'var(--text-muted)' }}>$</span>
+                        <input className="input" type="number" value={ePrice} onChange={(e) => setEPrice(e.target.value)} required />
                       </div>
                     </div>
                     <div className="field">
                       <label className="label">Annual price</label>
-                      <div className="input-affix" style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <span className="pfx" style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px' }}>$</span>
-                        <input className="input" type="number" value={ePriceAnnual} onChange={(e) => setEPriceAnnual(e.target.value)} required style={{ border: 'none' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14.5px', fontWeight: '600', color: 'var(--text-muted)' }}>$</span>
+                        <input className="input" type="number" value={ePriceAnnual} onChange={(e) => setEPriceAnnual(e.target.value)} required />
                       </div>
                     </div>
                   </div>

@@ -24,7 +24,7 @@ import { useManager } from '../layout';
 
 function CategoriesPageContent() {
   const router = useRouter();
-  const { categories: contextCategories, loading, refreshCategories } = useManager();
+  const { categories: contextCategories, loading, refreshCategories, lang } = useManager();
   
   const [categories, setCategories] = useState([]);
   const [savingCategory, setSavingCategory] = useState(false);
@@ -114,7 +114,8 @@ function CategoriesPageContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: editingCategory._id,
-            name: catName
+            name: catName,
+            lang: lang
           })
         });
         if (res.ok) {
@@ -129,7 +130,7 @@ function CategoriesPageContent() {
         const res = await fetch('/api/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: catName })
+          body: JSON.stringify({ name: catName, lang: lang })
         });
         const data = await res.json();
         if (res.ok) {
@@ -206,7 +207,7 @@ function CategoriesPageContent() {
 
   const loadCategoryForEdit = (category) => {
     setEditingCategory(category);
-    setCatName(category.name.en || '');
+    setCatName(category.name[lang] || category.name.en || '');
     setIsCategoryOpen(true);
   };
 
@@ -343,8 +344,13 @@ function CategoriesPageContent() {
                         </span>
                       </td>
                       <td>
-                        <div style={{ fontWeight: '700' }}>{c.name.en}</div>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.name.ar || ''}</span>
+                        <div style={{ fontWeight: '700' }}>{c.name[lang] || c.name.en || ''}</div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                          {Object.keys(c.name)
+                            .filter(l => l !== lang && c.name[l])
+                            .map(l => `${l.toUpperCase()}: ${c.name[l]}`)
+                            .join(' · ')}
+                        </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <button 
@@ -376,7 +382,7 @@ function CategoriesPageContent() {
                           </button>
                           <button 
                             className="iconbtn del" 
-                            onClick={() => handleDeleteCategory(c._id, c.name.en)}
+                            onClick={() => handleDeleteCategory(c._id, c.name[lang] || c.name.en)}
                             title="Delete"
                           >
                             <Trash2 className="ic" />

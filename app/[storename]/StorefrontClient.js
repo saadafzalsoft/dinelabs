@@ -118,7 +118,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   };
 
   // UI dictionary translations
-  const dict = {
+  // UI dictionary translations
+  const dictRaw = {
     en: {
       searchPlaceholder: "Search pizzas, sides, beverages...",
       all: "All",
@@ -268,8 +269,104 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       tableNoPlaceholder: "Table auto-scannée",
       free: "Gratuit",
       noFooter: "Sans pied de page"
+    },
+    de: {
+      searchPlaceholder: "Pizzas, Beilagen, Getränke suchen...",
+      all: "Alle",
+      offers: "Angebote & Pinned",
+      add: "In den Warenkorb",
+      emptyTitle: "Ihr Warenkorb ist leer",
+      emptySub: "Wählen Sie leckere Artikel aus dem Menü, um Ihre Bestellung aufzugeben.",
+      subtotal: "Zwischensumme",
+      deliveryFee: "Liefergebühr",
+      total: "Gesamt",
+      checkout: "Zur Kasse",
+      dineIn: "Vor Ort",
+      dineInDesc: "Tisch",
+      pickup: "Abholung",
+      pickupDesc: "15 Min.",
+      delivery: "Lieferung",
+      deliveryDesc: "45 Min.",
+      outOfStock: "Ausverkauft",
+      warningSuspended: "Dienst vorübergehend nicht verfügbar (Zahlung ausgesetzt)",
+      warningClosed: "Das Geschäft ist geschlossen. Zurzeit werden keine Bestellungen angenommen.",
+      closed: "Geschlossen",
+      sizeLabel: "Größe wählen",
+      addonLabel: "Premium-Extras",
+      removalLabel: "Zutaten entfernen",
+      chooseMandatory: "Pflichtfeld",
+      addedToCart: "In den Warenkorb gelegt!",
+      tableNoPlaceholder: "Tischnummer automatisch gescannt",
+      free: "Kostenlos",
+      noFooter: "Keine Fußzeile"
+    },
+    it: {
+      searchPlaceholder: "Cerca pizze, contorni, bevande...",
+      all: "Tutto",
+      offers: "Offerte e Consigliati",
+      add: "Aggiungi al carrello",
+      emptyTitle: "Il tuo carrello è vuoto",
+      emptySub: "Scegli deliziosi piatti dal menu per comporre il tuo ordine.",
+      subtotal: "Totale parziale",
+      deliveryFee: "Spese di spedizione",
+      total: "Totale",
+      checkout: "Procedi all'ordine",
+      dineIn: "Al tavolo",
+      dineInDesc: "Tavolo",
+      pickup: "Asporto",
+      pickupDesc: "15 min",
+      delivery: "Consegna",
+      deliveryDesc: "45 min",
+      outOfStock: "Esaurito",
+      warningSuspended: "Servizio temporaneamente non disponibile (conto sospeso)",
+      warningClosed: "Il negozio è chiuso. Non si accettano ordini al momento.",
+      closed: "Chiuso",
+      sizeLabel: "Scegli dimensione",
+      addonLabel: "Aggiunte premium",
+      removalLabel: "Rimuovi ingredienti",
+      chooseMandatory: "Selezione obbligatoria",
+      addedToCart: "Aggiunto al carrello!",
+      tableNoPlaceholder: "Tavolo scansionato automaticamente",
+      free: "Gratis",
+      noFooter: "Nessun piè di pagina"
+    },
+    ka: {
+      searchPlaceholder: "მოძებნეთ პიცა, გარნირი, სასმელები...",
+      all: "ყველა",
+      offers: "აქციები და რჩეული",
+      add: "კალათაში დამატება",
+      emptyTitle: "თქვენი კალათა ცარიელია",
+      emptySub: "აირჩიეთ გემრიელი კერძები მენიუდან შეკვეთის გასაფორმებლად.",
+      subtotal: "ჯამი",
+      deliveryFee: "მიწოდების საფასური",
+      total: "სულ",
+      checkout: "გაფორმება",
+      dineIn: "ადგილზე",
+      dineInDesc: "მაგიდა",
+      pickup: "წაღება",
+      pickupDesc: "15 წთ",
+      delivery: "მიწოდება",
+      deliveryDesc: "45 წთ",
+      outOfStock: "ამოიწურა",
+      warningSuspended: "სერვისი დროებით მიუწვდომელია (ანგარიში შეჩერებულია)",
+      warningClosed: "მაღაზია დაკეტილია. შეკვეთები ამჟამად არ მიიღება.",
+      closed: "დაკეტილია",
+      sizeLabel: "აირჩიეთ ზომა",
+      addonLabel: "პრემიუმ დანამატები",
+      removalLabel: "ინგრედიენტების ამოღება",
+      chooseMandatory: "სავალდებულო არჩევანი",
+      addedToCart: "დაემატა კალათაში!",
+      tableNoPlaceholder: "მაგიდის ნომერი სკანირებულია",
+      free: "უფასო",
+      noFooter: "ფუტერის გარეშე"
     }
   };
+
+  const dict = new Proxy(dictRaw, {
+    get: (target, name) => {
+      return target[name] || target['en'];
+    }
+  });
 
   // Check if store is open
   const checkIfStoreOpen = (openingHours) => {
@@ -315,7 +412,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Opening the tripartite customisation modal
   const openCustomizer = (product) => {
     if (tenant.status !== 'active') return; // Suspended is browse-only
-    if (!product.isAvailable) return; // Out of stock
+    if (!product.isAvailable) return; // Out of stock — prevent ordering
     if (isClosed) return; // Shop is closed, no ordering!
 
     setSelectedProduct(product);
@@ -340,7 +437,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   useEffect(() => {
     if (!selectedProduct) return;
     
-    let price = selectedProduct.price;
+    let price = (selectedProduct.discountedPrice && selectedProduct.discountedPrice > 0) ? selectedProduct.discountedPrice : selectedProduct.price;
 
     // Size impact
     if (selectedProduct.variations && selectedProduct.variations.length > 0) {
@@ -398,7 +495,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       id: new Date().getTime().toString(), // Unique cart element id
       productId: selectedProduct._id,
       name: selectedProduct.name,
-      basePrice: selectedProduct.price,
+      basePrice: (selectedProduct.discountedPrice && selectedProduct.discountedPrice > 0) ? selectedProduct.discountedPrice : selectedProduct.price,
       quantity: modalQty,
       size: modalSize,
       addons: modalAddons,
@@ -629,7 +726,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           
           {/* Starred Promotion pinned category banner */}
           {sortedCategories.filter(c => c.isPinned).map(cat => {
-            const promoProducts = initialProducts.filter(p => p.categories.includes(cat._id) && p.isAvailable);
+            const promoProducts = initialProducts.filter(p => p.categories.includes(cat._id));
             if (promoProducts.length === 0) return null;
             return (
               <section key={cat._id} className="promo-section" style={{ marginBottom: '32px' }}>
@@ -645,7 +742,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       key={product._id} 
                       className="offer-card"
                       onClick={() => openCustomizer(product)}
-                      style={isClosed ? { cursor: 'default' } : {}}
+                      style={{ ...(isClosed ? { cursor: 'default' } : {}), ...(product.isAvailable ? {} : { opacity: 0.5, pointerEvents: 'none' }) }}
                     >
                       <div className="offer-image-wrapper">
                         {product.imageUrl ? (
@@ -655,9 +752,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                             className="offer-img"
                           />
                         ) : (
-                          <div className="offer-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
-                            No Image
-                          </div>
+                          <img 
+                            src="/assets/No Image Icon.svg" 
+                            alt={t(product.name)} 
+                            className="offer-img"
+                            style={{ objectFit: 'cover' }}
+                          />
                         )}
                         {tenant.status === 'active' && !isClosed && (
                           <div className="plus-overlay-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -666,8 +766,15 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         )}
                       </div>
                       <h3 className="offer-title">{t(product.name)}</h3>
-                      {isClosed ? (
+                      {!product.isAvailable ? (
+                        <span className="out-of-stock-badge">{dict[lang].outOfStock}</span>
+                      ) : isClosed ? (
                         <p className="offer-price" style={{ color: 'var(--brand-red)', fontWeight: 'bold', textDecoration: 'none' }}>{dict[lang].closed}</p>
+                      ) : product.discountedPrice && product.discountedPrice > 0 ? (
+                        <p className="offer-price" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '0.8em' }}>{formatPrice(product.price)}</span>
+                          <span style={{ color: 'var(--brand-red)', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
+                        </p>
                       ) : (
                         <p className="offer-price" style={{ textDecoration: 'none' }}>{formatPrice(product.price)}</p>
                       )}
@@ -756,9 +863,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         className="product-img"
                       />
                     ) : (
-                      <div className="product-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
-                        No Image
-                      </div>
+                      <img 
+                        src="/assets/No Image Icon.svg" 
+                        alt={t(product.name)} 
+                        className="product-img"
+                        style={{ objectFit: 'cover' }}
+                      />
                     )}
                     {tenant.status === 'active' && !isClosed && (
                       <div className="plus-overlay-btn" style={{
@@ -789,6 +899,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       <span className="closed-badge" style={{ backgroundColor: '#f59e0b', color: '#000000', fontSize: '0.75rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', width: 'fit-content', display: 'inline-block' }}>
                         {dict[lang].closed}
                       </span>
+                    ) : product.discountedPrice && product.discountedPrice > 0 ? (
+                      <div className="product-price-row" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span className="product-price" style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '0.8em' }}>{formatPrice(product.price)}</span>
+                        <span className="product-price" style={{ color: 'var(--brand-red)', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
+                      </div>
                     ) : (
                       <div className="product-price-row">
                         <span className="product-price" style={{ textDecoration: 'none' }}>{formatPrice(product.price)}</span>
@@ -991,9 +1106,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   className="modal-pizza-img"
                 />
               ) : (
-                <div className="modal-pizza-img" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '14px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', height: '100%' }}>
-                  No Image Available
-                </div>
+                <img 
+                  src="/assets/No Image Icon.svg" 
+                  alt={t(selectedProduct.name)} 
+                  className="modal-pizza-img"
+                  style={{ objectFit: 'cover' }}
+                />
               )}
               <button 
                 onClick={() => setSelectedProduct(null)}
@@ -1343,6 +1461,77 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               {t(cat.name)}
             </button>
           ))}
+          
+          {tenant.address && (
+            <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', marginTop: '16px' }}>
+              <h4 style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="fa-solid fa-location-dot" style={{ color: 'var(--color-primary)' }}></i> Address
+              </h4>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', margin: 0, lineHeight: '1.4' }}>{tenant.address}</p>
+            </div>
+          )}
+
+          {(() => {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const currentDay = days[new Date().getDay()];
+            const hoursToday = tenant.openingHours?.find(h => h.day === currentDay);
+            if (!hoursToday) return null;
+            return (
+              <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', marginTop: '16px' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="fa-solid fa-clock" style={{ color: 'var(--color-primary)' }}></i> Today's Hours
+                </h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', margin: 0 }}>
+                  {hoursToday.isOpen ? `${hoursToday.open} - ${hoursToday.close}` : 'Closed'}
+                </p>
+              </div>
+            );
+          })()}
+
+          {(tenant.website || tenant.facebook || tenant.x || tenant.youtube || tenant.instagram || tenant.tiktok || tenant.whatsappNumber || (tenant.notifications && tenant.notifications.whatsappNumber)) && (
+            <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', marginTop: '16px', paddingBottom: '16px' }}>
+              <h4 style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Follow Us
+              </h4>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                {tenant.website && (
+                  <a href={tenant.website.startsWith('http') ? tenant.website : `https://${tenant.website}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-main)', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-solid fa-globe"></i>
+                  </a>
+                )}
+                {tenant.facebook && (
+                  <a href={tenant.facebook.startsWith('http') ? tenant.facebook : `https://facebook.com/${tenant.facebook}`} target="_blank" rel="noopener noreferrer" style={{ color: '#1877F2', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-facebook"></i>
+                  </a>
+                )}
+                {tenant.x && (
+                  <a href={tenant.x.startsWith('http') ? tenant.x : `https://x.com/${tenant.x}`} target="_blank" rel="noopener noreferrer" style={{ color: '#000000', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-x-twitter"></i>
+                  </a>
+                )}
+                {tenant.youtube && (
+                  <a href={tenant.youtube.startsWith('http') ? tenant.youtube : `https://youtube.com/${tenant.youtube}`} target="_blank" rel="noopener noreferrer" style={{ color: '#FF0000', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-youtube"></i>
+                  </a>
+                )}
+                {tenant.instagram && (
+                  <a href={tenant.instagram.startsWith('http') ? tenant.instagram : `https://instagram.com/${tenant.instagram}`} target="_blank" rel="noopener noreferrer" style={{ color: '#E1306C', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-instagram"></i>
+                  </a>
+                )}
+                {tenant.tiktok && (
+                  <a href={tenant.tiktok.startsWith('http') ? tenant.tiktok : `https://tiktok.com/@${tenant.tiktok}`} target="_blank" rel="noopener noreferrer" style={{ color: '#000000', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-tiktok"></i>
+                  </a>
+                )}
+                {(tenant.whatsappNumber || (tenant.notifications && tenant.notifications.whatsappNumber)) && (
+                  <a href={`https://wa.me/${(tenant.whatsappNumber || tenant.notifications.whatsappNumber).replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', fontSize: '1.2rem', textDecoration: 'none' }}>
+                    <i className="fa-brands fa-whatsapp"></i>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 

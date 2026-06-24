@@ -1169,8 +1169,8 @@ export default function RestaurantDetailPage() {
               </div>
               <div className="field">
                 <label className="label" htmlFor="bAmount">Amount per period</label>
-                <div className="input-affix">
-                  <span className="pfx">$</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '14.5px', fontWeight: '600', color: 'var(--text-muted)' }}>$</span>
                   <input
                     className="input"
                     id="bAmount"

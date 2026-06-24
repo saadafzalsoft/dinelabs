@@ -77,7 +77,7 @@ export default function OrderConfirmationPage() {
     };
 
     fetchOrder();
-    const interval = setInterval(fetchOrder, 5000);
+    const interval = setInterval(fetchOrder, 30000);
 
     return () => clearInterval(interval);
   }, [id]);
@@ -189,13 +189,14 @@ export default function OrderConfirmationPage() {
 
   // Progress Bar Steps Definitions
   const steps = [
-    { label: 'Placed', desc: 'Order received by kitchen' },
-    { label: 'Preparing', desc: 'Chef is cooking your order' },
+    { label: 'Placed', desc: 'Order received by kitchen', icon: 'fa-clipboard-check' },
+    { label: 'Preparing', desc: 'Chef is cooking your order', icon: 'fa-fire-burner' },
     { 
       label: order.type === 'delivery' ? 'On the Way' : 'Ready', 
-      desc: order.type === 'delivery' ? 'Out for delivery transit' : 'Ready for collection' 
+      desc: order.type === 'delivery' ? 'Out for delivery transit' : 'Ready for collection',
+      icon: order.type === 'delivery' ? 'fa-truck-fast' : 'fa-hand-holding'
     },
-    { label: 'Completed', desc: 'Thank you for your visit!' }
+    { label: 'Completed', desc: 'Thank you for your visit!', icon: 'fa-circle-check' }
   ];
 
   // Estimated Minutes Left Calculation
@@ -262,7 +263,13 @@ export default function OrderConfirmationPage() {
             fontSize: '32px', 
             marginBottom: '16px' 
           }}>
-            {order.status === 'declined' ? '✕' : order.status === 'completed' ? '✓' : '⏳'}
+            {order.status === 'declined' ? (
+              <i className="fa-solid fa-xmark"></i>
+            ) : order.status === 'completed' ? (
+              <i className="fa-solid fa-check"></i>
+            ) : (
+              <i className="fa-solid fa-hourglass-half fa-spin"></i>
+            )}
           </div>
 
           <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: '800', marginBottom: '8px' }}>
@@ -356,7 +363,7 @@ export default function OrderConfirmationPage() {
                         fontWeight: 'bold',
                         transition: 'all 0.4s ease'
                       }}>
-                        {isCompleted ? '✓' : idx + 1}
+                        {isCompleted ? <i className="fa-solid fa-check"></i> : <i className={`fa-solid ${step.icon}`} style={{ fontSize: '11px' }}></i>}
                       </div>
                       <span style={{ 
                         fontSize: '0.75rem', 
@@ -382,7 +389,9 @@ export default function OrderConfirmationPage() {
                 gap: '12px',
                 borderLeft: '4px solid var(--pos)'
               }}>
-                <span style={{ fontSize: '20px' }}>🔔</span>
+                <span style={{ fontSize: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-bell" style={{ color: 'var(--pos)' }}></i>
+                </span>
                 <div>
                   <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{steps[activeStep]?.label}</div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '2px' }}>{steps[activeStep]?.desc}</div>
@@ -424,8 +433,8 @@ export default function OrderConfirmationPage() {
               Dine-In
             </div>
 
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#d1fae5', color: 'var(--pos)', fontSize: '24px', marginBottom: '16px' }}>
-              🍽️
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyCenter: 'center', width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#d1fae5', color: 'var(--pos)', fontSize: '24px', marginBottom: '16px', justifyContent: 'center' }}>
+              <i className="fa-solid fa-utensils"></i>
             </div>
 
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>
@@ -454,7 +463,7 @@ export default function OrderConfirmationPage() {
               </span>
               {table && (
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                  📍 {table.location} Section · 🪑 {table.chairs} Chairs
+                  <i className="fa-solid fa-map-pin"></i> {table.location} Section · <i className="fa-solid fa-chair"></i> {table.chairs} Chairs
                 </span>
               )}
             </div>
@@ -479,7 +488,7 @@ export default function OrderConfirmationPage() {
             </div>
 
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', lineHeight: 1.4, padding: '0 12px' }}>
-              📲 Waitstaff Scanning Guide:<br />
+              <i className="fa-solid fa-mobile-screen-button"></i> Waitstaff Scanning Guide:<br />
               <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>
                 Scan this card to instantly find order #<strong>{order.orderNo}</strong> on your device, approve the kitchen ticket, and match the table placement.
               </span>
@@ -487,9 +496,8 @@ export default function OrderConfirmationPage() {
           </div>
         )}
 
-        {/* Call support warning callout box */}
-        <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '24px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600' }}>
-          ⚠️ Order cannot be cancelled or modified after submission. For any changes, please contact the restaurant directly.
+        <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '24px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="fa-solid fa-circle-info" style={{ color: '#d97706', fontSize: '1.1rem' }}></i> Order cannot be cancelled or modified after submission. For any changes, please contact the restaurant directly.
         </div>
 
         {/* Card: Summary of customer fulfillment */}
@@ -548,8 +556,8 @@ export default function OrderConfirmationPage() {
                     {item.removedIngredients && item.removedIngredients.length > 0 && `, (No ${item.removedIngredients.join(', ')})`}
                   </span>
                   {item.notes && (
-                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-red)', fontStyle: 'italic', marginTop: '2px' }}>
-                      ✎ Note: {item.notes}
+                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-red)', fontStyle: 'italic', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fa-solid fa-pencil" style={{ fontSize: '0.75rem' }}></i> Note: {item.notes}
                     </div>
                   )}
                 </div>

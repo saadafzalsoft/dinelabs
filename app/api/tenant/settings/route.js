@@ -59,7 +59,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
 
-    return NextResponse.json(tenant);
+    const response = NextResponse.json(tenant);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error('Tenant settings GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -122,6 +126,12 @@ export async function PUT(request) {
         updateObj.notifications.whatsappNumber = body.whatsappNumber;
       }
     }
+    if (body.country !== undefined) updateObj.country = body.country;
+    if (body.managerLanguage !== undefined) updateObj.managerLanguage = body.managerLanguage;
+    if (body.website !== undefined) updateObj.website = body.website;
+    if (body.facebook !== undefined) updateObj.facebook = body.facebook;
+    if (body.x !== undefined) updateObj.x = body.x;
+    if (body.youtube !== undefined) updateObj.youtube = body.youtube;
     
     // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin
     if (enabledModes !== undefined) {

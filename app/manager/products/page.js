@@ -48,7 +48,8 @@ function ProductsPageContent() {
     loading,
     refreshProducts,
     refreshCategories,
-    refreshModifierGroups
+    refreshModifierGroups,
+    lang
   } = useManager();
 
   const [products, setProducts] = useState([]);
@@ -89,6 +90,7 @@ function ProductsPageContent() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [prodName, setProdName] = useState('');
   const [prodPrice, setProdPrice] = useState('');
+  const [prodDiscountedPrice, setProdDiscountedPrice] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodCatIds, setProdCatIds] = useState([]);
   const [prodImage, setProdImage] = useState('');
@@ -514,7 +516,9 @@ function ProductsPageContent() {
         isFeatured: prodIsFeatured,
         variations: prodVariations.filter(v => v.name.trim() !== ''),
         addons: prodAddons.filter(a => a.name.trim() !== ''),
-        removals: prodRemovals.filter(r => r.name.trim() !== '')
+        removals: prodRemovals.filter(r => r.name.trim() !== ''),
+        discountedPrice: prodDiscountedPrice ? parseFloat(prodDiscountedPrice) : 0,
+        lang: lang
       };
 
       if (editingProduct) {
@@ -581,28 +585,29 @@ function ProductsPageContent() {
 
   const loadProductForEdit = (product) => {
     setEditingProduct(product);
-    setProdName(product.name.en || '');
+    setProdName(product.name[lang] || product.name.en || '');
     setProdPrice(product.price.toString());
-    setProdDesc(product.description?.en || '');
+    setProdDiscountedPrice(product.discountedPrice ? product.discountedPrice.toString() : '');
+    setProdDesc(product.description?.[lang] || product.description?.en || '');
     setProdCatIds(product.categories || []);
     setProdImage(product.imageUrl || '');
     setProdModGroups(product.modifierGroups || []);
     setProdIsFeatured(product.isFeatured || false);
     setProdVariations(
       (product.variations || []).map(v => ({
-        name: typeof v.name === 'object' ? (v.name.en || '') : (v.name || ''),
+        name: typeof v.name === 'object' ? (v.name[lang] || v.name.en || '') : (v.name || ''),
         price: v.price?.toString() || '0.00'
       }))
     );
     setProdAddons(
       (product.addons || []).map(a => ({
-        name: typeof a.name === 'object' ? (a.name.en || '') : (a.name || ''),
+        name: typeof a.name === 'object' ? (a.name[lang] || a.name.en || '') : (a.name || ''),
         price: a.price?.toString() || '0.00'
       }))
     );
     setProdRemovals(
       (product.removals || []).map(r => ({
-        name: typeof r.name === 'object' ? (r.name.en || '') : (r.name || '')
+        name: typeof r.name === 'object' ? (r.name[lang] || r.name.en || '') : (r.name || '')
       }))
     );
     setIsProductOpen(true);
@@ -636,7 +641,8 @@ function ProductsPageContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: editingCategory._id,
-            name: catName
+            name: catName,
+            lang: lang
           })
         });
         if (res.ok) {
@@ -651,7 +657,7 @@ function ProductsPageContent() {
         const res = await fetch('/api/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: catName })
+          body: JSON.stringify({ name: catName, lang: lang })
         });
         const data = await res.json();
         if (res.ok) {
@@ -718,7 +724,7 @@ function ProductsPageContent() {
 
   const loadCategoryForEdit = (category) => {
     setEditingCategory(category);
-    setCatName(category.name.en || '');
+    setCatName(category.name[lang] || category.name.en || '');
     setIsCategoryOpen(true);
   };
 
@@ -743,7 +749,8 @@ function ProductsPageContent() {
       const payload = {
         name: groupName,
         type: groupType,
-        options: filteredOptions
+        options: filteredOptions,
+        lang: lang
       };
 
       if (editingGroup) {
@@ -811,12 +818,12 @@ function ProductsPageContent() {
 
   const loadGroupForEdit = (group) => {
     setEditingGroup(group);
-    setGroupName(group.name.en || '');
+    setGroupName(group.name[lang] || group.name.en || '');
     setGroupType(group.type);
     
-    // Options name maps to option.name.en or option.name
+    // Options name maps to option.name[lang] || option.name.en or option.name
     const optionsForForm = group.options.map(o => ({
-      name: typeof o.name === 'object' ? (o.name.en || '') : o.name,
+      name: typeof o.name === 'object' ? (o.name[lang] || o.name.en || '') : o.name,
       price: o.price.toString()
     }));
     setGroupOptions(optionsForForm);
@@ -1004,7 +1011,7 @@ function ProductsPageContent() {
   // Products filtering logic
   const getFilteredProducts = () => {
     return products.filter(p => {
-      const nameMatch = searchQuery === '' || p.name.en?.toLowerCase().includes(searchQuery.toLowerCase());
+      const nameMatch = searchQuery === '' || (p.name[lang] || p.name.en)?.toLowerCase().includes(searchQuery.toLowerCase());
       const catMatch = selectedCatFilter === '' || p.categories?.includes(selectedCatFilter);
       const availMatch = selectedAvailFilter === '' || 
         (selectedAvailFilter === 'in' ? p.isAvailable : !p.isAvailable);
@@ -1018,28 +1025,28 @@ function ProductsPageContent() {
     const groups = {};
 
     categories.forEach(c => {
-      groups[c.name.en] = {
-        categoryName: c.name.en,
-        arabicName: c.name.ar,
+      groups[c._id] = {
+        categoryId: c._id,
+        categoryName: c.name[lang] || c.name.en || '',
         list: []
       };
     });
     
-    groups['Uncategorized'] = {
+    groups['uncategorized'] = {
+      categoryId: 'uncategorized',
       categoryName: 'Uncategorized',
       list: []
     };
 
     list.forEach(p => {
       if (!p.categories || p.categories.length === 0) {
-        groups['Uncategorized'].list.push(p);
+        groups['uncategorized'].list.push(p);
       } else {
         p.categories.forEach(catId => {
           const match = categories.find(c => c._id === catId);
-          if (match && groups[match.name.en]) {
-            // Avoid adding same product twice to the same group list
-            if (!groups[match.name.en].list.some(x => x._id === p._id)) {
-              groups[match.name.en].list.push(p);
+          if (match && groups[match._id]) {
+            if (!groups[match._id].list.some(x => x._id === p._id)) {
+              groups[match._id].list.push(p);
             }
           }
         });
@@ -1210,7 +1217,7 @@ function ProductsPageContent() {
                   onChange={setSelectedCatFilter}
                   options={[
                     { value: '', label: 'All categories' },
-                    ...categories.map(c => ({ value: c._id, label: c.name.en }))
+                    ...categories.map(c => ({ value: c._id, label: c.name[lang] || c.name.en }))
                   ]}
                   placeholder="All categories"
                   style={{ width: '180px' }}
@@ -1284,12 +1291,12 @@ function ProductsPageContent() {
                       { value: 'delete', label: 'Delete selected' },
                       ...categories.map(c => ({
                         value: `set-category:${c._id}`,
-                        label: `Assign Category: ${c.name.en}`,
+                        label: `Assign Category: ${c.name[lang] || c.name.en}`,
                         subtitle: 'Assign Category'
                       })),
                       ...modifierGroups.map(mg => ({
                         value: `add-modifier:${mg._id}`,
-                        label: `Assign Add-ons: ${mg.name.en} (${mg.type})`,
+                        label: `Assign Add-ons: ${mg.name[lang] || mg.name.en} (${mg.type})`,
                         subtitle: 'Assign Add-ons Group'
                       }))
                     ]}
@@ -1340,7 +1347,7 @@ function ProductsPageContent() {
                       </tr>
                     ) : (
                       groupedCategoryData.map(group => (
-                        <React.Fragment key={group.categoryName}>
+                        <React.Fragment key={group.categoryId}>
                           {/* Category Row header in table */}
                           <tr className="cat-row">
                             <td colSpan="7">
@@ -1384,16 +1391,16 @@ function ProductsPageContent() {
                                   <div className="p-cell">
                                     <span className="thumb">
                                       {p.imageUrl ? (
-                                        <img src={p.imageUrl} alt={p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={p.imageUrl} alt={p.name[lang] || p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       ) : (
                                         <img src="/assets/No Image Icon.svg" alt="No image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       )}
                                     </span>
                                     <div>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <div className="p-name">{p.name.en}</div>
+                                        <div className="p-name">{p.name[lang] || p.name.en}</div>
                                       </div>
-                                      <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.en || 'No description'}</div>
+                                      <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.[lang] || p.description?.en || 'No description'}</div>
                                     </div>
                                   </div>
                                 </td>
@@ -1405,7 +1412,7 @@ function ProductsPageContent() {
                                         const matchedCat = categories.find(c => c._id === catId);
                                         return matchedCat ? (
                                           <span key={catId} className="tag" style={{ backgroundColor: 'var(--pos-bg)', color: 'var(--pos)', borderColor: 'transparent', fontWeight: '600' }}>
-                                            {matchedCat.name.en}
+                                            {matchedCat.name[lang] || matchedCat.name.en}
                                           </span>
                                         ) : null;
                                       })
@@ -1416,7 +1423,14 @@ function ProductsPageContent() {
                                 </td>
 
                                 <td>
-                                  <span className="price tnum">${parseFloat(p.price).toFixed(2)}</span>
+                                  {p.discountedPrice && p.discountedPrice > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      <span className="price tnum" style={{ textDecoration: 'line-through', color: 'var(--ink-3)', fontSize: '0.8em' }}>${parseFloat(p.price).toFixed(2)}</span>
+                                      <span className="price tnum" style={{ color: '#ef4444', fontWeight: '700' }}>${parseFloat(p.discountedPrice).toFixed(2)}</span>
+                                    </div>
+                                  ) : (
+                                    <span className="price tnum">${parseFloat(p.price).toFixed(2)}</span>
+                                  )}
                                 </td>
 
                                 <td>
@@ -1447,7 +1461,7 @@ function ProductsPageContent() {
                                     </button>
                                     <button 
                                       className="iconbtn del" 
-                                      onClick={() => handleDeleteProduct(p._id, p.name.en)}
+                                      onClick={() => handleDeleteProduct(p._id, p.name[lang] || p.name.en)}
                                       title="Delete"
                                     >
                                       <Trash2 className="ic" />
@@ -1511,6 +1525,21 @@ function ProductsPageContent() {
           </div>
 
           <div className="field">
+            <label className="label">Discounted price <span style={{ fontWeight: '400', color: 'var(--ink-3)', fontSize: '0.75rem' }}>(optional)</span></label>
+            <div className="input-affix">
+              <span className="pfx">$</span>
+              <input 
+                className="input" 
+                value={prodDiscountedPrice}
+                onChange={(e) => setProdDiscountedPrice(e.target.value)}
+                placeholder="0.00 (leave empty for no discount)" 
+                type="number"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <div className="field">
             <label className="label">Categories</label>
             <div className="checklist" style={{ maxHeight: '150px', overflowY: 'auto' }}>
               {categories.map(c => (
@@ -1527,7 +1556,7 @@ function ProductsPageContent() {
                   >
                     <Check className="ic" />
                   </span>
-                  <span>{c.name.en}</span>
+                  <span>{c.name[lang] || c.name.en}</span>
                 </label>
               ))}
             </div>
@@ -1550,7 +1579,7 @@ function ProductsPageContent() {
                   >
                     <Check className="ic" />
                   </span>
-                  <span>{grp.name.en}</span>
+                  <span>{grp.name[lang] || grp.name.en}</span>
                   <span className="meta">{grp.type}</span>
                 </label>
               ))}

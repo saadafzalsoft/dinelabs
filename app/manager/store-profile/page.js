@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   Store,
   Check,
-  Share2
+  Share2,
+  Globe,
+  Phone
 } from 'lucide-react';
 import { useManager } from '../layout';
+import { WORLD_LANGUAGES, WORLD_COUNTRIES, WORLD_CURRENCIES } from '../../../lib/constants';
 
 function StoreProfilePageContent() {
   const router = useRouter();
@@ -21,9 +24,22 @@ function StoreProfilePageContent() {
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [address, setAddress] = useState('');
+  
+  // Custom states added for prototype alignment
+  const [country, setCountry] = useState('Lebanon');
+  const [baseCurrency, setBaseCurrency] = useState('USD');
+  const [selectedLanguages, setSelectedLanguages] = useState(['en']);
+  const [defaultLanguage, setDefaultLanguage] = useState('en');
+  const [managerLanguage, setManagerLanguage] = useState('en');
+  
+  // Expanded Social links states
   const [instagram, setInstagram] = useState('');
   const [tiktok, setTiktok] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [website, setWebsite] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [xLink, setXLink] = useState('');
+  const [youtube, setYoutube] = useState('');
 
   useEffect(() => {
     if (tenantSettings) {
@@ -32,9 +48,21 @@ function StoreProfilePageContent() {
       setSlug(tenantSettings.slug || '');
       setLogoUrl(tenantSettings.logoUrl || '');
       setAddress(tenantSettings.address || '');
+      
       setInstagram(tenantSettings.instagram || '');
       setTiktok(tenantSettings.tiktok || '');
       setWhatsappNumber(tenantSettings.whatsappNumber || tenantSettings.notifications?.whatsappNumber || '');
+      
+      setCountry(tenantSettings.country || 'Lebanon');
+      setBaseCurrency(tenantSettings.baseCurrency || 'USD');
+      setSelectedLanguages(tenantSettings.languages || ['en']);
+      setDefaultLanguage(tenantSettings.defaultLanguage || 'en');
+      setManagerLanguage(tenantSettings.managerLanguage || 'en');
+      
+      setWebsite(tenantSettings.website || '');
+      setFacebook(tenantSettings.facebook || '');
+      setXLink(tenantSettings.x || '');
+      setYoutube(tenantSettings.youtube || '');
     }
   }, [tenantSettings]);
 
@@ -92,7 +120,6 @@ function StoreProfilePageContent() {
     setSaving(true);
 
     try {
-      // Fetch latest tenant settings so we don't overwrite unrelated fields like opening hours
       const currentRes = await fetch('/api/tenant/settings');
       if (!currentRes.ok) throw new Error('Could not fetch settings');
       const currentData = await currentRes.json();
@@ -105,6 +132,15 @@ function StoreProfilePageContent() {
           name: name.trim(),
           logoUrl: logoUrl.trim(),
           address: address.trim(),
+          country: country,
+          baseCurrency: baseCurrency,
+          languages: selectedLanguages,
+          defaultLanguage: defaultLanguage,
+          managerLanguage: managerLanguage,
+          website: website.trim(),
+          facebook: facebook.trim(),
+          x: xLink.trim(),
+          youtube: youtube.trim(),
           instagram: instagram.trim(),
           tiktok: tiktok.trim(),
           whatsappNumber: whatsappNumber.trim()
@@ -146,6 +182,9 @@ function StoreProfilePageContent() {
     );
   }
 
+  const CORE_LANGUAGES = ['en', 'ar', 'ka', 'ru', 'es', 'fr', 'de', 'it'];
+  const maxLangs = settings.tier === 1 ? 1 : settings.tier === 2 ? 3 : 8;
+
   return (
     <div className="fade-in">
       
@@ -153,7 +192,7 @@ function StoreProfilePageContent() {
       <div className="page-head">
         <div>
           <h1 className="page-title">Store profile</h1>
-          <p className="page-sub">Configure your storefront branding identity and physical location address.</p>
+          <p className="page-sub">Configure your storefront branding identity, language localization, location address, and socials.</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -244,6 +283,38 @@ function StoreProfilePageContent() {
                     />
                   </div>
 
+                  {/* Country Selection */}
+                  <div className="field">
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Country</label>
+                    <select
+                      className="input"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      style={{ height: '40px', borderRadius: '10px' }}
+                    >
+                      {WORLD_COUNTRIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Base Currency Selection */}
+                  <div className="field">
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Base Currency</label>
+                    <select
+                      className="input"
+                      value={baseCurrency}
+                      onChange={(e) => setBaseCurrency(e.target.value)}
+                      style={{ height: '40px', borderRadius: '10px' }}
+                    >
+                      {Object.keys(WORLD_CURRENCIES).map(code => (
+                        <option key={code} value={code}>
+                          {code} ({WORLD_CURRENCIES[code].sym}) — {WORLD_CURRENCIES[code].name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="field">
                     <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Location / Physical Address</label>
                     <textarea 
@@ -260,16 +331,192 @@ function StoreProfilePageContent() {
             </div>
           </section>
 
+          {/* Localization Section */}
+          <section>
+            <div className="card">
+              <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Globe className="ic" style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontWeight: 'bold' }}>Localisation &amp; Languages</span>
+              </div>
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* Storefront Enabled Languages Checklist */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Storefront Enabled Languages</label>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                    Your subscription tier (Tier {settings.tier}) allows choosing up to {maxLangs} storefront language(s).
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+                    {CORE_LANGUAGES.map(langCode => {
+                      const isChecked = selectedLanguages.includes(langCode);
+                      const isDefault = langCode === defaultLanguage;
+                      return (
+                        <div 
+                          key={langCode} 
+                          onClick={() => {
+                            if (isDefault) {
+                              alert('You cannot disable the default language.');
+                              return;
+                            }
+                            if (isChecked) {
+                              setSelectedLanguages(selectedLanguages.filter(l => l !== langCode));
+                            } else {
+                              if (selectedLanguages.length >= maxLangs) {
+                                alert(`Your current subscription tier limits you to a maximum of ${maxLangs} storefront language(s).`);
+                                return;
+                              }
+                              setSelectedLanguages([...selectedLanguages, langCode]);
+                            }
+                          }}
+                          style={{
+                            padding: '12px',
+                            borderRadius: '12px',
+                            border: isChecked ? '2px solid var(--pos)' : '1px solid var(--line)',
+                            backgroundColor: isChecked ? 'var(--pos-bg)' : '#ffffff',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{ fontSize: '1.25rem' }}>{WORLD_LANGUAGES[langCode]?.flag}</span>
+                          <span style={{ fontSize: '0.85rem', fontWeight: '600', color: isChecked ? 'var(--pos)' : 'var(--text-main)' }}>
+                            {WORLD_LANGUAGES[langCode]?.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Default Storefront Language Selection */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Default Language (Storefront Home)</label>
+                  <select
+                    className="input"
+                    value={defaultLanguage}
+                    onChange={(e) => setDefaultLanguage(e.target.value)}
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  >
+                    {selectedLanguages.map(langCode => (
+                      <option key={langCode} value={langCode}>
+                        {WORLD_LANGUAGES[langCode]?.flag} {WORLD_LANGUAGES[langCode]?.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Manager Dashboard Language Grid Selection */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Manager Portal Language</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
+                    {CORE_LANGUAGES.map(langCode => {
+                      const isSelected = managerLanguage === langCode;
+                      return (
+                        <div 
+                          key={langCode} 
+                          onClick={() => setManagerLanguage(langCode)}
+                          style={{
+                            padding: '12px',
+                            borderRadius: '12px',
+                            border: isSelected ? '2px solid var(--brand-red)' : '1px solid var(--line)',
+                            backgroundColor: isSelected ? 'var(--bg-secondary)' : '#ffffff',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{ fontSize: '1.25rem' }}>{WORLD_LANGUAGES[langCode]?.flag}</span>
+                          <span style={{ fontSize: '0.85rem', fontWeight: '600', color: isSelected ? 'var(--brand-red)' : 'var(--text-main)' }}>
+                            {WORLD_LANGUAGES[langCode]?.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
           {/* Social Links Section */}
           <section>
             <div className="card">
               <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Share2 className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontWeight: 'bold' }}>Social media links</span>
+                <span style={{ fontWeight: 'bold' }}>Social media &amp; links</span>
               </div>
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                
+                {/* Website Link */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>WhatsApp Number (for storefront chat)</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Globe style={{ width: '15px', height: '15px' }} /> Website URL
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={website} 
+                    onChange={(e) => setWebsite(e.target.value)} 
+                    placeholder="e.g. www.myrestaurant.com"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                </div>
+
+                {/* Facebook Link */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-brands fa-facebook" style={{ width: '15px', fontSize: '14px' }}></i> Facebook URL
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={facebook} 
+                    onChange={(e) => setFacebook(e.target.value)} 
+                    placeholder="e.g. facebook.com/myrestaurant"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                </div>
+
+                {/* X / Twitter Link */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-brands fa-x-twitter" style={{ width: '15px', fontSize: '14px' }}></i> X (Twitter) Username
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={xLink} 
+                    onChange={(e) => setXLink(e.target.value)} 
+                    placeholder="e.g. myrestaurant_x"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                </div>
+
+                {/* YouTube Link */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-brands fa-youtube" style={{ width: '15px', fontSize: '14px' }}></i> YouTube Channel URL
+                  </label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={youtube} 
+                    onChange={(e) => setYoutube(e.target.value)} 
+                    placeholder="e.g. youtube.com/c/myrestaurant"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                </div>
+
+                {/* WhatsApp Number */}
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Phone style={{ width: '15px', height: '15px' }} /> WhatsApp Number (for storefront chat)
+                  </label>
                   <input 
                     type="text" 
                     className="input" 
@@ -283,8 +530,11 @@ function StoreProfilePageContent() {
                   </p>
                 </div>
 
+                {/* Instagram Username */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Instagram Username</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-brands fa-instagram" style={{ width: '15px', fontSize: '14px' }}></i> Instagram Username
+                  </label>
                   <input 
                     type="text" 
                     className="input" 
@@ -295,8 +545,11 @@ function StoreProfilePageContent() {
                   />
                 </div>
 
+                {/* TikTok Username */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>TikTok Username</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="fa-brands fa-tiktok" style={{ width: '15px', fontSize: '14px' }}></i> TikTok Username
+                  </label>
                   <input 
                     type="text" 
                     className="input" 

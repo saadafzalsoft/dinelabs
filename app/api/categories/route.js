@@ -45,7 +45,11 @@ export async function GET(request) {
       .sort({ order: 1 })
       .toArray();
 
-    return NextResponse.json(categories);
+    const response = NextResponse.json(categories);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error('Categories API GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -59,7 +63,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name } = await request.json();
+    const { name, lang = 'en' } = await request.json();
 
     if (!name) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 });
@@ -83,7 +87,7 @@ export async function POST(request) {
     }
 
     const tenantLangs = tenant?.languages || ['en', 'ar'];
-    const nameMap = await createTranslationMap(name, tenantLangs);
+    const nameMap = await createTranslationMap(name, tenantLangs, lang);
     
     // Get highest order
     const categories = await db.collection('categories')
@@ -118,7 +122,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { id, name, isPinned, order, reorderedIds } = body;
+    const { id, name, isPinned, order, reorderedIds, lang = 'en' } = body;
 
     const db = await getDb();
 
@@ -154,7 +158,7 @@ export async function PUT(request) {
 
     const updateObj = {};
     if (name !== undefined) {
-      updateObj.name = await createTranslationMap(name, tenantLangs);
+      updateObj.name = await createTranslationMap(name, tenantLangs, lang);
     }
     if (isPinned !== undefined) {
       // Pinned Category Feature: Staff can star a single category. The starred category is pinned to the top.

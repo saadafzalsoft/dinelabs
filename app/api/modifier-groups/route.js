@@ -44,7 +44,11 @@ export async function GET(request) {
       .find({ tenantId: tenantId.toString() })
       .toArray();
 
-    return NextResponse.json(modifierGroups);
+    const response = NextResponse.json(modifierGroups);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error('ModifierGroups API GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -58,7 +62,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, type, options } = await request.json();
+    const { name, type, options, lang = 'en' } = await request.json();
 
     if (!name || !type || !options || !Array.isArray(options)) {
       return NextResponse.json({ error: 'Name, type, and options are required' }, { status: 400 });
@@ -75,10 +79,10 @@ export async function POST(request) {
     const tenantLangs = tenant?.languages || ['en', 'ar'];
 
     // Auto-translate name and option names
-    const nameMap = await createTranslationMap(name, tenantLangs);
+    const nameMap = await createTranslationMap(name, tenantLangs, lang);
     const translatedOptions = [];
     for (const opt of options) {
-      const optNameMap = await createTranslationMap(opt.name, tenantLangs);
+      const optNameMap = await createTranslationMap(opt.name, tenantLangs, lang);
       translatedOptions.push({
         name: optNameMap,
         price: parseFloat(opt.price) || 0.00
@@ -109,7 +113,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { id, name, type, options } = body;
+    const { id, name, type, options, lang = 'en' } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -136,7 +140,7 @@ export async function PUT(request) {
 
     const updateObj = {};
     if (name !== undefined) {
-      updateObj.name = await createTranslationMap(name, tenantLangs);
+      updateObj.name = await createTranslationMap(name, tenantLangs, lang);
     }
     if (type !== undefined) {
       updateObj.type = type;
@@ -146,11 +150,11 @@ export async function PUT(request) {
       for (const opt of options) {
         // Option name might be a map or a plain string
         let optNameMap;
-        if (typeof opt.name === 'object' && opt.name !== null && (opt.name.en || opt.name.ar)) {
+        if (typeof opt.name === 'object' && opt.name !== null && (opt.name[lang] || opt.name.en || opt.name.ar)) {
           // Keep existing translation map or just use it
           optNameMap = opt.name;
         } else {
-          optNameMap = await createTranslationMap(opt.name, tenantLangs);
+          optNameMap = await createTranslationMap(opt.name, tenantLangs, lang);
         }
         translatedOptions.push({
           name: optNameMap,

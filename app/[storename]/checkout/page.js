@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Bike, ShoppingBag, Utensils } from 'lucide-react';
+
 import SearchSelect from '../../components/SearchSelect';
 
 export default function CheckoutPage() {
@@ -39,6 +39,29 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('cash-on-arrival'); // 'cash-on-arrival' | 'pay-at-counter' | 'billed-to-room'
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [lang, setLang] = useState('en');
+
+  // Load language from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem(`dinelabs_lang_${storename}`);
+      if (savedLang) setLang(savedLang);
+    }
+  }, [storename]);
+
+  // Translation dictionary
+  const dict = {
+    en: { backToMenu: 'Back to Menu', checkout: 'Checkout', yourInfo: 'Your Information', name: 'Name', phone: 'Phone Number', email: 'Email', city: 'City', street: 'Street name', building: 'Building name / no.', floor: 'Floor', instructions: 'Instructions for driver (Optional)', deliveryArea: 'Delivery Area', ourLocation: 'Our Location', getDirections: 'Get Directions', pickupInfo: 'Your pick-up information', dineInInfo: 'Your dine-in information', selectTable: 'Select Table', orderSummary: 'Order Summary', subtotal: 'Subtotal', deliveryFee: 'Delivery Fee', total: 'Total', placeOrder: 'Place Order', placing: 'Placing...', shopClosed: 'The shop is closed. No orders are being accepted at this time.', paymentMethod: 'Payment method', cashOnArrival: 'Cash on arrival', payAtCounter: 'Pay at counter', billedToRoom: 'Billed to room' },
+    ar: { backToMenu: 'العودة إلى القائمة', checkout: 'الدفع', yourInfo: 'معلوماتك', name: 'الاسم', phone: 'رقم الهاتف', email: 'البريد الإلكتروني', city: 'المدينة', street: 'اسم الشارع', building: 'اسم المبنى / رقمه', floor: 'الطابق', instructions: 'تعليمات للسائق (اختياري)', deliveryArea: 'منطقة التوصيل', ourLocation: 'موقعنا', getDirections: 'الحصول على الاتجاهات', pickupInfo: 'معلومات الاستلام', dineInInfo: 'معلومات تناول الطعام', selectTable: 'اختر الطاولة', orderSummary: 'ملخص الطلب', subtotal: 'المجموع الفرعي', deliveryFee: 'رسوم التوصيل', total: 'الإجمالي', placeOrder: 'تأكيد الطلب', placing: 'جارٍ التأكيد...', shopClosed: 'المتجر مغلق. لا يتم قبول طلبات في الوقت الحالي.', paymentMethod: 'طريقة الدفع', cashOnArrival: 'الدفع عند الوصول', payAtCounter: 'الدفع عند الكاونتر', billedToRoom: 'على حساب الغرفة' },
+    ru: { backToMenu: 'Назад в меню', checkout: 'Оформление', yourInfo: 'Ваша информация', name: 'Имя', phone: 'Телефон', email: 'Эл. почта', city: 'Город', street: 'Улица', building: 'Дом', floor: 'Этаж', instructions: 'Инструкции для курьера (необязательно)', deliveryArea: 'Зона доставки', ourLocation: 'Наш адрес', getDirections: 'Маршрут', pickupInfo: 'Данные для самовывоза', dineInInfo: 'Данные для зала', selectTable: 'Выберите столик', orderSummary: 'Итого заказа', subtotal: 'Подытог', deliveryFee: 'Доставка', total: 'Итого', placeOrder: 'Оформить заказ', placing: 'Оформляем...', shopClosed: 'Ресторан закрыт.', paymentMethod: 'Способ оплаты', cashOnArrival: 'Наличные при доставке', payAtCounter: 'Оплата на кассе', billedToRoom: 'На номер' },
+    es: { backToMenu: 'Volver al menú', checkout: 'Pago', yourInfo: 'Tu información', name: 'Nombre', phone: 'Teléfono', email: 'Correo electrónico', city: 'Ciudad', street: 'Calle', building: 'Edificio', floor: 'Piso', instructions: 'Instrucciones para el conductor (Opcional)', deliveryArea: 'Zona de entrega', ourLocation: 'Nuestra ubicación', getDirections: 'Obtener indicaciones', pickupInfo: 'Info de recogida', dineInInfo: 'Info para comer aquí', selectTable: 'Seleccionar mesa', orderSummary: 'Resumen del pedido', subtotal: 'Subtotal', deliveryFee: 'Envío', total: 'Total', placeOrder: 'Realizar pedido', placing: 'Realizando...', shopClosed: 'La tienda está cerrada.', paymentMethod: 'Método de pago', cashOnArrival: 'Efectivo al llegar', payAtCounter: 'Pagar en caja', billedToRoom: 'Cargo a habitación' },
+    fr: { backToMenu: 'Retour au menu', checkout: 'Paiement', yourInfo: 'Vos informations', name: 'Nom', phone: 'Téléphone', email: 'E-mail', city: 'Ville', street: 'Rue', building: 'Bâtiment', floor: 'Étage', instructions: 'Instructions pour le livreur (Facultatif)', deliveryArea: 'Zone de livraison', ourLocation: 'Notre adresse', getDirections: 'Itinéraire', pickupInfo: 'Infos retrait', dineInInfo: 'Infos sur place', selectTable: 'Choisir une table', orderSummary: 'Résumé de la commande', subtotal: 'Sous-total', deliveryFee: 'Frais de livraison', total: 'Total', placeOrder: 'Passer la commande', placing: 'Envoi...', shopClosed: 'Le restaurant est fermé.', paymentMethod: 'Mode de paiement', cashOnArrival: 'Espèces à la livraison', payAtCounter: 'Payer au comptoir', billedToRoom: 'Facturé à la chambre' },
+    de: { backToMenu: 'Zurück zum Menü', checkout: 'Kasse', yourInfo: 'Ihre Informationen', name: 'Name', phone: 'Telefon', email: 'E-Mail', city: 'Stadt', street: 'Straße', building: 'Gebäude', floor: 'Stockwerk', instructions: 'Anweisungen für den Fahrer (Optional)', deliveryArea: 'Liefergebiet', ourLocation: 'Unser Standort', getDirections: 'Wegbeschreibung', pickupInfo: 'Abholinformationen', dineInInfo: 'Vor-Ort-Informationen', selectTable: 'Tisch auswählen', orderSummary: 'Bestellübersicht', subtotal: 'Zwischensumme', deliveryFee: 'Liefergebühr', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', placing: 'Wird bestellt...', shopClosed: 'Das Restaurant ist geschlossen.', paymentMethod: 'Zahlungsmethode', cashOnArrival: 'Barzahlung bei Lieferung', payAtCounter: 'An der Kasse zahlen', billedToRoom: 'Auf Zimmer buchen' },
+    it: { backToMenu: 'Torna al menu', checkout: 'Cassa', yourInfo: 'Le tue informazioni', name: 'Nome', phone: 'Telefono', email: 'Email', city: 'Città', street: 'Via', building: 'Edificio', floor: 'Piano', instructions: 'Istruzioni per il corriere (Facoltativo)', deliveryArea: 'Zona di consegna', ourLocation: 'La nostra posizione', getDirections: 'Indicazioni stradali', pickupInfo: 'Info ritiro', dineInInfo: 'Info per mangiare al ristorante', selectTable: 'Seleziona tavolo', orderSummary: 'Riepilogo ordine', subtotal: 'Subtotale', deliveryFee: 'Spese di consegna', total: 'Totale', placeOrder: 'Conferma ordine', placing: 'Invio...', shopClosed: 'Il ristorante è chiuso.', paymentMethod: 'Metodo di pagamento', cashOnArrival: 'Contanti alla consegna', payAtCounter: 'Pagamento al bancone', billedToRoom: 'Addebito in camera' },
+    ka: { backToMenu: 'მენიუში დაბრუნება', checkout: 'შეკვეთის გაფორმება', yourInfo: 'თქვენი ინფორმაცია', name: 'სახელი', phone: 'ტელეფონი', email: 'ელ. ფოსტა', city: 'ქალაქი', street: 'ქუჩა', building: 'შენობა', floor: 'სართული', instructions: 'ინსტრუქციები მძღოლისთვის (არჩევითი)', deliveryArea: 'მიტანის ზონა', ourLocation: 'ჩვენი მისამართი', getDirections: 'მიმართულების მიღება', pickupInfo: 'წაღების ინფორმაცია', dineInInfo: 'ადგილზე ჭამის ინფორმაცია', selectTable: 'მაგიდის არჩევა', orderSummary: 'შეკვეთის შეჯამება', subtotal: 'ქვეჯამი', deliveryFee: 'მიტანის საფასური', total: 'ჯამი', placeOrder: 'შეკვეთის გაფორმება', placing: 'მიმდინარეობს...', shopClosed: 'რესტორანი დახურულია.', paymentMethod: 'გადახდის მეთოდი', cashOnArrival: 'ნაღდი ანგარიშსწორება', payAtCounter: 'გადახდა სალაროში', billedToRoom: 'ოთახზე ჩაწერა' },
+  };
+  const d = dict[lang] || dict.en;
+
   const handleModeChange = (newMode) => {
     setMode(newMode);
     localStorage.setItem(`dinelabs_mode_${storename}`, newMode);
@@ -110,6 +133,35 @@ export default function CheckoutPage() {
     }
     init();
   }, [storename, router]);
+
+  // Auto-fill customer form from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(`dinelabs_customer_${storename}`);
+      if (saved) {
+        const c = JSON.parse(saved);
+        if (c.name) setName(c.name);
+        if (c.email) setEmail(c.email);
+        if (c.countryCode) setCountryCode(c.countryCode);
+        if (c.phoneNum) setPhoneNum(c.phoneNum);
+        if (c.city) setCity(c.city);
+        if (c.street) setStreet(c.street);
+        if (c.building) setBuilding(c.building);
+        if (c.floor) setFloor(c.floor);
+        if (c.instructions) setInstructions(c.instructions);
+      }
+    } catch (e) {
+      console.error('Error loading saved customer data', e);
+    }
+  }, [storename]);
+
+  // Persist customer form data to localStorage on change
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const data = { name, email, countryCode, phoneNum, city, street, building, floor, instructions };
+    localStorage.setItem(`dinelabs_customer_${storename}`, JSON.stringify(data));
+  }, [name, email, countryCode, phoneNum, city, street, building, floor, instructions, storename]);
 
   // Auto-assign table if missing in Dine-in mode
   useEffect(() => {
@@ -333,7 +385,7 @@ export default function CheckoutPage() {
           overflow: 'hidden'
         }}>
           <marquee scrollamount="5" style={{ width: '100%', fontSize: '0.85rem' }}>
-            ⚠️ The shop is closed. No orders are being accepted at this time.
+            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: '6px' }}></i> The shop is closed. No orders are being accepted at this time.
           </marquee>
         </div>
       )}
@@ -357,7 +409,7 @@ export default function CheckoutPage() {
 
         {errorMessage && (
           <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px', fontWeight: '600', fontSize: '0.9rem' }}>
-            ⚠️ {errorMessage}
+            <i className="fa-solid fa-circle-exclamation" style={{ marginRight: '6px' }}></i> {errorMessage}
           </div>
         )}
 
@@ -367,15 +419,15 @@ export default function CheckoutPage() {
             {/* Left Column: Fulfillment details & customer form info */}
             <div className="checkout-left" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Fulfillment toggles matching main page design */}
-              <div className="delivery-toggle-wrapper" style={{ marginBottom: '20px' }}>
+              {/* Mode is auto-detected from localStorage — toggle hidden */}
+              <div className="delivery-toggle-wrapper" style={{ display: 'none', marginBottom: '20px' }}>
                 {tenant.enabledModes?.delivery && (
                   <div 
                     onClick={() => handleModeChange('delivery')}
                     className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Bike style={{ width: '14px', height: '14px' }} />
+                      <i className="fa-solid fa-motorcycle" style={{ fontSize: '14px' }}></i>
                       <span>Delivery</span>
                     </div>
                     <div className="toggle-desc">
@@ -391,7 +443,7 @@ export default function CheckoutPage() {
                     className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <ShoppingBag style={{ width: '14px', height: '14px' }} />
+                      <i className="fa-solid fa-bag-shopping" style={{ fontSize: '14px' }}></i>
                       <span>Pickup</span>
                     </div>
                     <div className="toggle-desc">{tenant.waitTimes?.pickup || 15} mins</div>
@@ -403,7 +455,7 @@ export default function CheckoutPage() {
                     className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Utensils style={{ width: '14px', height: '14px' }} />
+                      <i className="fa-solid fa-utensils" style={{ fontSize: '14px' }}></i>
                       <span>Dine-in</span>
                     </div>
                     <div className="toggle-desc">{tableNo ? tableNo : 'Table'}</div>
@@ -555,7 +607,9 @@ export default function CheckoutPage() {
                   {tenant.address ? (
                     <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '20px', border: '1px solid var(--border-light)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '1.4rem', backgroundColor: 'var(--bg-secondary)', padding: '6px 10px', borderRadius: '50%' }}>📍</span>
+                        <span style={{ fontSize: '1.2rem', backgroundColor: 'var(--bg-secondary)', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+                          <i className="fa-solid fa-location-dot" style={{ color: 'var(--color-primary)' }}></i>
+                        </span>
                         <div>
                           <div style={{ fontWeight: '700', fontSize: '0.88rem' }}>{tenant.address}</div>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Our Location</span>
@@ -596,13 +650,13 @@ export default function CheckoutPage() {
                             textAlign: 'center'
                           }}
                         >
-                          🗺️ Get Directions on Google Maps
+                          <i className="fa-solid fa-map-location-dot"></i> Get Directions on Google Maps
                         </a>
                       )}
                     </div>
                   ) : (
-                    <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '20px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600' }}>
-                      📍 Pickup address is not available yet. Please contact the store directly for pickup location details.
+                    <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '20px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-solid fa-location-dot" style={{ color: '#d97706' }}></i> Pickup address is not available yet. Please contact the store directly for pickup location details.
                     </div>
                   )}
 
@@ -734,7 +788,9 @@ export default function CheckoutPage() {
 
               {/* Fulfillment Standard Delivery/Pickup message */}
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', backgroundColor: '#ffffff', padding: '16px 20px', borderRadius: '20px', border: '1px solid var(--border-light)' }}>
-                <span style={{ fontSize: '1.2rem', backgroundColor: 'var(--bg-secondary)', padding: '8px', borderRadius: '50%' }}>🎯</span>
+                <span style={{ fontSize: '1.1rem', backgroundColor: 'var(--bg-secondary)', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+                  <i className="fa-solid fa-bullseye" style={{ color: 'var(--color-primary)' }}></i>
+                </span>
                 <div>
                   <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Standard</div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -768,8 +824,8 @@ export default function CheckoutPage() {
                           {item.removedIngredients?.length > 0 && `, (No ${item.removedIngredients.join(', ')})`}
                         </span>
                         {item.notes && (
-                          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic', marginTop: '2px' }}>
-                            📝 {item.notes}
+                          <div style={{ fontSize: '0.7rem', color: '#6b7280', fontStyle: 'italic', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <i className="fa-solid fa-note-sticky" style={{ fontSize: '0.75rem' }}></i> {item.notes}
                           </div>
                         )}
                       </div>
@@ -820,7 +876,23 @@ export default function CheckoutPage() {
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {isClosed ? '🔒 Shop is Closed' : (mode === 'delivery' ? '🛵 Place Order' : mode === 'pickup' ? '🛍️ Place Order' : '🍽️ Place Order')}
+                  {isClosed ? (
+                    <>
+                      <i className="fa-solid fa-lock"></i> Shop is Closed
+                    </>
+                  ) : mode === 'delivery' ? (
+                    <>
+                      <i className="fa-solid fa-motorcycle"></i> Place Order
+                    </>
+                  ) : mode === 'pickup' ? (
+                    <>
+                      <i className="fa-solid fa-bag-shopping"></i> Place Order
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-utensils"></i> Place Order
+                    </>
+                  )}
                 </span>
                 <span>{formatPrice(total)}</span>
               </button>
