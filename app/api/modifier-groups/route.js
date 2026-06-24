@@ -64,18 +64,26 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name, type, and options are required' }, { status: 400 });
     }
 
+    const db = await getDb();
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+
     // Auto-translate name and option names
-    const nameMap = await createTranslationMap(name);
+    const nameMap = await createTranslationMap(name, tenantLangs);
     const translatedOptions = [];
     for (const opt of options) {
-      const optNameMap = await createTranslationMap(opt.name);
+      const optNameMap = await createTranslationMap(opt.name, tenantLangs);
       translatedOptions.push({
         name: optNameMap,
         price: parseFloat(opt.price) || 0.00
       });
     }
-
-    const db = await getDb();
     const newGroup = {
       _id: new ObjectId().toString(),
       tenantId: tenantId.toString(),
@@ -117,9 +125,18 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Modifier group not found' }, { status: 404 });
     }
 
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+
     const updateObj = {};
     if (name !== undefined) {
-      updateObj.name = await createTranslationMap(name);
+      updateObj.name = await createTranslationMap(name, tenantLangs);
     }
     if (type !== undefined) {
       updateObj.type = type;
@@ -133,7 +150,7 @@ export async function PUT(request) {
           // Keep existing translation map or just use it
           optNameMap = opt.name;
         } else {
-          optNameMap = await createTranslationMap(opt.name);
+          optNameMap = await createTranslationMap(opt.name, tenantLangs);
         }
         translatedOptions.push({
           name: optNameMap,

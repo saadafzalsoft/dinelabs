@@ -110,6 +110,19 @@ export async function PUT(request) {
       updateObj.deliveryZones = Array.isArray(body.deliveryZones) ? body.deliveryZones : [];
     }
     
+    // Persist social media links
+    if (body.instagram !== undefined) updateObj.instagram = body.instagram;
+    if (body.tiktok !== undefined) updateObj.tiktok = body.tiktok;
+    if (body.whatsappNumber !== undefined) {
+      updateObj.whatsappNumber = body.whatsappNumber;
+      // Sync into notifications object for storefront link compatibility
+      if (!updateObj.notifications) {
+        updateObj.notifications = { ...(tenant.notifications || {}), whatsappNumber: body.whatsappNumber };
+      } else {
+        updateObj.notifications.whatsappNumber = body.whatsappNumber;
+      }
+    }
+    
     // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin
     if (enabledModes !== undefined) {
       if (tenant.tier > 1) {

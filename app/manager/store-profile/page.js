@@ -4,7 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Store,
-  Check
+  Check,
+  Share2
 } from 'lucide-react';
 import { useManager } from '../layout';
 
@@ -20,6 +21,9 @@ function StoreProfilePageContent() {
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [address, setAddress] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [tiktok, setTiktok] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
 
   useEffect(() => {
     if (tenantSettings) {
@@ -28,6 +32,9 @@ function StoreProfilePageContent() {
       setSlug(tenantSettings.slug || '');
       setLogoUrl(tenantSettings.logoUrl || '');
       setAddress(tenantSettings.address || '');
+      setInstagram(tenantSettings.instagram || '');
+      setTiktok(tenantSettings.tiktok || '');
+      setWhatsappNumber(tenantSettings.whatsappNumber || tenantSettings.notifications?.whatsappNumber || '');
     }
   }, [tenantSettings]);
 
@@ -43,7 +50,7 @@ function StoreProfilePageContent() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -52,12 +59,26 @@ function StoreProfilePageContent() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoUrl(reader.result); // Base64 DataURL
-        triggerToast('Logo updated! Click Save changes to apply.');
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!uploadRes.ok) throw new Error('Failed to upload image');
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) {
+          setLogoUrl(uploadData.url);
+          triggerToast('Logo updated! Click Save changes to apply.');
+        } else {
+          alert('Upload failed: ' + (uploadData.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Failed to upload image');
+      }
     };
     input.click();
   };
@@ -83,7 +104,10 @@ function StoreProfilePageContent() {
           ...currentData,
           name: name.trim(),
           logoUrl: logoUrl.trim(),
-          address: address.trim()
+          address: address.trim(),
+          instagram: instagram.trim(),
+          tiktok: tiktok.trim(),
+          whatsappNumber: whatsappNumber.trim()
         })
       });
 
@@ -231,6 +255,56 @@ function StoreProfilePageContent() {
                       style={{ height: 'auto', borderRadius: '10px', padding: '10px', resize: 'none' }}
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Social Links Section */}
+          <section>
+            <div className="card">
+              <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Share2 className="ic" style={{ color: 'var(--text-muted)' }} />
+                <span style={{ fontWeight: 'bold' }}>Social media links</span>
+              </div>
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>WhatsApp Number (for storefront chat)</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={whatsappNumber} 
+                    onChange={(e) => setWhatsappNumber(e.target.value)} 
+                    placeholder="e.g. 96170123456"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Include country code without + or spaces (e.g. 96170123456).
+                  </p>
+                </div>
+
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Instagram Username</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={instagram} 
+                    onChange={(e) => setInstagram(e.target.value)} 
+                    placeholder="e.g. dine.labs"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
+                </div>
+
+                <div className="field">
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>TikTok Username</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={tiktok} 
+                    onChange={(e) => setTiktok(e.target.value)} 
+                    placeholder="e.g. dinelabs_official"
+                    style={{ height: '40px', borderRadius: '10px' }}
+                  />
                 </div>
               </div>
             </div>

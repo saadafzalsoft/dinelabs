@@ -753,18 +753,18 @@ export default function RestaurantDetailPage() {
                     <Layers className="ic" />
                     <span>Plan &amp; limits</span>
                   </div>
-                  <select
-                    className="select"
+                  <SearchSelect
                     value={tier}
-                    onChange={(e) => handleTierChange(e.target.value)}
-                    style={{ width: 'auto', height: '34px', fontSize: '13px' }}
-                  >
-                    {tiers.map(tt => (
-                      <option key={tt._id || tt.id} value={tt._id ? tt._id.replace('t', '') : tt.id.replace('t', '')}>
-                        {tt.name} · {tt.tag} · ${(tt.price || 0).toLocaleString('en-US')}/mo
-                      </option>
-                    ))}
-                  </select>
+                    onChange={handleTierChange}
+                    options={tiers.map(tt => {
+                      const val = tt._id ? tt._id.replace('t', '') : tt.id.replace('t', '');
+                      return {
+                        value: val,
+                        label: `${tt.name} · ${tt.tag} · $${(tt.price || 0).toLocaleString('en-US')}/mo`
+                      };
+                    })}
+                    style={{ width: '280px' }}
+                  />
                 </div>
                 <div className="card-pad" style={{ paddingTop: '10px' }}>
                   <div className="mini-label">Always included</div>

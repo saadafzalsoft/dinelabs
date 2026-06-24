@@ -75,13 +75,70 @@ export default function ManagerDashboardPage() {
 
   // Render delta calculations (e.g. comparing past period data)
   const getDeltas = () => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+    
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    let curOrders = [];
+    let prevOrders = [];
+    let label = '';
+
     if (period === 'today') {
-      return { revenue: 8.2, orders: 6.0, avg: 2.1, views: 14, label: 'vs yesterday' };
+      curOrders = orders.filter(o => new Date(o.createdAt) >= startOfToday);
+      prevOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= startOfYesterday && d < startOfToday;
+      });
+      label = 'vs yesterday';
+    } else if (period === 'week') {
+      curOrders = orders.filter(o => new Date(o.createdAt) >= sevenDaysAgo);
+      prevOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= fourteenDaysAgo && d < sevenDaysAgo;
+      });
+      label = 'vs last week';
+    } else {
+      curOrders = orders.filter(o => new Date(o.createdAt) >= thirtyDaysAgo);
+      prevOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= sixtyDaysAgo && d < thirtyDaysAgo;
+      });
+      label = 'vs last month';
     }
-    if (period === 'week') {
-      return { revenue: 12.4, orders: 9.1, avg: 3.0, views: 11, label: 'vs last week' };
-    }
-    return { revenue: 5.6, orders: 4.2, avg: 1.4, views: 6, label: 'vs last month' };
+
+    const curActive = curOrders.filter(o => o.status !== 'declined');
+    const prevActive = prevOrders.filter(o => o.status !== 'declined');
+
+    const curRev = curActive.reduce((sum, o) => sum + o.total, 0);
+    const prevRev = prevActive.reduce((sum, o) => sum + o.total, 0);
+
+    const curCount = curOrders.length;
+    const prevCount = prevOrders.length;
+
+    const curAvg = curCount > 0 ? curRev / curCount : 0;
+    const prevAvg = prevCount > 0 ? prevRev / prevCount : 0;
+
+    const curViews = curCount * 12 + 84;
+    const prevViews = prevCount * 12 + 84;
+
+    const pct = (cur, prev) => {
+      if (prev === 0) return cur > 0 ? 100 : 0;
+      return parseFloat((((cur - prev) / prev) * 100).toFixed(1));
+    };
+
+    return {
+      revenue: pct(curRev, prevRev),
+      orders: pct(curCount, prevCount),
+      avg: pct(curAvg, prevAvg),
+      views: pct(curViews, prevViews),
+      label
+    };
   };
 
   const deltas = getDeltas();

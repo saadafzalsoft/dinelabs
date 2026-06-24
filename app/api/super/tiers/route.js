@@ -10,13 +10,13 @@ async function checkSuperAdmin(request) {
 
 const TIERS_SEED = [
   { _id: 't1', name: 'Tier 1', tag: 'Starter', price: 29, priceAnnual: 290, lv: 1,
-    caps: { maxProducts: 30, maxTranslations: 1, langs: ['en', 'ka', 'ru'],
+    caps: { maxProducts: 30, maxTranslations: 1, langs: ['en', 'ar', 'ka', 'ru'],
             modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, whatsapp: 0, telegram: 0 } } },
   { _id: 't2', name: 'Tier 2', tag: 'Pro', price: 79, priceAnnual: 790, lv: 2,
-    caps: { maxProducts: 150, maxTranslations: 3, langs: ['en', 'ka', 'ru', 'es', 'fr', 'de', 'it'],
+    caps: { maxProducts: 150, maxTranslations: 3, langs: ['en', 'ar', 'ka', 'ru', 'es', 'fr', 'de', 'it'],
             modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, whatsapp: 1, telegram: 0 } } },
   { _id: 't3', name: 'Tier 3', tag: 'Enterprise', price: 199, priceAnnual: 1990, lv: 3,
-    caps: { maxProducts: 0, maxTranslations: 8, langs: ['en', 'ka', 'ru', 'es', 'fr', 'de', 'it', 'ar'],
+    caps: { maxProducts: 0, maxTranslations: 8, langs: ['en', 'ar', 'ka', 'ru', 'es', 'fr', 'de', 'it'],
             modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, whatsapp: 1, telegram: 1 } } },
 ];
 
@@ -34,6 +34,17 @@ export async function GET(request) {
       await db.collection('tiers').insertMany(TIERS_SEED);
       tiers = await db.collection('tiers').find({}).toArray();
     }
+
+    // Restore language pools on existing seeded tiers
+    for (const t of TIERS_SEED) {
+      await db.collection('tiers').updateOne(
+        { _id: t._id },
+        { $set: { 'caps.langs': t.caps.langs } }
+      );
+    }
+
+    // Refresh tiers array to reflect DB updates
+    tiers = await db.collection('tiers').find({}).toArray();
 
     return NextResponse.json({ tiers });
   } catch (error) {

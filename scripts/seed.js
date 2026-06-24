@@ -42,7 +42,11 @@ async function seed() {
   console.log('Seeding tenants...');
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   
+  const kfcTenantId = '507f1f77bcf86cd799439011';
+  const bartartineTenantId = '507f1f77bcf86cd799439012';
+
   const kfcTenant = {
+    _id: kfcTenantId,
     slug: 'kfc',
     name: 'KFC Storefront',
     logoUrl: '/assets/logos/kfc.png',
@@ -58,6 +62,7 @@ async function seed() {
   };
 
   const bartartineTenant = {
+    _id: bartartineTenantId,
     slug: 'bartartine',
     name: 'bar tartine',
     logoUrl: '/assets/logos/bartartine.png',
@@ -72,9 +77,7 @@ async function seed() {
     createdAt: new Date(),
   };
 
-  const tenantResult = await db.collection('tenants').insertMany([kfcTenant, bartartineTenant]);
-  const kfcTenantId = tenantResult.insertedIds[0].toString();
-  const bartartineTenantId = tenantResult.insertedIds[1].toString();
+  await db.collection('tenants').insertMany([kfcTenant, bartartineTenant]);
 
   console.log('Seeding physical tables...');
   const seededTables = [

@@ -5,12 +5,12 @@
    ============================================================ */
 
 :root {
-  --accent: #4f46e5;
-  --accent-2: #4338ca;
-  --accent-3: #3730a3;
-  --accent-bg: #eef2ff;
-  --accent-bg-2: #e0e7ff;
-  --accent-line: #c7d2fe;
+  --accent: #1e293b;
+  --accent-2: #0f172a;
+  --accent-3: #020617;
+  --accent-bg: #f1f5f9;
+  --accent-bg-2: #e2e8f0;
+  --accent-line: #cbd5e1;
 }
 
 ::selection { background: var(--accent); color: #fff; }

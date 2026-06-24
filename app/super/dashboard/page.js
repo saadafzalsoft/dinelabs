@@ -16,7 +16,7 @@ const PERIODS = {
 
 export default function SuperDashboardPage() {
   const router = useRouter();
-  const { tenants, tiers, loading } = useSuperAdmin();
+  const { tenants, tiers, platformStats, loading } = useSuperAdmin();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [period, setPeriod] = useState('week');
 
@@ -35,13 +35,11 @@ export default function SuperDashboardPage() {
   // Compute live statistics based on period
   const P = PERIODS[period];
   
-  // Total orders based on tenant totalOrders multiplied by period modifier
-  const totalOrdersToday = activeTenants.reduce((s, c) => s + (c.totalOrders || 0), 0);
-  const totalOrders = Math.round(totalOrdersToday * P.mult);
-  
-  // Platform revenue
-  const totalRevToday = activeTenants.reduce((s, c) => s + (c.totalRevenue || 0), 0);
-  const totalRev = (totalRevToday * P.mult) / 6.4; // normalise so week ~= stored
+  // Real platform metrics from context
+  const hasRealStats = platformStats && platformStats[period];
+  const totalOrders = hasRealStats ? platformStats[period].orders : Math.round(activeTenants.reduce((s, c) => s + (c.totalOrders || 0), 0) * P.mult);
+  const totalRev = hasRealStats ? platformStats[period].revenue : ((activeTenants.reduce((s, c) => s + (c.totalRevenue || 0), 0) * P.mult) / 6.4);
+  const trendLabel = hasRealStats ? platformStats[period].trend : P.trend;
 
   // Avg error rate
   const totalErr = activeTenants.reduce((s, c) => s + parseFloat(c.errorRate || 0), 0);
@@ -50,7 +48,7 @@ export default function SuperDashboardPage() {
   // KPIs
   const kpis = [
     { label: 'Active stores', icon: Store, val: activeTenants.length, foot: `${suspendedTenants.length} suspended`, cls: 'mut', accent: true },
-    { label: 'Orders ' + ({ today: 'today', week: 'this week', month: 'this month' }[period]), icon: AlertTriangle, val: totalOrders.toLocaleString(), foot: `${P.trend.match(/[\d.]+%/)?.[0] || '6.1%'} vs prev`, cls: 'up' },
+    { label: 'Orders ' + ({ today: 'today', week: 'this week', month: 'this month' }[period]), icon: AlertTriangle, val: totalOrders.toLocaleString(), foot: `${trendLabel.match(/[\d.-]+/)?.[0] || '6.1'}% vs prev`, cls: 'up' },
     { label: 'Revenue volume', icon: Banknote, val: usd(totalRev), foot: `across all stores`, cls: 'up' },
     { label: 'Avg error rate', icon: Activity, val: avgErr.toFixed(1) + '%', foot: `${activeTenants.filter(c => parseFloat(c.errorRate) >= 2.5).length} elevated`, cls: avgErr >= 2 ? 'down' : 'mut' }
   ];
@@ -111,7 +109,9 @@ export default function SuperDashboardPage() {
   };
 
   const getChartElements = (W) => {
-    const dataPoints = P.shape.map(s => Math.round((totalOrdersToday * P.mult / P.shape.length) * s));
+    const dataPoints = (platformStats && platformStats[period])
+      ? platformStats[period].chart
+      : P.shape.map(s => Math.round((activeTenants.reduce((s, c) => s + (c.totalOrders || 0), 0) * P.mult / P.shape.length) * s));
     const maxVal = Math.max(...dataPoints) * 1.2 || 10;
     const xstep = (W - padL - padR) / (dataPoints.length - 1);
     
@@ -268,12 +268,12 @@ export default function SuperDashboardPage() {
                 <div>
                   <div className="card-title">Platform order volume</div>
                   <div className="card-note">
-                    {P.headline} · {Math.round(totalOrdersToday * P.mult).toLocaleString()} orders
+                    {P.headline} · {totalOrders.toLocaleString()} orders
                   </div>
                 </div>
                 <span className="pill pill-soft" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <TrendingUp className="ic" style={{ width: '13px', height: '13px' }} />
-                  <span>{P.trend}</span>
+                  <span>{trendLabel}</span>
                 </span>
               </div>
               

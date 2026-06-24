@@ -451,17 +451,17 @@ export default function CheckoutPage() {
 
                   <div className="form-group">
                     <label className="form-label">Phone Number</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <select 
-                        className="form-control" 
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <SearchSelect
                         value={countryCode}
-                        onChange={(e) => setCountryCode(e.target.value)}
+                        onChange={setCountryCode}
+                        options={[
+                          { value: '+961', label: 'LB +961' },
+                          { value: '+1', label: 'US +1' },
+                          { value: '+971', label: 'AE +971' }
+                        ]}
                         style={{ width: '110px', flexShrink: 0 }}
-                      >
-                        <option value="+961">LB +961</option>
-                        <option value="+1">US +1</option>
-                        <option value="+971">AE +971</option>
-                      </select>
+                      />
                       <input 
                         type="tel" 
                         className="form-control" 
@@ -637,17 +637,17 @@ export default function CheckoutPage() {
 
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label">Phone Number</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <select 
-                          className="form-control" 
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <SearchSelect
                           value={countryCode}
-                          onChange={(e) => setCountryCode(e.target.value)}
+                          onChange={setCountryCode}
+                          options={[
+                            { value: '+961', label: 'LB +961' },
+                            { value: '+1', label: 'US +1' },
+                            { value: '+971', label: 'AE +971' }
+                          ]}
                           style={{ width: '110px', flexShrink: 0 }}
-                        >
-                          <option value="+961">LB +961</option>
-                          <option value="+1">US +1</option>
-                          <option value="+971">AE +971</option>
-                        </select>
+                        />
                         <input 
                           type="tel" 
                           className="form-control" 
@@ -708,17 +708,17 @@ export default function CheckoutPage() {
 
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label">Phone Number</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <select 
-                        className="form-control" 
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <SearchSelect
                         value={countryCode}
-                        onChange={(e) => setCountryCode(e.target.value)}
+                        onChange={setCountryCode}
+                        options={[
+                          { value: '+961', label: 'LB +961' },
+                          { value: '+1', label: 'US +1' },
+                          { value: '+971', label: 'AE +971' }
+                        ]}
                         style={{ width: '110px', flexShrink: 0 }}
-                      >
-                        <option value="+961">LB +961</option>
-                        <option value="+1">US +1</option>
-                        <option value="+971">AE +971</option>
-                      </select>
+                      />
                       <input 
                         type="tel" 
                         className="form-control" 

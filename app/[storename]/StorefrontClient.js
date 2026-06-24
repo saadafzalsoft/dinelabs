@@ -136,7 +136,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       pickupDesc: "15 mins",
       delivery: "Delivery",
       deliveryDesc: "45 mins",
-      outOfStock: "Out of Stock",
+      outOfStock: "Out of stock",
       warningSuspended: "Service temporarily unavailable (Billing suspended)",
       warningClosed: "The shop is closed. No orders are being accepted at this time.",
       closed: "Closed",
@@ -659,7 +659,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                             No Image
                           </div>
                         )}
-                        {tenant.status === 'active' && !isClosed && product.isAvailable && (
+                        {tenant.status === 'active' && !isClosed && (
                           <div className="plus-overlay-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Plus className="ic" style={{ width: '16px', height: '16px', color: '#ffffff' }} />
                           </div>
@@ -760,7 +760,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         No Image
                       </div>
                     )}
-                    {tenant.status === 'active' && !isClosed && product.isAvailable && (
+                    {tenant.status === 'active' && !isClosed && (
                       <div className="plus-overlay-btn" style={{
                         position: 'absolute',
                         bottom: '8px',
@@ -1379,7 +1379,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <SlidersHorizontal style={{ width: '18px', height: '18px' }} />
+                <img src="/assets/Categories Icon.svg" alt="Categories" style={{ width: '18px', height: '18px', display: 'block' }} />
                 <span>Categories</span>
               </h3>
               <button 

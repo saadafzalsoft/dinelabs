@@ -372,17 +372,15 @@ export default function SuperRestaurantsPage() {
               <button className={statusFilter === 'suspended' ? 'active' : ''} onClick={() => setStatusFilter('suspended')}>Suspended</button>
             </div>
 
-            <select 
-              className="select" 
+            <SearchSelect
               value={tierFilter}
-              onChange={(e) => setTierFilter(e.target.value)}
-              style={{ width: 'auto', height: '38px', fontSize: '13px' }}
-            >
-              <option value="all">All tiers</option>
-              {tiers.map(t => (
-                <option key={t._id} value={t._id}>{t.name} · {t.tag}</option>
-              ))}
-            </select>
+              onChange={setTierFilter}
+              options={[
+                { value: 'all', label: 'All tiers' },
+                ...tiers.map(t => ({ value: t._id, label: `${t.name} · ${t.tag}` }))
+              ]}
+              style={{ width: '180px' }}
+            />
 
             <div style={{ flex: 1 }}></div>
             <span className="cl-count">
@@ -710,11 +708,11 @@ export default function SuperRestaurantsPage() {
                   <div className="field-row">
                     <div className="field">
                       <label className="label">Amount</label>
-                      <div className="input-affix" style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <span className="pfx" style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px' }}>$</span>
+                      <div style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden', alignItems: 'center' }}>
+                        <span style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px', color: 'var(--ink-2)', fontWeight: 'bold' }}>$</span>
                         <input 
                           type="number"
-                          style={{ border: 'none', padding: '8px 12px', outline: 'none', flex: 1 }}
+                          style={{ border: 'none', padding: '8px 12px', outline: 'none', flex: 1, background: 'transparent' }}
                           value={cAmount}
                           onChange={(e) => setCAmount(e.target.value)}
                           required

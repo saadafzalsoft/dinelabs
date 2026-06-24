@@ -82,7 +82,8 @@ export async function POST(request) {
       }
     }
 
-    const nameMap = await createTranslationMap(name);
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+    const nameMap = await createTranslationMap(name, tenantLangs);
     
     // Get highest order
     const categories = await db.collection('categories')
@@ -142,9 +143,18 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });
     }
 
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+
     const updateObj = {};
     if (name !== undefined) {
-      updateObj.name = await createTranslationMap(name);
+      updateObj.name = await createTranslationMap(name, tenantLangs);
     }
     if (isPinned !== undefined) {
       // Pinned Category Feature: Staff can star a single category. The starred category is pinned to the top.

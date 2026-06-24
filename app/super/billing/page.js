@@ -453,11 +453,11 @@ export default function SuperBillingPage() {
 
                 <div className="field">
                   <label className="label">Renewal Amount (USD)</label>
-                  <div className="input-affix" style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden' }}>
-                    <span className="pfx" style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px' }}>$</span>
+                  <div style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '10px', overflow: 'hidden', alignItems: 'center' }}>
+                    <span style={{ padding: '8px 12px', background: 'var(--surface-2)', borderRight: '1px solid var(--line-2)', fontSize: '13px', color: 'var(--ink-2)', fontWeight: 'bold' }}>$</span>
                     <input 
                       type="number"
-                      style={{ border: 'none', padding: '8px 12px', outline: 'none', flex: 1 }}
+                      style={{ border: 'none', padding: '8px 12px', outline: 'none', flex: 1, background: 'transparent' }}
                       value={bAmount}
                       onChange={(e) => setBAmount(e.target.value)}
                       required

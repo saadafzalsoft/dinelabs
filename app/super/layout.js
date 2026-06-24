@@ -24,6 +24,7 @@ export default function SuperLayout({ children }) {
   // Cache data states
   const [tenants, setTenants] = useState([]);
   const [tiers, setTiers] = useState([]);
+  const [platformStats, setPlatformStats] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   const fetchCacheData = async () => {
@@ -37,6 +38,7 @@ export default function SuperLayout({ children }) {
       const tiersData = await tiersRes.json();
 
       setTenants(tenantsData.tenants || []);
+      setPlatformStats(tenantsData.realStats || null);
       setTiers(tiersData.tiers || []);
     } catch (err) {
       console.error('Failed to fetch super cache data:', err);
@@ -151,7 +153,7 @@ export default function SuperLayout({ children }) {
 
   // Logged in as super admin -> expose context
   return (
-    <SuperAdminContext.Provider value={{ tenants, tiers, loading: dataLoading, refreshData }}>
+    <SuperAdminContext.Provider value={{ tenants, tiers, platformStats, loading: dataLoading, refreshData }}>
       {children}
     </SuperAdminContext.Provider>
   );

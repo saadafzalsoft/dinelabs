@@ -65,15 +65,28 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
     }
 
+    const db = await getDb();
+
+    // Check count for Tier limits (Tier 1 limit: e.g., max 15 products)
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+
     // Auto translate text on creation
-    const nameMap = await createTranslationMap(name);
-    const descMap = await createTranslationMap(description || '');
+    const nameMap = await createTranslationMap(name, tenantLangs);
+    const descMap = await createTranslationMap(description || '', tenantLangs);
 
     const processOptionsWithTranslations = async (optionsList) => {
       if (!optionsList || !Array.isArray(optionsList)) return [];
       const processed = [];
       for (const opt of optionsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
         processed.push({
           name: nameMap,
           price: opt.price !== undefined ? parseFloat(opt.price) : 0
@@ -86,22 +99,11 @@ export async function POST(request) {
       if (!removalsList || !Array.isArray(removalsList)) return [];
       const processed = [];
       for (const opt of removalsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
         processed.push({ name: nameMap });
       }
       return processed;
     };
-
-    const db = await getDb();
-
-    // Check count for Tier limits (Tier 1 limit: e.g., max 15 products)
-    const queryId = tenantId.toString();
-    let tenant = await db.collection('tenants').findOne({ _id: queryId });
-    if (!tenant) {
-      try {
-        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
-      } catch (e) {}
-    }
     if (tenant && tenant.tier === 1) {
       const count = await db.collection('products').countDocuments({ tenantId: tenantId.toString() });
       if (count >= 15) {
@@ -207,11 +209,20 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    const tenantQueryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: tenantQueryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(tenantQueryId) });
+      } catch (e) {}
+    }
+    const tenantLangs = tenant?.languages || ['en', 'ar'];
+
     const processOptionsWithTranslations = async (optionsList) => {
       if (!optionsList || !Array.isArray(optionsList)) return [];
       const processed = [];
       for (const opt of optionsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
         processed.push({
           name: nameMap,
           price: opt.price !== undefined ? parseFloat(opt.price) : 0
@@ -224,7 +235,7 @@ export async function PUT(request) {
       if (!removalsList || !Array.isArray(removalsList)) return [];
       const processed = [];
       for (const opt of removalsList) {
-        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name) : opt.name;
+        const nameMap = typeof opt.name === 'string' ? await createTranslationMap(opt.name, tenantLangs) : opt.name;
         processed.push({ name: nameMap });
       }
       return processed;
@@ -232,10 +243,10 @@ export async function PUT(request) {
 
     const updateObj = {};
     if (body.name !== undefined) {
-      updateObj.name = await createTranslationMap(body.name);
+      updateObj.name = await createTranslationMap(body.name, tenantLangs);
     }
     if (body.description !== undefined) {
-      updateObj.description = await createTranslationMap(body.description || '');
+      updateObj.description = await createTranslationMap(body.description || '', tenantLangs);
     }
     if (body.price !== undefined) {
       updateObj.price = parseFloat(body.price);

@@ -66,6 +66,44 @@ function ManagerLayoutContent({ children }) {
   const [tenantSettings, setTenantSettings] = useState(null);
   const [tables, setTables] = useState([]);
   const [cacheLoading, setCacheLoading] = useState(true);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [supportStep, setSupportStep] = useState(1); // 1: form, 2: success
+  const [supportName, setSupportName] = useState('');
+  const [reachMethod, setReachMethod] = useState('whatsapp'); // 'whatsapp' | 'email'
+  const [supportPhone, setSupportPhone] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [ticketNo, setTicketNo] = useState('');
+  const [sendingSupport, setSendingSupport] = useState(false);
+
+  const handleSendSupport = async (e) => {
+    e.preventDefault();
+    if (sendingSupport) return;
+    setSendingSupport(true);
+
+    const randTicket = 'DL-' + Math.floor(1000 + Math.random() * 9000);
+    setTicketNo(randTicket);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setSupportStep(2);
+    } catch (err) {
+      console.error('Failed to send support:', err);
+      alert('Failed to send support ticket. Please try again.');
+    } finally {
+      setSendingSupport(false);
+    }
+  };
+
+  const closeSupportModal = () => {
+    setIsSupportOpen(false);
+    setSupportStep(1);
+    setSupportName('');
+    setReachMethod('whatsapp');
+    setSupportPhone('');
+    setSupportEmail('');
+    setSupportMessage('');
+  };
 
   const fetchCacheData = async () => {
     try {
@@ -720,14 +758,15 @@ function ManagerLayoutContent({ children }) {
           </a>
 
           {/* Contact Support */}
-          <a
-            href="mailto:support@dinelabs.co?subject=DineLabs%20Support%20Request"
+          <button
+            type="button"
+            onClick={() => setIsSupportOpen(true)}
             className="btn btn-outline btn-sm"
-            style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+            style={{ height: '40px', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', background: 'none', border: '1px solid var(--line)', borderRadius: '8px', padding: '0 12px', fontSize: '14px', fontWeight: '600', color: 'var(--ink)' }}
           >
-            <LifeBuoy className="ic" />
+            <LifeBuoy className="ic" style={{ width: '16px', height: '16px' }} />
             <span>Contact support</span>
-          </a>
+          </button>
 
           {/* Language Flag Dropdown */}
           <div className="lang-wrap">
@@ -764,6 +803,161 @@ function ManagerLayoutContent({ children }) {
         <main className="content">
           {children}
         </main>
+
+        {/* Contact Support Modal Popup */}
+        {isSupportOpen && (
+          <div className="support-modal-overlay">
+            <div className="support-modal-card">
+              
+              {/* Left Panel */}
+              <div className="support-modal-left">
+                <div className="support-icon-wrap">
+                  <LifeBuoy style={{ width: '24px', height: '24px', color: '#ffffff' }} />
+                </div>
+                <h3 className="support-left-title">We're here to help</h3>
+                <p className="support-left-desc">
+                  A real person on the Dinelabs team will read your message and get back to you.
+                  No bots, no ticket-juggling — just a quick, human reply.
+                </p>
+                
+                <div className="support-info-items">
+                  <div className="support-info-item">
+                    <Clock style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+                    <span>Typically replies within ~6 hours</span>
+                  </div>
+                  <div className="support-info-item">
+                    <Store style={{ width: '16px', height: '16px', color: 'var(--ink-3)' }} />
+                    <span>Your store keeps running meanwhile</span>
+                  </div>
+                </div>
+
+                <div className="support-direct-reach">
+                  <div className="direct-reach-label">Reach us directly</div>
+                  <a href="mailto:support@dinelabs.co" className="direct-reach-link">
+                    <span className="direct-reach-icon">✉</span>
+                    <span>support@dinelabs.co</span>
+                  </a>
+                  <a href="tel:+995322606060" className="direct-reach-link">
+                    <span className="direct-reach-icon">📞</span>
+                    <span>+995 322 60 60 60</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Panel */}
+              <div className="support-modal-right">
+                <button className="support-modal-close" onClick={closeSupportModal}>✕</button>
+
+                {supportStep === 1 ? (
+                  <form onSubmit={handleSendSupport} className="support-form">
+                    <div className="form-group-wrap">
+                      <label className="support-form-label">Your name</label>
+                      <div className="input-with-icon">
+                        <span className="input-icon">👤</span>
+                        <input 
+                          type="text" 
+                          className="support-input" 
+                          placeholder="e.g. Mariam K." 
+                          value={supportName}
+                          onChange={(e) => setSupportName(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group-wrap">
+                      <label className="support-form-label">How should we reach you?</label>
+                      <div className="reach-tabs">
+                        <button 
+                          type="button" 
+                          className={`reach-tab ${reachMethod === 'whatsapp' ? 'active' : ''}`}
+                          onClick={() => setReachMethod('whatsapp')}
+                        >
+                          <span className="tab-icon">💬</span>
+                          <span>WhatsApp</span>
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`reach-tab ${reachMethod === 'email' ? 'active' : ''}`}
+                          onClick={() => setReachMethod('email')}
+                        >
+                          <span className="tab-icon">✉</span>
+                          <span>Email</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {reachMethod === 'whatsapp' ? (
+                      <div className="form-group-wrap">
+                        <label className="support-form-label">WhatsApp number</label>
+                        <div className="input-with-icon">
+                          <span className="input-icon">📞</span>
+                          <input 
+                            type="tel" 
+                            className="support-input" 
+                            placeholder="+995 5XX XX XX XX" 
+                            value={supportPhone}
+                            onChange={(e) => setSupportPhone(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="form-group-wrap">
+                        <label className="support-form-label">Email address</label>
+                        <div className="input-with-icon">
+                          <span className="input-icon">✉</span>
+                          <input 
+                            type="email" 
+                            className="support-input" 
+                            placeholder="e.g. mariam@gmail.com" 
+                            value={supportEmail}
+                            onChange={(e) => setSupportEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="form-group-wrap">
+                      <label className="support-form-label">How can we help?</label>
+                      <textarea 
+                        className="support-textarea" 
+                        placeholder="Describe the issue in as much detail as you can..." 
+                        value={supportMessage}
+                        onChange={(e) => setSupportMessage(e.target.value)}
+                        required
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="support-actions">
+                      <button type="button" className="support-btn-cancel" onClick={closeSupportModal}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="support-btn-submit" disabled={sendingSupport}>
+                        {sendingSupport ? 'Sending...' : 'Send message'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="support-success-view">
+                    <div className="success-icon-badge">✓</div>
+                    <h3 className="success-title">Message sent — thanks, {supportName}</h3>
+                    <p className="success-desc">
+                      A Dinelabs teammate will reply by {reachMethod === 'whatsapp' ? 'WhatsApp at ' + supportPhone : 'email at ' + supportEmail} shortly, usually within a few hours.
+                    </p>
+                    <button type="button" className="ticket-badge-btn" onClick={closeSupportModal}>
+                      <span>🎫</span>
+                      <span>Ticket {ticketNo}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
       </div>
     </div>
     </ManagerContext.Provider>

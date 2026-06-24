@@ -34,6 +34,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { useManager } from '../layout';
+import SearchSelect from '../../components/SearchSelect';
 
 function ProductsPageContent() {
   const router = useRouter();
@@ -221,7 +222,7 @@ function ProductsPageContent() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -230,12 +231,26 @@ function ProductsPageContent() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProdImage(reader.result); // base64 string
-        triggerToast('Image uploaded successfully!', 'image');
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!uploadRes.ok) throw new Error('Failed to upload image');
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) {
+          setProdImage(uploadData.url);
+          triggerToast('Image uploaded successfully!', 'image');
+        } else {
+          alert('Upload failed: ' + (uploadData.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Failed to upload image');
+      }
     };
     input.click();
   };
@@ -888,7 +903,8 @@ function ProductsPageContent() {
           return result;
         };
 
-        const head = parseCSVLine(lines.shift()).map(s => s.toLowerCase());
+        const rawHeader = lines.shift() || '';
+        const head = parseCSVLine(rawHeader.replace(/^\uFEFF/, '')).map(s => s.toLowerCase().trim());
         
         const parsed = lines.map(line => {
           const cells = parseCSVLine(line);
@@ -938,8 +954,15 @@ function ProductsPageContent() {
           });
         }
 
-        // Map short description to description
-        const descriptionText = row['short description'] || row.description || '';
+        // Map short description or other description variants
+        const descriptionText = (
+          row['short description'] || 
+          row['short_description'] || 
+          row['description'] || 
+          row['product description'] || 
+          row['desc'] || 
+          ''
+        ).trim();
 
         await fetch('/api/products', {
           method: 'POST',
@@ -1182,29 +1205,29 @@ function ProductsPageContent() {
                 </div>
 
                 {/* Category filter select */}
-                <select 
-                  className="select-mini"
+                <SearchSelect
                   value={selectedCatFilter}
-                  onChange={(e) => setSelectedCatFilter(e.target.value)}
-                  style={{ height: '38px' }}
-                >
-                  <option value="">All categories</option>
-                  {categories.map(c => (
-                    <option key={c._id} value={c._id}>{c.name.en}</option>
-                  ))}
-                </select>
+                  onChange={setSelectedCatFilter}
+                  options={[
+                    { value: '', label: 'All categories' },
+                    ...categories.map(c => ({ value: c._id, label: c.name.en }))
+                  ]}
+                  placeholder="All categories"
+                  style={{ width: '180px' }}
+                />
 
                 {/* Availability filter select */}
-                <select 
-                  className="select-mini"
+                <SearchSelect
                   value={selectedAvailFilter}
-                  onChange={(e) => setSelectedAvailFilter(e.target.value)}
-                  style={{ height: '38px' }}
-                >
-                  <option value="">All availability</option>
-                  <option value="in">In stock</option>
-                  <option value="out">Out of stock</option>
-                </select>
+                  onChange={setSelectedAvailFilter}
+                  options={[
+                    { value: '', label: 'All availability' },
+                    { value: 'in', label: 'In stock' },
+                    { value: 'out', label: 'Out of stock' }
+                  ]}
+                  placeholder="All availability"
+                  style={{ width: '160px' }}
+                />
 
                 {/* Buttons */}
                 <button 
@@ -1249,28 +1272,30 @@ function ProductsPageContent() {
                   <span className="bb-count">{selectedIds.length} selected</span>
                   <div style={{ flex: 1 }}></div>
                   
-                  <select 
-                    className="select-mini"
+                  <SearchSelect
                     value={bulkAction}
-                    onChange={(e) => setBulkAction(e.target.value)}
-                  >
-                    <option value="">Bulk action…</option>
-                    <option value="stock-in">Mark in stock</option>
-                    <option value="stock-out">Mark out of stock</option>
-                    <option value="add-to-offers">Add to Offers &amp; Promotions</option>
-                    <option value="remove-from-offers">Remove from Offers &amp; Promotions</option>
-                    <option value="delete">Delete selected</option>
-                    <optgroup label="Assign Category">
-                      {categories.map(c => (
-                        <option key={c._id} value={`set-category:${c._id}`}>{c.name.en}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Assign Add-ons Group">
-                      {modifierGroups.map(mg => (
-                        <option key={mg._id} value={`add-modifier:${mg._id}`}>{mg.name.en} ({mg.type})</option>
-                      ))}
-                    </optgroup>
-                  </select>
+                    onChange={setBulkAction}
+                    options={[
+                      { value: '', label: 'Bulk action…' },
+                      { value: 'stock-in', label: 'Mark in stock' },
+                      { value: 'stock-out', label: 'Mark out of stock' },
+                      { value: 'add-to-offers', label: 'Add to Offers & Promotions' },
+                      { value: 'remove-from-offers', label: 'Remove from Offers & Promotions' },
+                      { value: 'delete', label: 'Delete selected' },
+                      ...categories.map(c => ({
+                        value: `set-category:${c._id}`,
+                        label: `Assign Category: ${c.name.en}`,
+                        subtitle: 'Assign Category'
+                      })),
+                      ...modifierGroups.map(mg => ({
+                        value: `add-modifier:${mg._id}`,
+                        label: `Assign Add-ons: ${mg.name.en} (${mg.type})`,
+                        subtitle: 'Assign Add-ons Group'
+                      }))
+                    ]}
+                    placeholder="Bulk action…"
+                    style={{ width: '260px' }}
+                  />
 
                   <button 
                     className="btn btn-primary btn-sm"
@@ -1361,9 +1386,7 @@ function ProductsPageContent() {
                                       {p.imageUrl ? (
                                         <img src={p.imageUrl} alt={p.name.en} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       ) : (
-                                        <span style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e2e8f0', color: '#64748b', fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.1' }}>
-                                          No Image
-                                        </span>
+                                        <img src="/assets/No Image Icon.svg" alt="No image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                       )}
                                     </span>
                                     <div>

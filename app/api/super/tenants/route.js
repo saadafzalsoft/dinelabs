@@ -18,7 +18,7 @@ export async function GET(request) {
     const db = await getDb();
     const tenants = await db.collection('tenants').find({}).toArray();
     const users = await db.collection('users').find({ role: 'manager' }).toArray();
-    const orders = await db.collection('orders').find({}, { projection: { tenantId: 1, total: 1, createdAt: 1 } }).toArray();
+    const orders = await db.collection('orders').find({}, { projection: { tenantId: 1, total: 1, createdAt: 1, status: 1 } }).toArray();
     
     let totalOrdersCount = 0;
     let platformRevenueSum = 0;
@@ -55,6 +55,91 @@ export async function GET(request) {
     const activeCount = tenants.filter(t => t.status === 'active').length;
     const suspendedCount = tenants.filter(t => t.status === 'suspended').length;
 
+    // Calculate real platform dashboard stats
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+    
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const activeOrders = orders.filter(o => o.status !== 'declined');
+
+    // Helper to calculate totals for a date range
+    const getRangeStats = (start, end) => {
+      const filtered = activeOrders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= start && (!end || d < end);
+      });
+      const rev = filtered.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+      return { count: filtered.length, revenue: rev };
+    };
+
+    const todayStats = getRangeStats(startOfToday);
+    const yesterdayStats = getRangeStats(startOfYesterday, startOfToday);
+
+    const weekStats = getRangeStats(sevenDaysAgo);
+    const prevWeekStats = getRangeStats(fourteenDaysAgo, sevenDaysAgo);
+
+    const monthStats = getRangeStats(thirtyDaysAgo);
+    const prevMonthStats = getRangeStats(sixtyDaysAgo, thirtyDaysAgo);
+
+    const pct = (cur, prev) => {
+      if (prev === 0) return cur > 0 ? 100 : 0;
+      return parseFloat((((cur - prev) / prev) * 100).toFixed(1));
+    };
+
+    // Calculate chart shapes dynamically based on actual active orders
+    // Today chart shape (8 intervals)
+    const todayChartSeries = Array(8).fill(0);
+    activeOrders.filter(o => new Date(o.createdAt) >= startOfToday).forEach(o => {
+      const h = new Date(o.createdAt).getHours();
+      let idx = Math.floor(h / 3); // 8 intervals of 3 hours
+      if (idx > 7) idx = 7;
+      todayChartSeries[idx] += 1;
+    });
+
+    // Week chart shape (7 days)
+    const weekChartSeries = Array(7).fill(0);
+    activeOrders.filter(o => new Date(o.createdAt) >= sevenDaysAgo).forEach(o => {
+      const day = new Date(o.createdAt).getDay(); // 0: Sun, 1: Mon...
+      const idx = day === 0 ? 6 : day - 1; // Mon-Sun
+      weekChartSeries[idx] += 1;
+    });
+
+    // Month chart shape (4 weeks)
+    const monthChartSeries = Array(4).fill(0);
+    activeOrders.filter(o => new Date(o.createdAt) >= thirtyDaysAgo).forEach(o => {
+      const diffTime = Math.abs(now - new Date(o.createdAt));
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const idx = Math.min(3, Math.floor((30 - diffDays) / 7.5));
+      if (idx >= 0) monthChartSeries[idx] += 1;
+    });
+
+    const realStats = {
+      today: {
+        orders: todayStats.count,
+        revenue: todayStats.revenue,
+        trend: `${pct(todayStats.count, yesterdayStats.count) >= 0 ? '+' : ''}${pct(todayStats.count, yesterdayStats.count)}% vs yesterday`,
+        chart: todayChartSeries
+      },
+      week: {
+        orders: weekStats.count,
+        revenue: weekStats.revenue,
+        trend: `${pct(weekStats.count, prevWeekStats.count) >= 0 ? '+' : ''}${pct(weekStats.count, prevWeekStats.count)}% vs last week`,
+        chart: weekChartSeries
+      },
+      month: {
+        orders: monthStats.count,
+        revenue: monthStats.revenue,
+        trend: `${pct(monthStats.count, prevMonthStats.count) >= 0 ? '+' : ''}${pct(monthStats.count, prevMonthStats.count)}% vs last month`,
+        chart: monthChartSeries
+      }
+    };
+
     return NextResponse.json({
       tenants: enriched,
       stats: {
@@ -62,7 +147,8 @@ export async function GET(request) {
         platformRevenue: platformRevenueSum,
         activeCount,
         suspendedCount
-      }
+      },
+      realStats
     });
   } catch (error) {
     console.error('Super tenants GET error:', error);
