@@ -3815,6 +3815,7 @@ function ManagerLayoutContent({ children }) {
 
   // Cache state variables for manager dashboard and subpages
   const [orders, setOrders] = useState([]);
+  const [views, setViews] = useState([]);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [modifierGroups, setModifierGroups] = useState([]);
@@ -3862,22 +3863,24 @@ function ManagerLayoutContent({ children }) {
 
   const fetchCacheData = async () => {
     try {
-      const [ordersRes, catsRes, prodsRes, modsRes, settingsRes, tablesRes] = await Promise.all([
+      const [ordersRes, catsRes, prodsRes, modsRes, settingsRes, tablesRes, viewsRes] = await Promise.all([
         fetch('/api/orders'),
         fetch('/api/categories'),
         fetch('/api/products'),
         fetch('/api/modifier-groups'),
         fetch('/api/tenant/settings'),
-        fetch('/api/tables')
+        fetch('/api/tables'),
+        fetch('/api/views')
       ]);
 
-      const [ordersData, catsData, prodsData, modsData, settingsData, tablesData] = await Promise.all([
+      const [ordersData, catsData, prodsData, modsData, settingsData, tablesData, viewsData] = await Promise.all([
         ordersRes.ok ? ordersRes.json() : [],
         catsRes.ok ? catsRes.json() : [],
         prodsRes.ok ? prodsRes.json() : [],
         modsRes.ok ? modsRes.json() : [],
         settingsRes.ok ? settingsRes.json() : null,
-        tablesRes.ok ? tablesRes.json() : []
+        tablesRes.ok ? tablesRes.json() : [],
+        viewsRes.ok ? viewsRes.json() : []
       ]);
 
       setOrders(ordersData);
@@ -3886,6 +3889,7 @@ function ManagerLayoutContent({ children }) {
       setModifierGroups(modsData);
       setTenantSettings(settingsData);
       setTables(tablesData);
+      setViews(viewsData);
 
       const pendingCount = ordersData.filter(o => o.status === 'pending').length;
       setPendingOrdersCount(pendingCount);
@@ -3903,6 +3907,17 @@ function ManagerLayoutContent({ children }) {
         const data = await res.json();
         setOrders(data);
         setPendingOrdersCount(data.filter(o => o.status === 'pending').length);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const refreshViews = async () => {
+    try {
+      const res = await fetch('/api/views');
+      if (res.ok) {
+        setViews(await res.json());
       }
     } catch (e) {
       console.error(e);
@@ -4031,7 +4046,11 @@ function ManagerLayoutContent({ children }) {
   useEffect(() => {
     if (!session) return;
     refreshOrders();
-    const interval = setInterval(refreshOrders, 45000);
+    refreshViews();
+    const interval = setInterval(() => {
+      refreshOrders();
+      refreshViews();
+    }, 45000);
     return () => clearInterval(interval);
   }, [session]);
 
@@ -4268,6 +4287,7 @@ function ManagerLayoutContent({ children }) {
     <ManagerContext.Provider value={{
       session,
       orders,
+      views,
       categories,
       products,
       modifierGroups,
@@ -4278,6 +4298,7 @@ function ManagerLayoutContent({ children }) {
       setLang,
       t,
       refreshOrders,
+      refreshViews,
       refreshCategories,
       refreshProducts,
       refreshModifierGroups,

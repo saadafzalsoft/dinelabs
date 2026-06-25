@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { getTenantBySlug, getTenantProducts, getTenantCategories, getTenantModifierGroups } from '@/lib/tenant';
 import StorefrontClient from './StorefrontClient';
 import { notFound } from 'next/navigation';
+import { getDb } from '@/lib/db';
 
 export async function generateMetadata({ params }) {
   const { storename } = await params;
@@ -25,6 +26,17 @@ export default async function StorefrontPage({ params }) {
 
   if (!tenant) {
     notFound();
+  }
+
+  // Log page view to database
+  try {
+    const db = await getDb();
+    db.collection('page_views').insertOne({
+      tenantId: tenant._id.toString(),
+      createdAt: new Date()
+    }).catch(err => console.error('Failed to log page view asynchronously:', err));
+  } catch (err) {
+    console.error('Failed to establish db connection for views tracking:', err);
   }
 
   // Fetch all related catalog data for this tenant
