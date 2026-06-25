@@ -30,7 +30,22 @@ function LiveOrdersPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { orders, loading, refreshOrders } = useManager();
+  const { orders, loading, refreshOrders, tenantSettings, lang, t } = useManager();
+
+  const currency = tenantSettings?.baseCurrency || 'USD';
+  const currencySymbols = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    LBP: 'LBP ',
+    AED: 'AED ',
+    SAR: 'SR ',
+    QAR: 'QR ',
+    KWD: 'KD ',
+    BHD: 'BD ',
+    OMR: 'RO '
+  };
+  const currencySymbol = currencySymbols[currency] || (currency + ' ');
   const [channelFilter, setChannelFilter] = useState(''); // '' | 'delivery' | 'pickup' | 'dine-in'
   
   // Local storage cleared completed orders ids to keep Kanban board clean
@@ -61,10 +76,10 @@ function LiveOrdersPageContent() {
     }
   }, []);
 
-  // Poll orders refresh via context helper every 5 seconds while on the live-orders page
+  // Poll orders refresh via context helper every 45 seconds while on the live-orders page
   useEffect(() => {
     refreshOrders();
-    const interval = setInterval(refreshOrders, 5000);
+    const interval = setInterval(refreshOrders, 45000);
     return () => clearInterval(interval);
   }, [refreshOrders]);
 
@@ -153,7 +168,7 @@ function LiveOrdersPageContent() {
     // Add custom transient notification toast
     const el = document.createElement('div');
     el.className = 'toast-wrap';
-    el.innerHTML = `<div class="toast"><span class="ic">🔔</span><span>Audio notification ring path connected!</span></div>`;
+    el.innerHTML = `<div class="toast"><span class="ic">🔔</span><span>${t('Audio notification ring path connected!')}</span></div>`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2500);
   };
@@ -185,12 +200,12 @@ function LiveOrdersPageContent() {
         }
 
         // Add custom visual alert toast
-        let label = 'Status updated';
-        if (newStatus === 'accepted') label = 'Order accepted!';
-        else if (newStatus === 'ready') label = 'Order marked ready!';
-        else if (newStatus === 'shipped') label = 'Order shipped!';
-        else if (newStatus === 'completed') label = 'Order completed!';
-        else if (newStatus === 'declined') label = 'Order declined';
+        let label = t('Status updated');
+        if (newStatus === 'accepted') label = t('Order accepted!');
+        else if (newStatus === 'ready') label = t('Order marked ready!');
+        else if (newStatus === 'shipped') label = t('Order shipped!');
+        else if (newStatus === 'completed') label = t('Order completed!');
+        else if (newStatus === 'declined') label = t('Order declined');
 
         const el = document.createElement('div');
         el.className = 'toast-wrap';
@@ -227,7 +242,7 @@ function LiveOrdersPageContent() {
     // Trigger visual toast
     const el = document.createElement('div');
     el.className = 'toast-wrap';
-    el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>Order cleared from active board</span></div>`;
+    el.innerHTML = `<div class="toast"><span class="ic">✓</span><span>${t('Order cleared from active board')}</span></div>`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2000);
   };
@@ -271,22 +286,22 @@ function LiveOrdersPageContent() {
   const getFulfillmentInfo = (o) => {
     if (o.type === 'dine-in') {
       return {
-        label: 'Dine-in table',
-        value: `Table ${o.customer?.tableNo || 'N/A'}`,
-        extra: 'Indoor Seating'
+        label: t('Dine-in table'),
+        value: `${t('Table')} ${o.customer?.tableNo || t('N/A')}`,
+        extra: t('Indoor Seating')
       };
     }
     if (o.type === 'delivery') {
       return {
-        label: 'Delivery address',
-        value: o.customer?.address || 'N/A',
+        label: t('Delivery address'),
+        value: o.customer?.address || t('N/A'),
         extra: ''
       };
     }
     return {
-      label: 'Pick-up info',
-      value: 'Counter collection',
-      extra: `Ready in ${o.customer?.phone ? '20 min' : '15 min'}`
+      label: t('Pick-up info'),
+      value: t('Counter collection'),
+      extra: `${t('Ready in')} ${o.customer?.phone ? t('20 min') : t('15 min')}`
     };
   };
 
@@ -313,23 +328,23 @@ function LiveOrdersPageContent() {
             fontFamily: 'var(--font)'
           }}
         >
-          <span>🚨 YOU HAVE {pendingOrdersCount} NEW PENDING ORDER(S). CLICK HERE TO CONNECT THE WEB AUDIO ALERT CHIMES.</span>
-          <span style={{ textDecoration: 'underline' }}>Enable Alert Sound</span>
+          <span>🚨 {t('YOU HAVE')} {pendingOrdersCount} {t('NEW PENDING ORDER(S). CLICK HERE TO CONNECT THE WEB AUDIO ALERT CHIMES.')}</span>
+          <span style={{ textDecoration: 'underline' }}>{t('Enable Alert Sound')}</span>
         </div>
       )}
 
       {/* Title */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Live orders</h1>
-          <p className="page-sub">Incoming orders update in real time. Advance each through the kitchen flow.</p>
+          <h1 className="page-title">{t('Live orders')}</h1>
+          <p className="page-sub">{t('Incoming orders update in real time. Advance each through the kitchen flow.')}</p>
         </div>
         <div className="row gap10">
           <button 
             className={`live-toggle ${pendingOrdersCount > 0 ? 'on' : ''}`}
             onClick={triggerAlertSoundToggle}
           >
-            <span className="pulse"></span>Live Monitor
+            <span className="pulse"></span>{t('Live Monitor')}
           </button>
         </div>
       </div>
@@ -340,7 +355,7 @@ function LiveOrdersPageContent() {
           <span className="stat-ic" style={{ backgroundColor: 'var(--neg-bg)', color: 'var(--neg)' }}><Inbox className="ic" /></span>
           <div>
             <div className="stat-v tnum">{stats.new}</div>
-            <div className="stat-l">New orders</div>
+            <div className="stat-l">{t('New orders')}</div>
           </div>
         </div>
 
@@ -348,7 +363,7 @@ function LiveOrdersPageContent() {
           <span className="stat-ic" style={{ backgroundColor: 'var(--warn-bg)', color: 'var(--warn)' }}><ChefHat className="ic" /></span>
           <div>
             <div className="stat-v tnum">{stats.preparing}</div>
-            <div className="stat-l">Preparing</div>
+            <div className="stat-l">{t('Preparing')}</div>
           </div>
         </div>
 
@@ -356,7 +371,7 @@ function LiveOrdersPageContent() {
           <span className="stat-ic" style={{ backgroundColor: 'var(--pos-bg)', color: 'var(--pos)' }}><PackageCheck className="ic" /></span>
           <div>
             <div className="stat-v tnum">{stats.ready}</div>
-            <div className="stat-l">Ready to go</div>
+            <div className="stat-l">{t('Ready to go')}</div>
           </div>
         </div>
 
@@ -364,7 +379,7 @@ function LiveOrdersPageContent() {
           <span className="stat-ic" style={{ backgroundColor: 'var(--surface-2)', color: 'var(--ink)' }}><CheckCheck className="ic" /></span>
           <div>
             <div className="stat-v tnum">{stats.completedToday}</div>
-            <div className="stat-l">Completed today</div>
+            <div className="stat-l">{t('Completed today')}</div>
           </div>
         </div>
       </div>
@@ -377,7 +392,7 @@ function LiveOrdersPageContent() {
             onClick={() => setChannelFilter('')}
           >
             <LayoutGrid className="ic" />
-            <span>All channels</span>
+            <span>{t('All channels')}</span>
           </button>
           
           <button 
@@ -385,7 +400,7 @@ function LiveOrdersPageContent() {
             onClick={() => setChannelFilter('delivery')}
           >
             <Bike className="ic" />
-            <span>Delivery</span>
+            <span>{t('Delivery')}</span>
           </button>
           
           <button 
@@ -393,7 +408,7 @@ function LiveOrdersPageContent() {
             onClick={() => setChannelFilter('pickup')}
           >
             <ShoppingBag className="ic" />
-            <span>Pick-up</span>
+            <span>{t('Pick-up')}</span>
           </button>
 
           <button 
@@ -401,10 +416,10 @@ function LiveOrdersPageContent() {
             onClick={() => setChannelFilter('dine-in')}
           >
             <Utensils className="ic" />
-            <span>Dine-in</span>
+            <span>{t('Dine-in')}</span>
           </button>
         </div>
-        <span className="card-note">Auto-refresh on &bull; SSE Polling</span>
+        <span className="card-note">{t('Auto-refresh on')} &bull; {t('SSE Polling')}</span>
       </div>
 
       {/* Kanban Board Grid */}
@@ -429,26 +444,26 @@ function LiveOrdersPageContent() {
             <div key={col.key} className="col">
               <div className="col-head">
                 <span className="col-dot" style={{ backgroundColor: col.dot }}></span>
-                <span className="col-title">{col.title}</span>
+                <span className="col-title">{t(col.title)}</span>
                 <span className="col-count">{list.length}</span>
               </div>
 
               <div className="col-body">
                 {list.length === 0 ? (
-                  <div className="col-empty">No orders</div>
+                  <div className="col-empty">{t('No orders')}</div>
                 ) : (
                   list.map(order => {
                     const itemsCount = order.items.reduce((s, it) => s + it.quantity, 0);
                     const ChannelIcon = channelIcons[order.type] || ShoppingBag;
                     
                     const durationMins = Math.floor((new Date() - new Date(order.createdAt)) / (1000 * 60));
-                    const timeLabel = durationMins <= 0 ? 'Just now' : `${durationMins}m ago`;
+                    const timeLabel = durationMins <= 0 ? t('Just now') : `${durationMins}${t('m ago')}`;
 
                     const subtext = order.type === 'dine-in' 
-                      ? `${order.customer?.name || 'Guest Diner'} · Table ${order.customer?.tableNo || 'N/A'}`
+                      ? `${order.customer?.name || t('Guest Diner')} · ${t('Table')} ${order.customer?.tableNo || t('N/A')}`
                       : order.type === 'delivery'
-                        ? `${order.customer?.name || 'Guest'} · ${order.customer?.address?.substring(0, 24)}...`
-                        : `${order.customer?.name || 'Guest'} · Pick-up`;
+                        ? `${order.customer?.name || t('Guest')} · ${order.customer?.address?.substring(0, 24)}...`
+                        : `${order.customer?.name || t('Guest')} · ${t('Pick-up')}`;
 
                     return (
                       <div 
@@ -460,7 +475,7 @@ function LiveOrdersPageContent() {
                           <span className="oc-id">#{order.orderNo}</span>
                           <span className={`oc-ch ch-${order.type === 'dine-in' ? 'dinein' : order.type}`}>
                             <ChannelIcon className="ic" style={{ width: '13px', height: '13px' }} />
-                            {channelLabels[order.type] || order.type}
+                            {t(channelLabels[order.type]) || order.type}
                           </span>
                           <span className="oc-time">{timeLabel}</span>
                         </div>
@@ -471,12 +486,12 @@ function LiveOrdersPageContent() {
                           {order.items.slice(0, 3).map((it, idx) => (
                             <div key={idx} style={{ marginBottom: '3px' }}>
                               <span className="qty">{it.quantity}</span>
-                              <span>{it.name}</span>
+                              <span>{typeof it.name === 'object' ? (it.name[lang] || it.name.en) : it.name}</span>
                             </div>
                           ))}
                           {order.items.length > 3 && (
                             <div style={{ color: 'var(--ink-3)', paddingLeft: '24px', fontSize: '0.78rem' }}>
-                              + {order.items.length - 3} more items...
+                              + {order.items.length - 3} {t('more items...')}
                             </div>
                           )}
                         </div>
@@ -484,7 +499,7 @@ function LiveOrdersPageContent() {
                         <div className="oc-foot">
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <span className="oc-total tnum" style={{ fontWeight: '800' }}>
-                              ${parseFloat(order.total).toFixed(2)}
+                              {currencySymbol}{parseFloat(order.total).toFixed(2)}
                             </span>
                             {['ready', 'shipped', 'completed'].includes(order.status) && (
                               <span style={{ 
@@ -502,9 +517,9 @@ function LiveOrdersPageContent() {
                                   order.status === 'shipped' ? 'var(--info)' : 
                                   'var(--ink-3)'
                               }}>
-                                {order.status === 'ready' ? 'Ready' : 
-                                 order.status === 'shipped' ? `Shipped (${order.deliveryMinutes || 20}m)` : 
-                                 'Completed'}
+                                {order.status === 'ready' ? t('Ready') : 
+                                 order.status === 'shipped' ? `${t('Shipped')} (${order.deliveryMinutes || 20}${t('m')})` : 
+                                 t('Completed')}
                               </span>
                             )}
                           </div>
@@ -514,7 +529,7 @@ function LiveOrdersPageContent() {
                               onClick={() => setSelectedOrder(order)}
                             >
                               <ReceiptText className="ic" style={{ width: '13px', height: '13px' }} />
-                              <span>Details</span>
+                              <span>{t('Details')}</span>
                             </button>
 
                             {order.status === 'pending' && (
@@ -522,7 +537,7 @@ function LiveOrdersPageContent() {
                                 className="btn btn-primary btn-sm"
                                 onClick={() => handleModifyStatus(order._id, 'accepted')}
                               >
-                                <span>Accept</span>
+                                <span>{t('Accept')}</span>
                                 <ArrowRight className="ic" style={{ width: '13px', height: '13px' }} />
                               </button>
                             )}
@@ -533,7 +548,7 @@ function LiveOrdersPageContent() {
                                 onClick={() => handleReadyClick(order)}
                               >
                                 <Check className="ic" style={{ width: '13px', height: '13px' }} />
-                                <span>Ready</span>
+                                <span>{t('Ready')}</span>
                               </button>
                             )}
 
@@ -543,7 +558,7 @@ function LiveOrdersPageContent() {
                                 onClick={() => handleModifyStatus(order._id, 'completed')}
                               >
                                 <Check className="ic" style={{ width: '13px', height: '13px' }} />
-                                <span>Complete</span>
+                                <span>{t('Complete')}</span>
                               </button>
                             )}
 
@@ -553,7 +568,7 @@ function LiveOrdersPageContent() {
                                 onClick={() => handleDismissOrder(order._id)}
                               >
                                 <Check className="ic" style={{ width: '13px', height: '13px' }} />
-                                <span>Done</span>
+                                <span>{t('Done')}</span>
                               </button>
                             )}
                           </span>
@@ -576,12 +591,12 @@ function LiveOrdersPageContent() {
             <div className="om-bar">
               <h3>
                 <ReceiptText className="ic" />
-                <span>Order details</span>
+                <span>{t('Order details')}</span>
               </h3>
               <button 
                 className="x" 
                 onClick={() => setSelectedOrder(null)} 
-                title="Close"
+                title={t('Close')}
               >
                 <X className="ic" />
               </button>
@@ -593,7 +608,7 @@ function LiveOrdersPageContent() {
                 {/* Left meta column */}
                 <div className="od-col">
                   <div className="od-head">
-                    <div className="od-id">Order #{selectedOrder.orderNo}</div>
+                    <div className="od-id">{t('Order')} #{selectedOrder.orderNo}</div>
                     <span className="od-status">
                       <span 
                         className="od-dot" 
@@ -604,32 +619,32 @@ function LiveOrdersPageContent() {
                             'var(--pos)' 
                         }}
                       ></span>
-                      {selectedOrder.status === 'pending' ? 'New' : 
-                       selectedOrder.status === 'accepted' ? 'In progress' : 
-                       selectedOrder.status === 'ready' ? 'Ready' : 
-                       selectedOrder.status === 'shipped' ? 'Shipped' : 
-                       'Completed'}
+                      {selectedOrder.status === 'pending' ? t('New') : 
+                       selectedOrder.status === 'accepted' ? t('In progress') : 
+                       selectedOrder.status === 'ready' ? t('Ready') : 
+                       selectedOrder.status === 'shipped' ? t('Shipped') : 
+                       t('Completed')}
                     </span>
                   </div>
 
                   <div className="od-meta">
                     <span className={`oc-ch ch-${selectedOrder.type === 'dine-in' ? 'dinein' : selectedOrder.type}`}>
                       <Info className="ic" />
-                      {channelLabels[selectedOrder.type] || selectedOrder.type}
+                      {t(channelLabels[selectedOrder.type]) || selectedOrder.type}
                     </span>
                     <span className="od-time">
                       <Clock className="ic" />
-                      <span>Placed {new Date(selectedOrder.createdAt).toLocaleTimeString()}</span>
+                      <span>{t('Placed')} {new Date(selectedOrder.createdAt).toLocaleTimeString()}</span>
                     </span>
                   </div>
 
                   {/* Customer Details */}
                   <div className="od-sec">
-                    <div className="od-sec-t">Customer</div>
+                    <div className="od-sec-t">{t('Customer')}</div>
                     <div className="od-info">
                       <div className="od-row">
                         <User className="ic" />
-                        <span>{selectedOrder.customer?.name || 'Walk-in Guest'}</span>
+                        <span>{selectedOrder.customer?.name || t('Walk-in Guest')}</span>
                       </div>
                       
                       {selectedOrder.customer?.phone && (
@@ -670,7 +685,7 @@ function LiveOrdersPageContent() {
                 <div className="od-col">
                   <div className="od-sec">
                     <div className="od-sec-t">
-                      Items &bull; {selectedOrder.items.reduce((s, it) => s + it.quantity, 0)}
+                      {t('Items')} &bull; {selectedOrder.items.reduce((s, it) => s + it.quantity, 0)}
                     </div>
                     
                     <div className="od-items" style={{ marginTop: '12px' }}>
@@ -682,22 +697,22 @@ function LiveOrdersPageContent() {
                           <div className="od-item-main">
                             <div className="od-item-top">
                               <span className="od-q">{item.quantity}</span>
-                              <span className="od-n" style={{ fontWeight: '700' }}>{item.name}</span>
+                              <span className="od-n" style={{ fontWeight: '700' }}>{typeof item.name === 'object' ? (item.name[lang] || item.name.en) : item.name}</span>
                               <span className="od-p tnum">
-                                ${parseFloat(item.priceCalculated || item.price || 0).toFixed(2)}
+                                {currencySymbol}{parseFloat(item.priceCalculated || item.price || 0).toFixed(2)}
                               </span>
                             </div>
                             
                             {/* Addon details mapping */}
                             <div className="od-addons" style={{ marginTop: '6px' }}>
                               {item.size && (
-                                <span className="od-addon">Size: {item.size}</span>
+                                <span className="od-addon">{t('Size')}: {item.size}</span>
                               )}
                               {item.addons?.map((add, aIdx) => (
-                                <span key={aIdx} className="od-addon">+{add}</span>
+                                <span key={aIdx} className="od-addon">+{typeof add === 'object' ? (add[lang] || add.en) : add}</span>
                               ))}
                               {item.removedIngredients?.map((rem, rIdx) => (
-                                <span key={rIdx} className="od-addon rem">No {rem}</span>
+                                <span key={rIdx} className="od-addon rem">{t('No')} {typeof rem === 'object' ? (rem[lang] || rem.en) : rem}</span>
                               ))}
                             </div>
 
@@ -713,8 +728,8 @@ function LiveOrdersPageContent() {
                     </div>
 
                     <div className="od-total">
-                      <span>Total</span>
-                      <span className="tnum">${parseFloat(selectedOrder.total).toFixed(2)}</span>
+                      <span>{t('Total')}</span>
+                      <span className="tnum">{currencySymbol}{parseFloat(selectedOrder.total).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -729,13 +744,13 @@ function LiveOrdersPageContent() {
                       className="btn btn-danger btn-lg od-cancel"
                       onClick={() => handleModifyStatus(selectedOrder._id, 'declined')}
                     >
-                      Decline
+                      {t('Decline')}
                     </button>
                     <button 
                       className="btn btn-primary btn-lg od-primary"
                       onClick={() => handleModifyStatus(selectedOrder._id, 'accepted')}
                     >
-                      Accept order
+                      {t('Accept order')}
                       <ArrowRight className="ic" />
                     </button>
                   </>
@@ -746,7 +761,7 @@ function LiveOrdersPageContent() {
                     className="btn btn-primary btn-lg od-primary"
                     onClick={() => handleReadyClick(selectedOrder)}
                   >
-                    Mark Ready
+                    {t('Mark Ready')}
                     <Check className="ic" />
                   </button>
                 )}
@@ -756,7 +771,7 @@ function LiveOrdersPageContent() {
                     className="btn btn-primary btn-lg od-primary"
                     onClick={() => handleModifyStatus(selectedOrder._id, 'completed')}
                   >
-                    Complete Order
+                    {t('Complete Order')}
                     <Check className="ic" />
                   </button>
                 )}
@@ -766,7 +781,7 @@ function LiveOrdersPageContent() {
                     className="btn btn-primary btn-lg od-primary"
                     onClick={() => handleDismissOrder(selectedOrder._id)}
                   >
-                    Fulfill order
+                    {t('Fulfill order')}
                     <Check className="ic" />
                   </button>
                 )}
@@ -785,19 +800,19 @@ function LiveOrdersPageContent() {
             <div className="om-bar">
               <h3>
                 <Bike className="ic" />
-                <span>Delivery Transit Time</span>
+                <span>{t('Delivery Transit Time')}</span>
               </h3>
               <button 
                 className="x" 
                 onClick={() => setDeliveryMinutesModal(null)} 
-                title="Close"
+                title={t('Close')}
               >
                 <X className="ic" />
               </button>
             </div>
             <div style={{ padding: '24px' }}>
               <p style={{ fontSize: '0.9rem', marginBottom: '16px', color: 'var(--ink-3)' }}>
-                Enter the estimated delivery transit time in minutes for Order <strong>#{deliveryMinutesModal.orderNo}</strong>.
+                {t('Enter the estimated delivery transit time in minutes for Order')} <strong>#{deliveryMinutesModal.orderNo}</strong>.
               </p>
               <input
                 type="number"
@@ -817,7 +832,7 @@ function LiveOrdersPageContent() {
               />
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                 <button className="btn btn-outline" onClick={() => setDeliveryMinutesModal(null)}>
-                  Cancel
+                  {t('Cancel')}
                 </button>
                 <button
                   className="btn btn-primary"
@@ -826,7 +841,7 @@ function LiveOrdersPageContent() {
                     setDeliveryMinutesModal(null);
                   }}
                 >
-                  Confirm & Ship
+                  {t('Confirm & Ship')}
                 </button>
               </div>
             </div>

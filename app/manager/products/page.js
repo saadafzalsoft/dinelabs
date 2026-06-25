@@ -49,8 +49,25 @@ function ProductsPageContent() {
     refreshProducts,
     refreshCategories,
     refreshModifierGroups,
-    lang
+    lang,
+    tenantSettings,
+    t
   } = useManager();
+
+  const currency = tenantSettings?.baseCurrency || 'USD';
+  const currencySymbols = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    LBP: 'LBP ',
+    AED: 'AED ',
+    SAR: 'SR ',
+    QAR: 'QR ',
+    KWD: 'KD ',
+    BHD: 'BD ',
+    OMR: 'RO '
+  };
+  const currencySymbol = currencySymbols[currency] || (currency + ' ');
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -156,7 +173,7 @@ function ProductsPageContent() {
             body: JSON.stringify({ reorderedIds })
           });
           if (res.ok) {
-            triggerToast('Categories reordered successfully');
+            triggerToast(t('Categories reordered successfully'));
           }
         } catch (err) {
           console.error(err);
@@ -179,7 +196,7 @@ function ProductsPageContent() {
             body: JSON.stringify({ reorderedIds })
           });
           if (res.ok) {
-            triggerToast('Products reordered successfully');
+            triggerToast(t('Products reordered successfully'));
           }
         } catch (err) {
           console.error(err);
@@ -229,7 +246,7 @@ function ProductsPageContent() {
       if (!file) return;
 
       if (file.size > 3 * 1024 * 1024) {
-        alert('Image file size is too large. Please select an image under 3MB.');
+        alert(t('Image file size is too large. Please select an image under 3MB.'));
         return;
       }
 
@@ -241,17 +258,17 @@ function ProductsPageContent() {
           method: 'POST',
           body: formData
         });
-        if (!uploadRes.ok) throw new Error('Failed to upload image');
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) {
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
           setProdImage(uploadData.url);
-          triggerToast('Image uploaded successfully!', 'image');
+          triggerToast(t('Image uploaded successfully!'), 'image');
         } else {
-          alert('Upload failed: ' + (uploadData.error || 'Unknown error'));
+          const uploadData = await uploadRes.json();
+          alert(t('Upload failed: ') + (uploadData.error || t('Unknown error')));
         }
       } catch (err) {
         console.error(err);
-        alert('Failed to upload image');
+        alert(t('Failed to upload image'));
       }
     };
     input.click();
@@ -291,7 +308,7 @@ function ProductsPageContent() {
 
         setSelectedIds([]);
         setBulkAction('');
-        triggerToast('Updated categories for selected products');
+        triggerToast(t('Updated categories for selected products'));
         return;
       } else if (bulkAction.startsWith('add-modifier:')) {
         const mgId = bulkAction.split(':')[1];
@@ -320,7 +337,7 @@ function ProductsPageContent() {
 
         setSelectedIds([]);
         setBulkAction('');
-        triggerToast('Added modifier group to selected products');
+        triggerToast(t('Added modifier group to selected products'));
         return;
       } else if (bulkAction === 'delete') {
         const delRes = await fetch('/api/products', {
@@ -332,7 +349,7 @@ function ProductsPageContent() {
           setProducts(products.filter(p => !selectedIds.includes(p._id)));
           setSelectedIds([]);
           setBulkAction('');
-          triggerToast('Deleted selected products');
+          triggerToast(t('Deleted selected products'));
         }
         return;
       } else if (bulkAction === 'add-to-offers' || bulkAction === 'remove-from-offers') {
@@ -341,7 +358,7 @@ function ProductsPageContent() {
           return enName.includes('offers') || enName.includes('promotion') || c.isPinned;
         });
         if (!offersCat) {
-          alert('Offers & Promotions category not found');
+          alert(t('Offers & Promotions category not found'));
           return;
         }
 
@@ -384,7 +401,7 @@ function ProductsPageContent() {
 
         setSelectedIds([]);
         setBulkAction('');
-        triggerToast(isAdding ? 'Products added to Offers & Promotions' : 'Products removed from Offers & Promotions');
+        triggerToast(isAdding ? t('Products added to Offers & Promotions') : t('Products removed from Offers & Promotions'));
         return;
       }
 
@@ -405,9 +422,9 @@ function ProductsPageContent() {
         }));
         setSelectedIds([]);
         setBulkAction('');
-        triggerToast(`Updated ${selectedIds.length} items`);
+        triggerToast(t('Updated {count} items').replace('{count}', selectedIds.length));
       } else {
-        alert('Failed performing bulk action');
+        alert(t('Failed performing bulk action'));
       }
     } catch (e) {
       console.error(e);
@@ -418,7 +435,7 @@ function ProductsPageContent() {
     const nextStockState = !product.isAvailable;
     // Optimistic UI update
     setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: nextStockState } : p));
-    triggerToast(`${product.name?.en || 'Product'} marked ${nextStockState ? 'in stock' : 'out of stock'}`);
+    triggerToast(t('{productName} marked {state}').replace('{productName}', t(product.name)).replace('{state}', nextStockState ? t('in stock') : t('out of stock')));
 
     try {
       const res = await fetch('/api/products', {
@@ -429,13 +446,13 @@ function ProductsPageContent() {
       if (!res.ok) {
         // Rollback
         setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: !nextStockState } : p));
-        triggerToast('Failed to update stock state');
+        triggerToast(t('Failed to update stock state'));
       }
     } catch (e) {
       console.error(e);
       // Rollback
       setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isAvailable: !nextStockState } : p));
-      triggerToast('Failed to update stock state');
+      triggerToast(t('Failed to update stock state'));
     }
   };
 
@@ -443,7 +460,7 @@ function ProductsPageContent() {
     const nextFeaturedState = !product.isFeatured;
     // Optimistic UI update
     setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: nextFeaturedState } : p));
-    triggerToast(`${product.name?.en || 'Product'} ${nextFeaturedState ? 'marked as featured' : 'removed from featured'}`);
+    triggerToast(t('{productName} {state}').replace('{productName}', t(product.name)).replace('{state}', nextFeaturedState ? t('marked as featured') : t('removed from featured')));
 
     try {
       const res = await fetch('/api/products', {
@@ -454,13 +471,13 @@ function ProductsPageContent() {
       if (!res.ok) {
         // Rollback
         setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: !nextFeaturedState } : p));
-        triggerToast('Failed to update featured state');
+        triggerToast(t('Failed to update featured state'));
       }
     } catch (e) {
       console.error(e);
       // Rollback
       setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isFeatured: !nextFeaturedState } : p));
-      triggerToast('Failed to update featured state');
+      triggerToast(t('Failed to update featured state'));
     }
   };
 
@@ -500,7 +517,7 @@ function ProductsPageContent() {
   // Product submission
   const handleProductSubmit = async () => {
     if (!prodName || !prodPrice || savingProduct) {
-      alert('Please fill out name and price.');
+      alert(t('Please fill out name and price.'));
       return;
     }
 
@@ -532,12 +549,13 @@ function ProductsPageContent() {
           })
         });
 
+        const data = await res.json();
         if (res.ok) {
           fetchCatalogData();
           closeProductDrawer();
-          triggerToast(`Saved "${prodName}"`);
+          triggerToast(t('Saved "{name}"').replace('{name}', prodName));
         } else {
-          alert('Failed saving changes');
+          alert(t(data.error || 'Failed saving changes'));
         }
       } else {
         // Add product
@@ -551,9 +569,9 @@ function ProductsPageContent() {
         if (res.ok) {
           setProducts([data.product, ...products]);
           closeProductDrawer();
-          triggerToast(`Created "${prodName}"`);
+          triggerToast(t('Created "{name}"').replace('{name}', prodName));
         } else {
-          alert(data.error || 'Failed adding product');
+          alert(t(data.error || 'Failed adding product'));
         }
       }
     } catch (e) {
@@ -564,7 +582,7 @@ function ProductsPageContent() {
   };
 
   const handleDeleteProduct = async (id, name) => {
-    if (!confirm(`Delete "${name}" permanently?`)) return;
+    if (!confirm(t('Delete "{name}" permanently?').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/products', {
@@ -574,9 +592,9 @@ function ProductsPageContent() {
       });
       if (res.ok) {
         setProducts(products.filter(p => p._id !== id));
-        triggerToast(`Deleted "${name}"`);
+        triggerToast(t('Deleted "{name}"').replace('{name}', name));
       } else {
-        alert('Failed deleting product');
+        alert(t('Failed deleting product'));
       }
     } catch (e) {
       console.error(e);
@@ -694,7 +712,7 @@ function ProductsPageContent() {
           }
           return c;
         }));
-        triggerToast(newPinnedState ? 'Category pinned storefront!' : 'Category unpinned');
+        triggerToast(newPinnedState ? t('Category pinned storefront!') : t('Category unpinned'));
       }
     } catch (e) {
       console.error(e);
@@ -702,7 +720,7 @@ function ProductsPageContent() {
   };
 
   const handleDeleteCategory = async (id, name) => {
-    if (!confirm(`Delete category "${name}"? Products inside this category won't be deleted but will lose this category reference.`)) return;
+    if (!confirm(t('Delete category "{name}"? Products inside this category won\'t be deleted but will lose this category reference.').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/categories', {
@@ -796,7 +814,7 @@ function ProductsPageContent() {
   };
 
   const handleDeleteGroup = async (id, name) => {
-    if (!confirm(`Delete modifier group "${name}" permanently? Reference to this group will be automatically removed from all products.`)) return;
+    if (!confirm(t('Delete modifier group "{name}" permanently? Reference to this group will be automatically removed from all products.').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/modifier-groups', {
@@ -868,7 +886,7 @@ function ProductsPageContent() {
     a.download = 'product-template.csv';
     a.click();
     URL.revokeObjectURL(a.href);
-    triggerToast('Template CSV downloaded!', 'file-down');
+    triggerToast(t('Template CSV downloaded!'), 'file-down');
   };
 
   const handleBulkFileChange = (e) => {
@@ -882,7 +900,7 @@ function ProductsPageContent() {
         const text = reader.result;
         const lines = text.split(/\r?\n/).filter(Boolean);
         if (lines.length === 0) {
-          alert('CSV file is empty');
+          alert(t('CSV file is empty'));
           return;
         }
 
@@ -925,7 +943,7 @@ function ProductsPageContent() {
         setBulkFileRows(parsed);
       } catch (err) {
         console.error(err);
-        alert('Could not parse template CSV file.');
+        alert(t('Could not parse template CSV file.'));
       }
     };
     reader.readAsText(file);
@@ -990,10 +1008,10 @@ function ProductsPageContent() {
 
       fetchCatalogData();
       closeBulkDrawer();
-      triggerToast(`Imported ${successCount} products!`);
+      triggerToast(t('Imported {count} products!').replace('{count}', successCount));
     } catch (e) {
       console.error(e);
-      alert('Error importing file rows');
+      alert(t('Error importing file rows'));
     } finally {
       setImporting(false);
       setImportedCount(0);
@@ -1076,11 +1094,11 @@ function ProductsPageContent() {
             <tr>
               <th style={{ width: '40px' }}></th>
               <th style={{ width: '40px' }}></th>
-              <th>Product</th>
-              <th>Modifiers</th>
-              <th>Price</th>
-              <th>Availability</th>
-              <th style={{ textAlign: 'right' }}>Actions</th>
+              <th>{t('Product')}</th>
+              <th>{t('Modifiers')}</th>
+              <th>{t('Price')}</th>
+              <th>{t('Availability')}</th>
+              <th style={{ textAlign: 'right' }}>{t('Actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1124,9 +1142,9 @@ function ProductsPageContent() {
         <thead>
           <tr>
             <th style={{ width: '40px' }}></th>
-            <th>Category</th>
-            <th style={{ textAlign: 'center', width: '120px' }}>Promoted</th>
-            <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
+            <th>{t('Category')}</th>
+            <th style={{ textAlign: 'center', width: '120px' }}>{t('Promoted')}</th>
+            <th style={{ textAlign: 'right', width: '120px' }}>{t('Actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -1185,8 +1203,8 @@ function ProductsPageContent() {
       {/* Title */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Products catalog</h1>
-          <p className="page-sub">Manage your menu items, prices, modifiers and availability.</p>
+          <h1 className="page-title">{t('Products catalog')}</h1>
+          <p className="page-sub">{t('Manage your menu items, prices, modifiers and availability.')}</p>
         </div>
       </div>
 
@@ -1207,7 +1225,7 @@ function ProductsPageContent() {
                   <input 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products…" 
+                    placeholder={t('Search products…')} 
                   />
                 </div>
 
@@ -1216,10 +1234,10 @@ function ProductsPageContent() {
                   value={selectedCatFilter}
                   onChange={setSelectedCatFilter}
                   options={[
-                    { value: '', label: 'All categories' },
+                    { value: '', label: t('All categories') },
                     ...categories.map(c => ({ value: c._id, label: c.name[lang] || c.name.en }))
                   ]}
-                  placeholder="All categories"
+                  placeholder={t('All categories')}
                   style={{ width: '180px' }}
                 />
 
@@ -1228,11 +1246,11 @@ function ProductsPageContent() {
                   value={selectedAvailFilter}
                   onChange={setSelectedAvailFilter}
                   options={[
-                    { value: '', label: 'All availability' },
-                    { value: 'in', label: 'In stock' },
-                    { value: 'out', label: 'Out of stock' }
+                    { value: '', label: t('All availability') },
+                    { value: 'in', label: t('In stock') },
+                    { value: 'out', label: t('Out of stock') }
                   ]}
-                  placeholder="All availability"
+                  placeholder={t('All availability')}
                   style={{ width: '160px' }}
                 />
 
@@ -1243,7 +1261,7 @@ function ProductsPageContent() {
                   style={{ marginLeft: 'auto' }}
                 >
                   <Upload className="ic" />
-                  <span>Bulk upload</span>
+                  <span>{t('Bulk upload')}</span>
                 </button>
                 
                 <button 
@@ -1254,7 +1272,7 @@ function ProductsPageContent() {
                   }}
                 >
                   <Plus className="ic" />
-                  <span>Add product</span>
+                  <span>{t('Add product')}</span>
                 </button>
               </div>
 
@@ -1262,11 +1280,11 @@ function ProductsPageContent() {
               {showReorderHint && (
                 <div className="reorder-hint">
                   <MoveVertical className="ic" />
-                  <span>Drag the <span className="grip-chip"><GripVertical className="ic" /></span> handle on any row to reorder your products.</span>
+                  <span>{t('Drag the')} <span className="grip-chip"><GripVertical className="ic" /></span> {t('handle on any row to reorder your products.')}</span>
                   <button 
                     className="x" 
                     onClick={() => setShowReorderHint(false)}
-                    title="Got it"
+                    title={t('Got it')}
                   >
                     <X className="ic" />
                   </button>
@@ -1276,31 +1294,31 @@ function ProductsPageContent() {
               {/* Bulk Toolbar overlay */}
               {selectedIds.length > 0 && (
                 <div className="bulkbar armed">
-                  <span className="bb-count">{selectedIds.length} selected</span>
+                  <span className="bb-count">{selectedIds.length} {t('selected')}</span>
                   <div style={{ flex: 1 }}></div>
                   
                   <SearchSelect
                     value={bulkAction}
                     onChange={setBulkAction}
                     options={[
-                      { value: '', label: 'Bulk action…' },
-                      { value: 'stock-in', label: 'Mark in stock' },
-                      { value: 'stock-out', label: 'Mark out of stock' },
-                      { value: 'add-to-offers', label: 'Add to Offers & Promotions' },
-                      { value: 'remove-from-offers', label: 'Remove from Offers & Promotions' },
-                      { value: 'delete', label: 'Delete selected' },
+                      { value: '', label: t('Bulk action…') },
+                      { value: 'stock-in', label: t('Mark in stock') },
+                      { value: 'stock-out', label: t('Mark out of stock') },
+                      { value: 'add-to-offers', label: t('Add to Offers & Promotions') },
+                      { value: 'remove-from-offers', label: t('Remove from Offers & Promotions') },
+                      { value: 'delete', label: t('Delete selected') },
                       ...categories.map(c => ({
                         value: `set-category:${c._id}`,
-                        label: `Assign Category: ${c.name[lang] || c.name.en}`,
-                        subtitle: 'Assign Category'
+                        label: `${t('Assign Category')}: ${c.name[lang] || c.name.en}`,
+                        subtitle: t('Assign Category')
                       })),
                       ...modifierGroups.map(mg => ({
                         value: `add-modifier:${mg._id}`,
-                        label: `Assign Add-ons: ${mg.name[lang] || mg.name.en} (${mg.type})`,
-                        subtitle: 'Assign Add-ons Group'
+                        label: `${t('Assign Add-ons')}: ${mg.name[lang] || mg.name.en} (${t(mg.type === 'variations' ? 'Sizes' : mg.type === 'addons' ? 'Add-on' : 'Removal')})`,
+                        subtitle: t('Assign Add-ons Group')
                       }))
                     ]}
-                    placeholder="Bulk action…"
+                    placeholder={t('Bulk action…')}
                     style={{ width: '260px' }}
                   />
 
@@ -1309,7 +1327,7 @@ function ProductsPageContent() {
                     onClick={handleBulkApply}
                     disabled={!bulkAction}
                   >
-                    Apply
+                    {t('Apply')}
                   </button>
                 </div>
               )}
@@ -1319,7 +1337,7 @@ function ProductsPageContent() {
                 <table className="tbl" style={{ minWidth: '720px' }}>
                   <thead>
                     <tr>
-                      <th className="drag-col" title="Drag rows to reorder">
+                      <th className="drag-col" title={t('Drag rows to reorder')}>
                         <ArrowUpDown style={{ width: '14px', height: '14px', color: 'var(--ink-3)' }} />
                       </th>
                       <th style={{ width: '42px' }}>
@@ -1330,11 +1348,11 @@ function ProductsPageContent() {
                           <Check className="ic" />
                         </span>
                       </th>
-                      <th>Product</th>
-                      <th>Category</th>
-                      <th>Price</th>
-                      <th>Availability</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th>{t('Product')}</th>
+                      <th>{t('Category')}</th>
+                      <th>{t('Price')}</th>
+                      <th>{t('Availability')}</th>
+                      <th style={{ textAlign: 'right' }}>{t('Actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1352,9 +1370,9 @@ function ProductsPageContent() {
                           <tr className="cat-row">
                             <td colSpan="7">
                               <div className="cat-row-inner">
-                                <span className="cat-name">{group.categoryName}</span>
+                                <span className="cat-name">{t(group.categoryName)}</span>
                                 <span className="cat-count">
-                                  {group.list.length} product{group.list.length === 1 ? '' : 's'}
+                                  {group.list.length} {group.list.length === 1 ? t('product') : t('products')}
                                 </span>
                               </div>
                             </td>
@@ -1400,7 +1418,7 @@ function ProductsPageContent() {
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <div className="p-name">{p.name[lang] || p.name.en}</div>
                                       </div>
-                                      <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.[lang] || p.description?.en || 'No description'}</div>
+                                      <div className="mut3" style={{ fontSize: '12px' }}>{p.description?.[lang] || p.description?.en || t('No description')}</div>
                                     </div>
                                   </div>
                                 </td>
@@ -1417,7 +1435,7 @@ function ProductsPageContent() {
                                         ) : null;
                                       })
                                     ) : (
-                                      <span className="mut3">Uncategorized</span>
+                                      <span className="mut3">{t('Uncategorized')}</span>
                                     )}
                                   </div>
                                 </td>
@@ -1425,11 +1443,11 @@ function ProductsPageContent() {
                                 <td>
                                   {p.discountedPrice && p.discountedPrice > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      <span className="price tnum" style={{ textDecoration: 'line-through', color: 'var(--ink-3)', fontSize: '0.8em' }}>${parseFloat(p.price).toFixed(2)}</span>
-                                      <span className="price tnum" style={{ color: '#ef4444', fontWeight: '700' }}>${parseFloat(p.discountedPrice).toFixed(2)}</span>
+                                      <span className="price tnum" style={{ textDecoration: 'line-through', color: 'var(--ink-3)', fontSize: '0.8em' }}>{currencySymbol}{parseFloat(p.price).toFixed(2)}</span>
+                                      <span className="price tnum" style={{ color: '#ef4444', fontWeight: '700' }}>{currencySymbol}{parseFloat(p.discountedPrice).toFixed(2)}</span>
                                     </div>
                                   ) : (
-                                    <span className="price tnum">${parseFloat(p.price).toFixed(2)}</span>
+                                    <span className="price tnum">{currencySymbol}{parseFloat(p.price).toFixed(2)}</span>
                                   )}
                                 </td>
 
@@ -1445,7 +1463,7 @@ function ProductsPageContent() {
                                     </label>
                                     <span className={`pill ${p.isAvailable ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px' }}>
                                       <span className="dot"></span>
-                                      {p.isAvailable ? 'In stock' : 'Out'}
+                                      {p.isAvailable ? t('In stock') : t('Out')}
                                     </span>
                                   </div>
                                 </td>
@@ -1455,14 +1473,14 @@ function ProductsPageContent() {
                                     <button 
                                       className="iconbtn" 
                                       onClick={() => loadProductForEdit(p)}
-                                      title="Edit"
+                                      title={t('Edit')}
                                     >
                                       <Pencil className="ic" />
                                     </button>
                                     <button 
                                       className="iconbtn del" 
                                       onClick={() => handleDeleteProduct(p._id, p.name[lang] || p.name.en)}
-                                      title="Delete"
+                                      title={t('Delete')}
                                     >
                                       <Trash2 className="ic" />
                                     </button>
@@ -1492,32 +1510,32 @@ function ProductsPageContent() {
       <aside className={`drawer ${isProductOpen ? 'open' : ''}`}>
         <div className="rail-head">
           <PlusCircle className="ic" />
-          <h3>{editingProduct ? 'Edit product' : 'Add new product'}</h3>
-          <button className="x" onClick={closeProductDrawer} title="Close">
+          <h3>{editingProduct ? t('Edit product') : t('Add new product')}</h3>
+          <button className="x" onClick={closeProductDrawer} title={t('Close')}>
             <X className="ic" />
           </button>
         </div>
         
         <div className="rail-body">
           <div className="field">
-            <label className="label">Product name (English)</label>
+            <label className="label">{t('Product name')}</label>
             <input 
               className="input" 
               value={prodName}
               onChange={(e) => setProdName(e.target.value)}
-              placeholder="e.g. Pepperoni Feast" 
+              placeholder={t('e.g. Pepperoni Feast')} 
             />
           </div>
 
           <div className="field">
-            <label className="label">Base price</label>
+            <label className="label">{t('Base price')}</label>
             <div className="input-affix">
-              <span className="pfx">$</span>
+              <span className="pfx">{currencySymbol}</span>
               <input 
                 className="input" 
                 value={prodPrice}
                 onChange={(e) => setProdPrice(e.target.value)}
-                placeholder="14.99" 
+                placeholder="0.00" 
                 type="number"
                 step="0.01"
               />
@@ -1525,14 +1543,19 @@ function ProductsPageContent() {
           </div>
 
           <div className="field">
-            <label className="label">Discounted price <span style={{ fontWeight: '400', color: 'var(--ink-3)', fontSize: '0.75rem' }}>(optional)</span></label>
+            <label className="label">
+              {t('Discounted price')}{' '}
+              <span style={{ fontWeight: '400', color: 'var(--ink-3)', fontSize: '0.75rem' }}>
+                ({t('optional')})
+              </span>
+            </label>
             <div className="input-affix">
-              <span className="pfx">$</span>
+              <span className="pfx">{currencySymbol}</span>
               <input 
                 className="input" 
                 value={prodDiscountedPrice}
                 onChange={(e) => setProdDiscountedPrice(e.target.value)}
-                placeholder="0.00 (leave empty for no discount)" 
+                placeholder={t('0.00 (leave empty for no discount)')} 
                 type="number"
                 step="0.01"
               />
@@ -1540,7 +1563,7 @@ function ProductsPageContent() {
           </div>
 
           <div className="field">
-            <label className="label">Categories</label>
+            <label className="label">{t('Categories')}</label>
             <div className="checklist" style={{ maxHeight: '150px', overflowY: 'auto' }}>
               {categories.map(c => (
                 <label key={c._id} className="chk">
@@ -1556,14 +1579,17 @@ function ProductsPageContent() {
                   >
                     <Check className="ic" />
                   </span>
-                  <span>{c.name[lang] || c.name.en}</span>
+                  <span>{t(c.name)}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="field">
-            <label className="label">Modifier groups <span className="opt">&middot; optional</span></label>
+            <label className="label">
+              {t('Modifier groups')}{' '}
+              <span className="opt">&middot; {t('optional')}</span>
+            </label>
             <div className="checklist" style={{ maxHeight: '150px', overflowY: 'auto' }}>
               {modifierGroups.map(grp => (
                 <label key={grp._id} className="chk">
@@ -1579,18 +1605,21 @@ function ProductsPageContent() {
                   >
                     <Check className="ic" />
                   </span>
-                  <span>{grp.name[lang] || grp.name.en}</span>
-                  <span className="meta">{grp.type}</span>
+                  <span>{t(grp.name)}</span>
+                  <span className="meta">{t(grp.type === 'variations' ? 'Sizes' : grp.type === 'addons' ? 'Add-on' : 'Removal')}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="field">
-            <label className="label">Product image <span className="opt">&middot; optional</span></label>
+            <label className="label">
+              {t('Product image')}{' '}
+              <span className="opt">&middot; {t('optional')}</span>
+            </label>
             <div className="dropzone" onClick={handleImageUploadClick}>
               <ImageUp className="ic" />
-              <span>{prodImage ? 'Image uploaded!' : 'Click to choose image file'}</span>
+              <span>{prodImage ? t('Image uploaded!') : t('Click to choose image file')}</span>
             </div>
             {prodImage && (
               <div style={{ marginTop: '10px', position: 'relative', width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--line-2)' }}>
@@ -1606,13 +1635,16 @@ function ProductsPageContent() {
           </div>
 
           <div className="field">
-            <label className="label">Description <span className="opt">&middot; optional</span></label>
+            <label className="label">
+              {t('Description')}{' '}
+              <span className="opt">&middot; {t('optional')}</span>
+            </label>
             <textarea 
               className="input" 
               rows="3"
               value={prodDesc}
               onChange={(e) => setProdDesc(e.target.value)}
-              placeholder="e.g. Loaded with spicy beef pepperoni..."
+              placeholder={t('e.g. Loaded with spicy beef pepperoni...')}
             />
           </div>
 
@@ -1623,17 +1655,17 @@ function ProductsPageContent() {
           {/* Product variations */}
           <div className="field">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Variations (e.g. Sizes)</label>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>{t('Product-Level Variations (e.g. Sizes)')}</label>
               <button 
                 type="button" 
                 onClick={handleAddVariationRow}
                 style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
               >
-                + Add Size/Price
+                + {t('Add Size/Price')}
               </button>
             </div>
             <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
-              These define absolute pricing that overrides the base product price when chosen.
+              {t('These define absolute pricing that overrides the base product price when chosen.')}
             </span>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1643,11 +1675,11 @@ function ProductsPageContent() {
                     className="input" 
                     value={v.name}
                     onChange={(e) => handleVariationChange(idx, 'name', e.target.value)}
-                    placeholder="e.g. Large"
+                    placeholder={t('e.g. Large')}
                     style={{ flex: 2, height: '36px', fontSize: '0.8rem' }}
                   />
                   <div className="input-affix" style={{ flex: 1 }}>
-                    <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                    <span className="pfx" style={{ fontSize: '12px' }}>{currencySymbol}</span>
                     <input 
                       className="input" 
                       value={v.price}
@@ -1675,17 +1707,17 @@ function ProductsPageContent() {
           {/* Product-level Add-ons */}
           <div className="field">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Add-ons</label>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>{t('Product-Level Add-ons')}</label>
               <button 
                 type="button" 
                 onClick={handleAddAddonRow}
                 style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
               >
-                + Add Add-on
+                + {t('Add Add-on')}
               </button>
             </div>
             <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
-              Extra ingredients or customizations for this product with optional extra charge.
+              {t('Extra ingredients or customizations for this product with optional extra charge.')}
             </span>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1695,11 +1727,11 @@ function ProductsPageContent() {
                     className="input" 
                     value={a.name}
                     onChange={(e) => handleAddonChange(idx, 'name', e.target.value)}
-                    placeholder="e.g. Extra Pepperoni"
+                    placeholder={t('e.g. Extra Pepperoni')}
                     style={{ flex: 2, height: '36px', fontSize: '0.8rem' }}
                   />
                   <div className="input-affix" style={{ flex: 1 }}>
-                    <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                    <span className="pfx" style={{ fontSize: '12px' }}>{currencySymbol}</span>
                     <input 
                       className="input" 
                       value={a.price}
@@ -1727,17 +1759,17 @@ function ProductsPageContent() {
           {/* Product-level Removals */}
           <div className="field">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <label className="label" style={{ margin: 0, fontWeight: '800' }}>Product-Level Removals</label>
+              <label className="label" style={{ margin: 0, fontWeight: '800' }}>{t('Product-Level Removals')}</label>
               <button 
                 type="button" 
                 onClick={handleAddRemovalRow}
                 style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.8rem', cursor: 'pointer' }}
               >
-                + Add Removal
+                + {t('Add Removal')}
               </button>
             </div>
             <span style={{ display: 'block', fontSize: '0.72rem', color: 'var(--ink-3)', marginBottom: '12px' }}>
-              Ingredients customers can exclude from the item (e.g. No Onions) for free.
+              {t('Ingredients customers can exclude from the item (e.g. No Onions) for free.')}
             </span>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1747,7 +1779,7 @@ function ProductsPageContent() {
                     className="input" 
                     value={r.name}
                     onChange={(e) => handleRemovalChange(idx, e.target.value)}
-                    placeholder="e.g. No Onions"
+                    placeholder={t('e.g. No Onions')}
                     style={{ flex: 1, height: '36px', fontSize: '0.8rem' }}
                   />
                   <button 
@@ -1769,7 +1801,7 @@ function ProductsPageContent() {
             style={{ marginTop: '24px' }}
           >
             <Save className="ic" />
-            <span>{savingProduct ? 'Saving...' : (editingProduct ? 'Save changes' : 'Create product')}</span>
+            <span>{savingProduct ? t('Saving...') : (editingProduct ? t('Save changes') : t('Create product'))}</span>
           </button>
         </div>
       </aside>
@@ -1783,20 +1815,20 @@ function ProductsPageContent() {
       <aside className={`drawer ${isBulkOpen ? 'open' : ''}`}>
         <div className="rail-head">
           <UploadCloud className="ic" />
-          <h3>Bulk upload products</h3>
-          <button className="x" onClick={importing ? undefined : closeBulkDrawer} title="Close" disabled={importing}>
+          <h3>{t('Bulk upload products')}</h3>
+          <button className="x" onClick={importing ? undefined : closeBulkDrawer} title={t('Close')} disabled={importing}>
             <X className="ic" />
           </button>
         </div>
 
         <div className="rail-body">
           <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
-            <label className="label">Step 1 &middot; Download the template</label>
+            <label className="label">{t('Step 1')} &middot; {t('Download the template')}</label>
             <p className="opt" style={{ margin: '0 0 4px' }}>
-              Download a template CSV sheet structured with: name, category, price, short description, modifiers.
+              {t('Download a template CSV sheet structured with: name, category, price, short description, modifiers.')}
             </p>
             <p className="opt" style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              💡 <b>Note on Modifiers:</b> You can assign global modifier groups to imported items by listing their exact names in the <b>modifiers</b> column, separated by semicolons (e.g., <code>Choose Size;Premium Addons;Removals</code>).
+              💡 <b>{t('Note on Modifiers:')}</b> {t('You can assign global modifier groups to imported items by listing their exact names in the modifiers column, separated by semicolons (e.g., Choose Size;Premium Addons;Removals).')}
             </p>
             <button 
               className="btn btn-outline btn-sm"
@@ -1804,18 +1836,18 @@ function ProductsPageContent() {
               disabled={importing}
             >
               <FileDown className="ic" />
-              <span>Download CSV template</span>
+              <span>{t('Download CSV template')}</span>
             </button>
           </div>
 
           <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
-            <label className="label">Step 2 &middot; Upload your file</label>
+            <label className="label">{t('Step 2')} &middot; {t('Upload your file')}</label>
             <div 
               className="dropzone"
               onClick={() => !importing && fileInputRef.current.click()}
             >
               <FileSpreadsheet className="ic" />
-              <span>{bulkFileName ? bulkFileName : 'Drag a .csv file here, or click to browse'}</span>
+              <span>{bulkFileName ? bulkFileName : t('Drag a .csv file here, or click to browse')}</span>
             </div>
             
             <input 
@@ -1830,18 +1862,18 @@ function ProductsPageContent() {
 
           {bulkFileRows.length > 0 && (
             <div className="field" style={{ opacity: importing ? 0.5 : 1 }}>
-              <label className="label">Preview &middot; {bulkFileRows.length} rows</label>
+              <label className="label">{t('Preview')} &middot; {bulkFileRows.length} {t('rows')}</label>
               <div style={{ border: '1px solid var(--line)', borderRadius: '10px', overflow: 'hidden', maxHeight: '180px', overflowY: 'auto' }}>
                 <table className="tbl" style={{ margin: 0, fontSize: '0.75rem' }}>
                   <thead>
-                    <tr><th>Name</th><th>Category</th><th>Price</th></tr>
+                    <tr><th>{t('Name')}</th><th>{t('Category')}</th><th>{t('Price')}</th></tr>
                   </thead>
                   <tbody>
                     {bulkFileRows.slice(0, 5).map((r, rIdx) => (
                       <tr key={rIdx}>
                         <td>{r.name}</td>
                         <td>{r.category}</td>
-                        <td>${parseFloat(r.price).toFixed(2)}</td>
+                        <td>{currencySymbol}{parseFloat(r.price).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1853,8 +1885,8 @@ function ProductsPageContent() {
           {importing && (
             <div style={{ marginTop: '20px', backgroundColor: 'var(--surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--line)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '8px' }}>
-                <span>Importing Products...</span>
-                <span>{importedCount} of {bulkFileRows.length}</span>
+                <span>{t('Importing Products...')}</span>
+                <span>{importedCount} {t('of')} {bulkFileRows.length}</span>
               </div>
               <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{
@@ -1874,7 +1906,7 @@ function ProductsPageContent() {
             style={{ marginTop: '24px' }}
           >
             <Upload className="ic" />
-            <span>{importing ? 'Importing...' : 'Import products'}</span>
+            <span>{importing ? t('Importing...') : t('Import products')}</span>
           </button>
         </div>
       </aside>

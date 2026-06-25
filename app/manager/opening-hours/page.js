@@ -12,7 +12,7 @@ import {
 
 function OpeningHoursPageContent() {
   const router = useRouter();
-  const { tenantSettings, loading: contextLoading, refreshTenantSettings } = useManager();
+  const { tenantSettings, loading: contextLoading, refreshTenantSettings, t, lang } = useManager();
 
   const [openingHours, setOpeningHours] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -74,13 +74,13 @@ function OpeningHoursPageContent() {
 
       if (res.ok) {
         await refreshTenantSettings();
-        triggerToast('Opening hours saved successfully!');
+        triggerToast(t('Opening hours saved successfully!'));
       } else {
-        alert('Failed saving opening hours');
+        alert(t('Failed saving opening hours'));
       }
     } catch (e) {
       console.error(e);
-      alert('Error saving opening hours');
+      alert(t('Error saving opening hours'));
     } finally {
       setSaving(false);
     }
@@ -110,8 +110,8 @@ function OpeningHoursPageContent() {
       {/* Page Header */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Opening hours</h1>
-          <p className="page-sub">Set when your storefront accepts orders. Customers see these hours and ordering pauses automatically when you're closed.</p>
+          <h1 className="page-title">{t('Opening hours')}</h1>
+          <p className="page-sub">{t("Set when your storefront accepts orders. Customers see these hours and ordering pauses automatically when you're closed.")}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -119,7 +119,7 @@ function OpeningHoursPageContent() {
           disabled={saving}
         >
           <Check className="ic" />
-          <span>{saving ? 'Saving...' : 'Save changes'}</span>
+          <span>{saving ? t('Saving...') : t('Save changes')}</span>
         </button>
       </div>
 
@@ -127,7 +127,7 @@ function OpeningHoursPageContent() {
         <div className="card">
           <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clock className="ic" style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontWeight: 'bold' }}>Weekly schedule</span>
+            <span style={{ fontWeight: 'bold' }}>{t('Weekly schedule')}</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -140,9 +140,9 @@ function OpeningHoursPageContent() {
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontWeight: '700', fontSize: '15px' }}>{h.day}</span>
+                  <span style={{ fontWeight: '700', fontSize: '15px' }}>{t(h.day)}</span>
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600', marginTop: '2px' }}>
-                    {h.isOpen ? 'Ordering is active' : 'Storefront closed'}
+                    {h.isOpen ? t('Ordering is active') : t('Storefront closed')}
                   </span>
                 </div>
 
@@ -166,7 +166,7 @@ function OpeningHoursPageContent() {
                       />
                     </div>
                   ) : (
-                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '13.5px' }}>Closed all day</span>
+                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '13.5px' }}>{t('Closed all day')}</span>
                   )}
                 </div>
 
@@ -187,7 +187,7 @@ function OpeningHoursPageContent() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 22px', backgroundColor: '#f9fafb', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', borderTop: '1px solid var(--line)', fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '600' }}>
             <Globe className="ic" style={{ width: '15px', height: '15px', color: 'var(--text-muted)' }} />
-            <span>All times are configured in your local store timezone</span>
+            <span>{t('All times are configured in your local store timezone')}</span>
           </div>
 
         </div>

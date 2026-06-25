@@ -71,6 +71,29 @@ export async function POST(request) {
 
     const db = await getDb();
 
+    // Check for duplicate product names (case-insensitive across all languages)
+    const nameLower = name.trim().toLowerCase();
+    const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const escapedName = escapeRegex(nameLower);
+
+    const existingProduct = await db.collection('products').findOne({
+      tenantId: tenantId.toString(),
+      $or: [
+        { "name.en": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.ar": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.ru": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.es": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.fr": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.de": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.it": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+        { "name.ka": { $regex: new RegExp(`^${escapedName}$`, 'i') } }
+      ]
+    });
+
+    if (existingProduct) {
+      return NextResponse.json({ error: 'A product with this name already exists' }, { status: 400 });
+    }
+
     // Check count for Tier limits (Tier 1 limit: e.g., max 15 products)
     const queryId = tenantId.toString();
     let tenant = await db.collection('tenants').findOne({ _id: queryId });
@@ -258,6 +281,30 @@ export async function PUT(request) {
 
     const updateObj = {};
     if (body.name !== undefined) {
+      // Check for duplicate product names (case-insensitive across all languages)
+      const nameLower = body.name.trim().toLowerCase();
+      const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escapedName = escapeRegex(nameLower);
+
+      const existingProduct = await db.collection('products').findOne({
+        _id: { $nin: matchIds }, // Exclude the product being edited
+        tenantId: tenantId.toString(),
+        $or: [
+          { "name.en": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.ar": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.ru": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.es": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.fr": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.de": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.it": { $regex: new RegExp(`^${escapedName}$`, 'i') } },
+          { "name.ka": { $regex: new RegExp(`^${escapedName}$`, 'i') } }
+        ]
+      });
+
+      if (existingProduct) {
+        return NextResponse.json({ error: 'A product with this name already exists' }, { status: 400 });
+      }
+
       updateObj.name = await createTranslationMap(body.name, tenantLangs, lang);
     }
     if (body.description !== undefined) {

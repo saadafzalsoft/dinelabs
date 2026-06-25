@@ -17,7 +17,7 @@ import { useManager } from '../layout';
 
 function NotificationsPageContent() {
   const router = useRouter();
-  const { tenantSettings, loading, refreshTenantSettings } = useManager();
+  const { tenantSettings, loading, refreshTenantSettings, t, lang } = useManager();
 
   const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -77,13 +77,13 @@ function NotificationsPageContent() {
 
       if (res.ok) {
         refreshTenantSettings();
-        triggerToast('Notification channels saved successfully!');
+        triggerToast(t('Notification channels saved successfully!'));
       } else {
-        alert('Failed to save settings');
+        alert(t('Failed to save settings'));
       }
     } catch (e) {
       console.error(e);
-      alert('Error saving settings');
+      alert(t('Error saving settings'));
     } finally {
       setSaving(false);
     }
@@ -117,8 +117,8 @@ function NotificationsPageContent() {
       {/* Page Header */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Notifications</h1>
-          <p className="page-sub">Choose where new orders are sent. Pick as many channels as you like — they fire the moment an order comes in.</p>
+          <h1 className="page-title">{t('Notifications')}</h1>
+          <p className="page-sub">{t('Choose where new orders are sent. Pick as many channels as you like — they fire the moment an order comes in.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -126,7 +126,7 @@ function NotificationsPageContent() {
           disabled={saving}
         >
           <Check className="ic" />
-          <span>{saving ? 'Saving...' : 'Save changes'}</span>
+          <span>{saving ? t('Saving...') : t('Save changes')}</span>
         </button>
       </div>
 
@@ -134,7 +134,7 @@ function NotificationsPageContent() {
         <div className="card">
           <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Bell className="ic" style={{ color: 'var(--text-muted)' }} />
-            <span style={{ fontWeight: 'bold' }}>Order notification channels</span>
+            <span style={{ fontWeight: 'bold' }}>{t('Order notification channels')}</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -146,18 +146,18 @@ function NotificationsPageContent() {
               </div>
               <div style={{ paddingTop: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: '700' }}>
-                  <span>Dashboard live orders</span>
+                  <span>{t('Dashboard live orders')}</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--surface-2)', color: 'var(--ink-2)', fontSize: '11.5px', fontWeight: '700', border: '1px solid var(--line)' }}>
                     <Check style={{ width: '11px', height: '11px', color: 'var(--pos)' }} />
-                    Always on
+                    {t('Always on')}
                   </span>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.45' }}>
-                  New orders appear on the Live Orders board with a chime and a badge in the sidebar. The home base for every restaurant.
+                  {t('New orders appear on the Live Orders board with a chime and a badge in the sidebar. The home base for every restaurant.')}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', paddingOriginal: '6px' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--text-muted)' }}>Built-in</span>
+                <span style={{ fontSize: '12.5px', fontWeight: '600', color: 'var(--text-muted)' }}>{t('Built-in')}</span>
               </div>
             </div>
 
@@ -173,21 +173,21 @@ function NotificationsPageContent() {
               </div>
               <div style={{ paddingTop: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: '700' }}>
-                  <span>Email order receipts</span>
+                  <span>{t('Email order receipts')}</span>
                   {!isEmailAssigned && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--warn-bg)', color: 'var(--warn)', fontSize: '11.5px', fontWeight: '700' }}>
-                      Locked
+                      {t('Locked')}
                     </span>
                   )}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.45' }}>
-                  A formatted order summary sent the second the order is placed.
+                  {t('A formatted order summary sent the second the order is placed.')}
                 </div>
                 
                 {isEmailAssigned ? (
                   <div style={{ marginTop: '14px', maxWidth: '380px' }}>
                     <label className="label" style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                      Send order receipts to
+                      {t('Send order receipts to')}
                     </label>
                     <input 
                       type="email" 
@@ -201,14 +201,14 @@ function NotificationsPageContent() {
                     {emailEnabled && emailRecipient && (
                       <div className="nt-status ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--pos)', marginTop: '8px' }}>
                         <Check style={{ width: '12px', height: '12px' }} />
-                        <span>Active</span>
+                        <span>{t('Active')}</span>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '14px' }}>
                     <Lock style={{ width: '12px', height: '12px' }} />
-                    <span>Activates after admin approval.</span>
+                    <span>{t('Activates after admin approval.')}</span>
                   </div>
                 )}
               </div>
@@ -224,7 +224,7 @@ function NotificationsPageContent() {
                     <span className="track"></span>
                   </label>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Locked</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('Locked')}</span>
                 )}
               </div>
             </div>
@@ -241,21 +241,21 @@ function NotificationsPageContent() {
               </div>
               <div style={{ paddingTop: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: '700' }}>
-                  <span>WhatsApp alerts</span>
+                  <span>{t('WhatsApp alerts')}</span>
                   {!isWhatsappAssigned && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--warn-bg)', color: 'var(--warn)', fontSize: '11.5px', fontWeight: '700' }}>
-                      Premium / Locked
+                      {t('Premium / Locked')}
                     </span>
                   )}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.45' }}>
-                  An instant chat message to your team — great for kitchens that already live in WhatsApp.
+                  {t('An instant chat message to your team — great for kitchens that already live in WhatsApp.')}
                 </div>
                 
                 {isWhatsappAssigned ? (
                   <div style={{ marginTop: '14px', maxWidth: '380px' }}>
                     <label className="label" style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                      WhatsApp phone number (with country code)
+                      {t('WhatsApp phone number (with country code)')}
                     </label>
                     <input 
                       type="text" 
@@ -269,14 +269,14 @@ function NotificationsPageContent() {
                     {whatsappEnabled && whatsappRecipient && (
                       <div className="nt-status ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--pos)', marginTop: '8px' }}>
                         <Check style={{ width: '12px', height: '12px' }} />
-                        <span>Active</span>
+                        <span>{t('Active')}</span>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '14px' }}>
                     <Lock style={{ width: '12px', height: '12px' }} />
-                    <span>Locked: Request admin to activate WhatsApp channel.</span>
+                    <span>{t('Locked: Request admin to activate WhatsApp channel.')}</span>
                   </div>
                 )}
               </div>
@@ -292,7 +292,7 @@ function NotificationsPageContent() {
                     <span className="track"></span>
                   </label>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Locked</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('Locked')}</span>
                 )}
               </div>
             </div>
@@ -309,21 +309,21 @@ function NotificationsPageContent() {
               </div>
               <div style={{ paddingTop: '2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: '700' }}>
-                  <span>Telegram Bot alerts</span>
+                  <span>{t('Telegram Bot alerts')}</span>
                   {!isTelegramAssigned && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--warn-bg)', color: 'var(--warn)', fontSize: '11.5px', fontWeight: '700' }}>
-                      Locked
+                      {t('Locked')}
                     </span>
                   )}
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.45' }}>
-                  A direct message via our Dinelabs Orders bot. Free and reliable.
+                  {t('A direct message via our Dinelabs Orders bot. Free and reliable.')}
                 </div>
                 
                 {isTelegramAssigned ? (
                   <div style={{ marginTop: '14px', maxWidth: '380px' }}>
                     <label className="label" style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                      Telegram Chat ID
+                      {t('Telegram Chat ID')}
                     </label>
                     <input 
                       type="text" 
@@ -337,23 +337,23 @@ function NotificationsPageContent() {
                     {telegramEnabled && telegramChatId && (
                       <div className="nt-status ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--pos)', marginTop: '8px' }}>
                         <Check style={{ width: '12px', height: '12px' }} />
-                        <span>Active</span>
+                        <span>{t('Active')}</span>
                       </div>
                     )}
                     <div style={{ marginTop: '12px', padding: '12px 16px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '10px', fontSize: '0.8rem', color: '#0369a1', lineHeight: '1.45' }}>
-                      <strong>💬 Telegram Bot Setup Guide:</strong>
+                      <strong>💬 {t('Telegram Bot Setup Guide:')}</strong>
                       <ol style={{ paddingLeft: '16px', marginTop: '6px', marginBottom: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <li>Find the bot <strong>@DinelabsOrdersBot</strong> on Telegram (or search in the app).</li>
-                        <li>Click <strong>Start</strong> (or send <code>/start</code>) to initiate a chat with the bot.</li>
-                        <li>Retrieve your unique Telegram Chat ID. You can easily find it by messaging <strong>@userinfobot</strong> on Telegram.</li>
-                        <li>Copy the numeric Chat ID, paste it above, enable the channel, and click <strong>Save changes</strong>.</li>
+                        <li>{t('Find the bot')} <strong>@DinelabsOrdersBot</strong> {t('on Telegram (or search in the app).')}</li>
+                        <li>{t('Click')} <strong>{t('Start')}</strong> {t('(or send')} <code>/start</code>{t(') to initiate a chat with the bot.')}</li>
+                        <li>{t('Retrieve your unique Telegram Chat ID. You can easily find it by messaging')} <strong>@userinfobot</strong> {t('on Telegram.')}</li>
+                        <li>{t('Copy the numeric Chat ID, paste it above, enable the channel, and click')} <strong>{t('Save changes')}</strong>.</li>
                       </ol>
                     </div>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '14px' }}>
                     <Lock style={{ width: '12px', height: '12px' }} />
-                    <span>Locked: Request admin to activate Telegram channel.</span>
+                    <span>{t('Locked: Request admin to activate Telegram channel.')}</span>
                   </div>
                 )}
               </div>
@@ -369,7 +369,7 @@ function NotificationsPageContent() {
                     <span className="track"></span>
                   </label>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>Locked</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('Locked')}</span>
                 )}
               </div>
             </div>
@@ -378,7 +378,7 @@ function NotificationsPageContent() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 22px', backgroundColor: '#f9fafb', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', borderTop: '1px solid var(--line)', fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '600' }}>
             <Info className="ic" style={{ width: '15px', height: '15px', color: 'var(--text-muted)' }} />
-            <span>Notifications stop automatically when your store is outside opening hours.</span>
+            <span>{t('Notifications stop automatically when your store is outside opening hours.')}</span>
           </div>
         </div>
       </section>

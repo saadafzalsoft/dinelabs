@@ -25,7 +25,9 @@ function DineInPageContent() {
     tables: contextTables, 
     loading: contextLoading, 
     refreshTenantSettings, 
-    refreshTables 
+    refreshTables,
+    t,
+    lang
   } = useManager();
 
   const [settings, setSettings] = useState(null);
@@ -95,13 +97,13 @@ function DineInPageContent() {
 
       if (res.ok) {
         await refreshTenantSettings();
-        triggerToast('Dine-in status updated successfully!');
+        triggerToast(t('Dine-in status updated successfully!'));
       } else {
-        alert('Failed to save settings');
+        alert(t('Failed to save settings'));
       }
     } catch (e) {
       console.error(e);
-      alert('Error saving settings');
+      alert(t('Error saving settings'));
     } finally {
       setSaving(false);
     }
@@ -130,9 +132,9 @@ function DineInPageContent() {
       if (res.ok) {
         await refreshTables();
         setNewTableName('');
-        triggerToast(`Added table ${name}`);
+        triggerToast(t('Added table {name}').replace('{name}', name));
       } else {
-        alert(data.error || 'Failed adding table');
+        alert(t(data.error || 'Failed adding table'));
       }
     } catch (err) {
       console.error(err);
@@ -140,7 +142,7 @@ function DineInPageContent() {
   };
 
   const handleDeleteTable = async (id, name) => {
-    if (!confirm(`Are you sure you want to delete Table "${name}"?`)) return;
+    if (!confirm(t('Are you sure you want to delete Table "{name}"?').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/tables', {
@@ -151,9 +153,9 @@ function DineInPageContent() {
 
       if (res.ok) {
         await refreshTables();
-        triggerToast(`Deleted ${name}`);
+        triggerToast(t('Deleted {name}').replace('{name}', name));
       } else {
-        alert('Failed deleting table');
+        alert(t('Failed deleting table'));
       }
     } catch (err) {
       console.error(err);
@@ -179,9 +181,9 @@ function DineInPageContent() {
 
       if (res.ok) {
         await refreshTables();
-        triggerToast('Table renamed successfully');
+        triggerToast(t('Table renamed successfully'));
       } else {
-        alert('Failed to rename table');
+        alert(t('Failed to rename table'));
       }
     } catch (err) {
       console.error(err);
@@ -302,7 +304,7 @@ function DineInPageContent() {
       <body>
         <div class="name">${activeTable.name}</div>
         <img src="${qrUrlStr}" />
-        <div class="scan">Scan to order at your table</div>
+        <div class="scan">${t('Scan to order at your table')}</div>
         <div class="u">${getTableUrl(activeTable.name)}</div>
         <script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script>
       </body></html>`);
@@ -321,7 +323,7 @@ function DineInPageContent() {
       a.download = `${activeTable.name.replace(/\s+/g, '-')}-qr.png`;
       a.click();
       URL.revokeObjectURL(blobURL);
-      triggerToast('QR Code download started');
+      triggerToast(t('QR Code download started'));
     } catch (err) {
       console.error('Failed to download QR code image', err);
       // Fallback: open in new tab
@@ -353,8 +355,8 @@ function DineInPageContent() {
       {/* Page Header */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Dine-in</h1>
-          <p className="page-sub">Create tables, hand each one a QR code to order from, and arrange your room on the floor plan.</p>
+          <h1 className="page-title">{t('Dine-in')}</h1>
+          <p className="page-sub">{t('Create tables, hand each one a QR code to order from, and arrange your room on the floor plan.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -362,7 +364,7 @@ function DineInPageContent() {
           disabled={saving}
         >
           <Check className="ic" />
-          <span>{saving ? 'Saving...' : 'Save changes'}</span>
+          <span>{saving ? t('Saving...') : t('Save changes')}</span>
         </button>
       </div>
 
@@ -378,13 +380,13 @@ function DineInPageContent() {
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '800', fontSize: '1.1rem' }}>Accepting dine-in orders</span>
+                    <span style={{ fontWeight: '800', fontSize: '1.1rem' }}>{t('Accepting dine-in orders')}</span>
                     <span className={`pill ${dineInEnabled ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px', fontSize: '10px', fontWeight: 'bold' }}>
-                      {dineInEnabled ? 'Active' : 'Disabled'}
+                      {dineInEnabled ? t('Active') : t('Disabled')}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Guests scan the QR code on their table to browse the menu and order from their seat.
+                    {t('Guests scan the QR code on their table to browse the menu and order from their seat.')}
                   </div>
                 </div>
               </div>
@@ -406,10 +408,10 @@ function DineInPageContent() {
           <div className="card">
             <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: 'bold' }}>Tables catalog</span>
+                <span style={{ fontWeight: 'bold' }}>{t('Tables catalog')}</span>
               </div>
               <span className="card-note" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                {tables.length} table{tables.length === 1 ? '' : 's'}
+                {tables.length} {tables.length === 1 ? t('table') : t('tables')}
               </span>
             </div>
 
@@ -418,7 +420,7 @@ function DineInPageContent() {
               <input 
                 className="input" 
                 type="text"
-                placeholder="e.g. Table 6" 
+                placeholder={t('e.g. Table 6')} 
                 value={newTableName}
                 onChange={(e) => setNewTableName(e.target.value)}
                 maxLength={24}
@@ -426,7 +428,7 @@ function DineInPageContent() {
               />
               <button type="submit" className="btn btn-primary" style={{ height: '40px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Plus className="ic" style={{ width: '16px', height: '16px' }} />
-                <span>Add table</span>
+                <span>{t('Add table')}</span>
               </button>
             </form>
 
@@ -442,7 +444,7 @@ function DineInPageContent() {
                       type="button" 
                       className="tbl-x" 
                       onClick={() => handleDeleteTable(table._id, table.name)}
-                      title="Delete table"
+                      title={t('Delete table')}
                       style={{ width: '28px', height: '28px', borderRadius: '8px', border: '1px solid var(--line)', backgroundColor: '#ffffff', display: 'grid', placeItems: 'center', color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.12s' }}
                     >
                       <X style={{ width: '14px', height: '14px' }} />
@@ -471,7 +473,7 @@ function DineInPageContent() {
                           setEditingTableId(table._id);
                           setEditNameValue(table.name);
                         }}
-                        title="Double-click to rename"
+                        title={t('Double-click to rename')}
                         style={{ fontWeight: '700', fontSize: '15.5px', cursor: 'pointer' }}
                       >
                         {table.name}
@@ -490,7 +492,7 @@ function DineInPageContent() {
                       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                     >
                       <QrCode className="ic" style={{ width: '14.5px', height: '14.5px' }} />
-                      <span>QR code</span>
+                      <span>{t('QR code')}</span>
                     </button>
                   </div>
                 </div>
@@ -505,9 +507,9 @@ function DineInPageContent() {
             <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px' }}>
               <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Map className="ic" style={{ width: '18px', height: '18px', color: 'var(--text-muted)' }} />
-                <span>Interactive floor plan</span>
+                <span>{t('Interactive floor plan')}</span>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>Drag to arrange your dining room layout</p>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0' }}>{t('Drag to arrange your dining room layout')}</p>
             </div>
 
             <div className="fp-wrap" style={{ padding: '22px' }}>
@@ -530,7 +532,7 @@ function DineInPageContent() {
               >
                 {tables.length === 0 ? (
                   <div className="fp-empty" style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', color: 'var(--text-muted)', fontSize: '13.5px', fontWeight: '600' }}>
-                    No tables yet — add one above to place it here.
+                    {t('No tables yet — add one above to place it here.')}
                   </div>
                 ) : (
                   tables.map(table => {
@@ -583,13 +585,13 @@ function DineInPageContent() {
 
               <div className="fp-hint" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
                 <Move className="ic" style={{ width: '14px', height: '14px' }} />
-                <span>Drag to reposition</span>
+                <span>{t('Drag to reposition')}</span>
                 <span style={{ color: 'var(--line-strong)' }}>·</span>
                 <Type className="ic" style={{ width: '14px', height: '14px' }} />
-                <span>Double-click name on list cards to rename</span>
+                <span>{t('Double-click name on list cards to rename')}</span>
                 <span style={{ color: 'var(--line-strong)' }}>·</span>
                 <QrCode className="ic" style={{ width: '14px', height: '14px' }} />
-                <span>Click table on layout to open QR</span>
+                <span>{t('Click table on layout to open QR')}</span>
               </div>
             </div>
           </div>
@@ -637,12 +639,12 @@ function DineInPageContent() {
               <div className="rail-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', borderBottom: '1px solid var(--line)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <QrCode style={{ width: '20px', height: '20px', color: 'var(--brand-red)' }} />
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800' }}>Table QR code</h3>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800' }}>{t('Table QR code')}</h3>
                 </div>
                 <button 
                   className="x" 
                   onClick={() => setQrOpen(false)} 
-                  title="Close"
+                  title={t('Close')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
                 >
                   <X style={{ width: '20px', height: '20px', color: 'var(--text-muted)' }} />
@@ -668,16 +670,16 @@ function DineInPageContent() {
                   <div className="qr-actions" style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
                     <button className="btn btn-outline" onClick={handlePrintQR} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', height: '40px' }}>
                       <Printer className="ic" style={{ width: '16px', height: '16px' }} />
-                      <span>Print</span>
+                      <span>{t('Print')}</span>
                     </button>
                     <button className="btn btn-primary" onClick={handleDownloadQR} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', height: '40px' }}>
                       <Download className="ic" style={{ width: '16px', height: '16px' }} />
-                      <span>Download</span>
+                      <span>{t('Download')}</span>
                     </button>
                   </div>
 
                   <p className="qr-note" style={{ fontSize: '11.5px', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.5', marginTop: '10px' }}>
-                    Guests scan this to open {activeTable.name}'s menu and order without waiting for a server.
+                    {t("Guests scan this to open {tableName}'s menu and order without waiting for a server.").replace('{tableName}', activeTable.name)}
                   </p>
                 </div>
               </div>

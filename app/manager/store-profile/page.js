@@ -14,7 +14,7 @@ import { WORLD_LANGUAGES, WORLD_COUNTRIES, WORLD_CURRENCIES } from '../../../lib
 
 function StoreProfilePageContent() {
   const router = useRouter();
-  const { tenantSettings, loading, refreshTenantSettings } = useManager();
+  const { tenantSettings, loading, refreshTenantSettings, t, lang } = useManager();
 
   const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -83,7 +83,7 @@ function StoreProfilePageContent() {
       if (!file) return;
 
       if (file.size > 3 * 1024 * 1024) {
-        alert('Image file size is too large. Please select an image under 3MB.');
+        alert(t('Image file size is too large. Please select an image under 3MB.'));
         return;
       }
 
@@ -99,13 +99,13 @@ function StoreProfilePageContent() {
         const uploadData = await uploadRes.json();
         if (uploadData.url) {
           setLogoUrl(uploadData.url);
-          triggerToast('Logo updated! Click Save changes to apply.');
+          triggerToast(t('Logo updated! Click Save changes to apply.'));
         } else {
-          alert('Upload failed: ' + (uploadData.error || 'Unknown error'));
+          alert(t('Upload failed: ') + (uploadData.error || t('Unknown error')));
         }
       } catch (err) {
         console.error(err);
-        alert('Failed to upload image');
+        alert(t('Failed to upload image'));
       }
     };
     input.click();
@@ -114,7 +114,7 @@ function StoreProfilePageContent() {
   const handleSaveSettings = async () => {
     if (saving) return;
     if (!name.trim()) {
-      alert('Restaurant name cannot be empty');
+      alert(t('Restaurant name cannot be empty'));
       return;
     }
     setSaving(true);
@@ -149,13 +149,13 @@ function StoreProfilePageContent() {
 
       if (res.ok) {
         refreshTenantSettings();
-        triggerToast('Store profile saved successfully!');
+        triggerToast(t('Store profile saved successfully!'));
       } else {
-        alert('Failed to save settings');
+        alert(t('Failed to save settings'));
       }
     } catch (e) {
       console.error(e);
-      alert('Error saving settings');
+      alert(t('Error saving settings'));
     } finally {
       setSaving(false);
     }
@@ -191,8 +191,8 @@ function StoreProfilePageContent() {
       {/* Page Header */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Store profile</h1>
-          <p className="page-sub">Configure your storefront branding identity, language localization, location address, and socials.</p>
+          <h1 className="page-title">{t('Store profile')}</h1>
+          <p className="page-sub">{t('Configure your storefront branding identity, language localization, location address, and socials.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -200,7 +200,7 @@ function StoreProfilePageContent() {
           disabled={saving}
         >
           <Check className="ic" />
-          <span>{saving ? 'Saving...' : 'Save changes'}</span>
+          <span>{saving ? t('Saving...') : t('Save changes')}</span>
         </button>
       </div>
 
@@ -212,13 +212,13 @@ function StoreProfilePageContent() {
             <div className="card">
               <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Store className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontWeight: 'bold' }}>Store identity</span>
+                <span style={{ fontWeight: 'bold' }}>{t('Store identity')}</span>
               </div>
 
               <div className="sp-layout-grid">
                 {/* Logo Col */}
                 <div className="sp-logo-col" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-start' }}>
-                  <span className="label" style={{ marginBottom: 0, fontWeight: '700', fontSize: '0.8rem' }}>Logo</span>
+                  <span className="label" style={{ marginBottom: 0, fontWeight: '700', fontSize: '0.8rem' }}>{t('Logo')}</span>
                   {logoUrl.trim() ? (
                     <img 
                       src={logoUrl.trim()} 
@@ -251,17 +251,17 @@ function StoreProfilePageContent() {
                       cursor: 'pointer'
                     }}
                   >
-                    Click to Upload
+                    {t('Click to Upload')}
                   </div>
                   <p className="sp-logo-hint" style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '160px' }}>
-                    PNG, JPG or SVG format. Click card to upload branding logo.
+                    {t('PNG, JPG or SVG format. Click card to upload branding logo.')}
                   </p>
                 </div>
 
                 {/* Form fields */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="field">
-                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Restaurant Name</label>
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Restaurant Name')}</label>
                     <input 
                       type="text" 
                       className="input" 
@@ -273,7 +273,7 @@ function StoreProfilePageContent() {
                   </div>
 
                   <div className="field">
-                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Store Slug (URL Identifier)</label>
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Store Slug (URL Identifier)')}</label>
                     <input 
                       type="text" 
                       className="input" 
@@ -285,7 +285,7 @@ function StoreProfilePageContent() {
 
                   {/* Country Selection */}
                   <div className="field">
-                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Country</label>
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Country')}</label>
                     <select
                       className="input"
                       value={country}
@@ -300,7 +300,7 @@ function StoreProfilePageContent() {
 
                   {/* Base Currency Selection */}
                   <div className="field">
-                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Base Currency</label>
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Base Currency')}</label>
                     <select
                       className="input"
                       value={baseCurrency}
@@ -316,13 +316,13 @@ function StoreProfilePageContent() {
                   </div>
 
                   <div className="field">
-                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Location / Physical Address</label>
+                    <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Location / Physical Address')}</label>
                     <textarea 
                       rows="3"
                       className="input"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="e.g. 12 Leselidze St, Tbilisi"
+                      placeholder={t('e.g. 12 Leselidze St, Tbilisi')}
                       style={{ height: 'auto', borderRadius: '10px', padding: '10px', resize: 'none' }}
                     />
                   </div>
@@ -336,15 +336,15 @@ function StoreProfilePageContent() {
             <div className="card">
               <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Globe className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontWeight: 'bold' }}>Localisation &amp; Languages</span>
+                <span style={{ fontWeight: 'bold' }}>{t('Localisation & Languages')}</span>
               </div>
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 
                 {/* Storefront Enabled Languages Checklist */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Storefront Enabled Languages</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{t('Storefront Enabled Languages')}</label>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                    Your subscription tier (Tier {settings.tier}) allows choosing up to {maxLangs} storefront language(s).
+                    {t('Your subscription tier (Tier {tier}) allows choosing up to {maxLangs} storefront language(s).').replace('{tier}', settings.tier).replace('{maxLangs}', maxLangs)}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                     {CORE_LANGUAGES.map(langCode => {
@@ -355,14 +355,14 @@ function StoreProfilePageContent() {
                           key={langCode} 
                           onClick={() => {
                             if (isDefault) {
-                              alert('You cannot disable the default language.');
+                              alert(t('You cannot disable the default language.'));
                               return;
                             }
                             if (isChecked) {
                               setSelectedLanguages(selectedLanguages.filter(l => l !== langCode));
                             } else {
                               if (selectedLanguages.length >= maxLangs) {
-                                alert(`Your current subscription tier limits you to a maximum of ${maxLangs} storefront language(s).`);
+                                alert(t('Your current subscription tier limits you to a maximum of {maxLangs} storefront language(s).').replace('{maxLangs}', maxLangs));
                                 return;
                               }
                               setSelectedLanguages([...selectedLanguages, langCode]);
@@ -392,7 +392,7 @@ function StoreProfilePageContent() {
 
                 {/* Default Storefront Language Selection */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Default Language (Storefront Home)</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('Default Language (Storefront Home)')}</label>
                   <select
                     className="input"
                     value={defaultLanguage}
@@ -409,7 +409,7 @@ function StoreProfilePageContent() {
 
                 {/* Manager Dashboard Language Grid Selection */}
                 <div className="field">
-                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Manager Portal Language</label>
+                  <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>{t('Manager Portal Language')}</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '10px' }}>
                     {CORE_LANGUAGES.map(langCode => {
                       const isSelected = managerLanguage === langCode;
@@ -448,14 +448,14 @@ function StoreProfilePageContent() {
             <div className="card">
               <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Share2 className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span style={{ fontWeight: 'bold' }}>Social media &amp; links</span>
+                <span style={{ fontWeight: 'bold' }}>{t('Social media & links')}</span>
               </div>
               <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 
                 {/* Website Link */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Globe style={{ width: '15px', height: '15px' }} /> Website URL
+                    <Globe style={{ width: '15px', height: '15px' }} /> {t('Website URL')}
                   </label>
                   <input 
                     type="text" 
@@ -470,7 +470,7 @@ function StoreProfilePageContent() {
                 {/* Facebook Link */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="fa-brands fa-facebook" style={{ width: '15px', fontSize: '14px' }}></i> Facebook URL
+                    <i className="fa-brands fa-facebook" style={{ width: '15px', fontSize: '14px' }}></i> {t('Facebook URL')}
                   </label>
                   <input 
                     type="text" 
@@ -485,7 +485,7 @@ function StoreProfilePageContent() {
                 {/* X / Twitter Link */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="fa-brands fa-x-twitter" style={{ width: '15px', fontSize: '14px' }}></i> X (Twitter) Username
+                    <i className="fa-brands fa-x-twitter" style={{ width: '15px', fontSize: '14px' }}></i> {t('X (Twitter) Username')}
                   </label>
                   <input 
                     type="text" 
@@ -500,7 +500,7 @@ function StoreProfilePageContent() {
                 {/* YouTube Link */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="fa-brands fa-youtube" style={{ width: '15px', fontSize: '14px' }}></i> YouTube Channel URL
+                    <i className="fa-brands fa-youtube" style={{ width: '15px', fontSize: '14px' }}></i> {t('YouTube Channel URL')}
                   </label>
                   <input 
                     type="text" 
@@ -515,7 +515,7 @@ function StoreProfilePageContent() {
                 {/* WhatsApp Number */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Phone style={{ width: '15px', height: '15px' }} /> WhatsApp Number (for storefront chat)
+                    <Phone style={{ width: '15px', height: '15px' }} /> {t('WhatsApp Number (for storefront chat)')}
                   </label>
                   <input 
                     type="text" 
@@ -526,14 +526,14 @@ function StoreProfilePageContent() {
                     style={{ height: '40px', borderRadius: '10px' }}
                   />
                   <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Include country code without + or spaces (e.g. 96170123456).
+                    {t('Include country code without + or spaces (e.g. 96170123456).')}
                   </p>
                 </div>
 
                 {/* Instagram Username */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="fa-brands fa-instagram" style={{ width: '15px', fontSize: '14px' }}></i> Instagram Username
+                    <i className="fa-brands fa-instagram" style={{ width: '15px', fontSize: '14px' }}></i> {t('Instagram Username')}
                   </label>
                   <input 
                     type="text" 
@@ -548,7 +548,7 @@ function StoreProfilePageContent() {
                 {/* TikTok Username */}
                 <div className="field">
                   <label className="label" style={{ fontWeight: '700', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="fa-brands fa-tiktok" style={{ width: '15px', fontSize: '14px' }}></i> TikTok Username
+                    <i className="fa-brands fa-tiktok" style={{ width: '15px', fontSize: '14px' }}></i> {t('TikTok Username')}
                   </label>
                   <input 
                     type="text" 

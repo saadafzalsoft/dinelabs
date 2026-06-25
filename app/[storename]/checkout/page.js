@@ -51,14 +51,14 @@ export default function CheckoutPage() {
 
   // Translation dictionary
   const dict = {
-    en: { backToMenu: 'Back to Menu', checkout: 'Checkout', yourInfo: 'Your Information', name: 'Name', phone: 'Phone Number', email: 'Email', city: 'City', street: 'Street name', building: 'Building name / no.', floor: 'Floor', instructions: 'Instructions for driver (Optional)', deliveryArea: 'Delivery Area', ourLocation: 'Our Location', getDirections: 'Get Directions', pickupInfo: 'Your pick-up information', dineInInfo: 'Your dine-in information', selectTable: 'Select Table', orderSummary: 'Order Summary', subtotal: 'Subtotal', deliveryFee: 'Delivery Fee', total: 'Total', placeOrder: 'Place Order', placing: 'Placing...', shopClosed: 'The shop is closed. No orders are being accepted at this time.', paymentMethod: 'Payment method', cashOnArrival: 'Cash on arrival', payAtCounter: 'Pay at counter', billedToRoom: 'Billed to room' },
-    ar: { backToMenu: 'العودة إلى القائمة', checkout: 'الدفع', yourInfo: 'معلوماتك', name: 'الاسم', phone: 'رقم الهاتف', email: 'البريد الإلكتروني', city: 'المدينة', street: 'اسم الشارع', building: 'اسم المبنى / رقمه', floor: 'الطابق', instructions: 'تعليمات للسائق (اختياري)', deliveryArea: 'منطقة التوصيل', ourLocation: 'موقعنا', getDirections: 'الحصول على الاتجاهات', pickupInfo: 'معلومات الاستلام', dineInInfo: 'معلومات تناول الطعام', selectTable: 'اختر الطاولة', orderSummary: 'ملخص الطلب', subtotal: 'المجموع الفرعي', deliveryFee: 'رسوم التوصيل', total: 'الإجمالي', placeOrder: 'تأكيد الطلب', placing: 'جارٍ التأكيد...', shopClosed: 'المتجر مغلق. لا يتم قبول طلبات في الوقت الحالي.', paymentMethod: 'طريقة الدفع', cashOnArrival: 'الدفع عند الوصول', payAtCounter: 'الدفع عند الكاونتر', billedToRoom: 'على حساب الغرفة' },
-    ru: { backToMenu: 'Назад в меню', checkout: 'Оформление', yourInfo: 'Ваша информация', name: 'Имя', phone: 'Телефон', email: 'Эл. почта', city: 'Город', street: 'Улица', building: 'Дом', floor: 'Этаж', instructions: 'Инструкции для курьера (необязательно)', deliveryArea: 'Зона доставки', ourLocation: 'Наш адрес', getDirections: 'Маршрут', pickupInfo: 'Данные для самовывоза', dineInInfo: 'Данные для зала', selectTable: 'Выберите столик', orderSummary: 'Итого заказа', subtotal: 'Подытог', deliveryFee: 'Доставка', total: 'Итого', placeOrder: 'Оформить заказ', placing: 'Оформляем...', shopClosed: 'Ресторан закрыт.', paymentMethod: 'Способ оплаты', cashOnArrival: 'Наличные при доставке', payAtCounter: 'Оплата на кассе', billedToRoom: 'На номер' },
-    es: { backToMenu: 'Volver al menú', checkout: 'Pago', yourInfo: 'Tu información', name: 'Nombre', phone: 'Teléfono', email: 'Correo electrónico', city: 'Ciudad', street: 'Calle', building: 'Edificio', floor: 'Piso', instructions: 'Instrucciones para el conductor (Opcional)', deliveryArea: 'Zona de entrega', ourLocation: 'Nuestra ubicación', getDirections: 'Obtener indicaciones', pickupInfo: 'Info de recogida', dineInInfo: 'Info para comer aquí', selectTable: 'Seleccionar mesa', orderSummary: 'Resumen del pedido', subtotal: 'Subtotal', deliveryFee: 'Envío', total: 'Total', placeOrder: 'Realizar pedido', placing: 'Realizando...', shopClosed: 'La tienda está cerrada.', paymentMethod: 'Método de pago', cashOnArrival: 'Efectivo al llegar', payAtCounter: 'Pagar en caja', billedToRoom: 'Cargo a habitación' },
-    fr: { backToMenu: 'Retour au menu', checkout: 'Paiement', yourInfo: 'Vos informations', name: 'Nom', phone: 'Téléphone', email: 'E-mail', city: 'Ville', street: 'Rue', building: 'Bâtiment', floor: 'Étage', instructions: 'Instructions pour le livreur (Facultatif)', deliveryArea: 'Zone de livraison', ourLocation: 'Notre adresse', getDirections: 'Itinéraire', pickupInfo: 'Infos retrait', dineInInfo: 'Infos sur place', selectTable: 'Choisir une table', orderSummary: 'Résumé de la commande', subtotal: 'Sous-total', deliveryFee: 'Frais de livraison', total: 'Total', placeOrder: 'Passer la commande', placing: 'Envoi...', shopClosed: 'Le restaurant est fermé.', paymentMethod: 'Mode de paiement', cashOnArrival: 'Espèces à la livraison', payAtCounter: 'Payer au comptoir', billedToRoom: 'Facturé à la chambre' },
-    de: { backToMenu: 'Zurück zum Menü', checkout: 'Kasse', yourInfo: 'Ihre Informationen', name: 'Name', phone: 'Telefon', email: 'E-Mail', city: 'Stadt', street: 'Straße', building: 'Gebäude', floor: 'Stockwerk', instructions: 'Anweisungen für den Fahrer (Optional)', deliveryArea: 'Liefergebiet', ourLocation: 'Unser Standort', getDirections: 'Wegbeschreibung', pickupInfo: 'Abholinformationen', dineInInfo: 'Vor-Ort-Informationen', selectTable: 'Tisch auswählen', orderSummary: 'Bestellübersicht', subtotal: 'Zwischensumme', deliveryFee: 'Liefergebühr', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', placing: 'Wird bestellt...', shopClosed: 'Das Restaurant ist geschlossen.', paymentMethod: 'Zahlungsmethode', cashOnArrival: 'Barzahlung bei Lieferung', payAtCounter: 'An der Kasse zahlen', billedToRoom: 'Auf Zimmer buchen' },
-    it: { backToMenu: 'Torna al menu', checkout: 'Cassa', yourInfo: 'Le tue informazioni', name: 'Nome', phone: 'Telefono', email: 'Email', city: 'Città', street: 'Via', building: 'Edificio', floor: 'Piano', instructions: 'Istruzioni per il corriere (Facoltativo)', deliveryArea: 'Zona di consegna', ourLocation: 'La nostra posizione', getDirections: 'Indicazioni stradali', pickupInfo: 'Info ritiro', dineInInfo: 'Info per mangiare al ristorante', selectTable: 'Seleziona tavolo', orderSummary: 'Riepilogo ordine', subtotal: 'Subtotale', deliveryFee: 'Spese di consegna', total: 'Totale', placeOrder: 'Conferma ordine', placing: 'Invio...', shopClosed: 'Il ristorante è chiuso.', paymentMethod: 'Metodo di pagamento', cashOnArrival: 'Contanti alla consegna', payAtCounter: 'Pagamento al bancone', billedToRoom: 'Addebito in camera' },
-    ka: { backToMenu: 'მენიუში დაბრუნება', checkout: 'შეკვეთის გაფორმება', yourInfo: 'თქვენი ინფორმაცია', name: 'სახელი', phone: 'ტელეფონი', email: 'ელ. ფოსტა', city: 'ქალაქი', street: 'ქუჩა', building: 'შენობა', floor: 'სართული', instructions: 'ინსტრუქციები მძღოლისთვის (არჩევითი)', deliveryArea: 'მიტანის ზონა', ourLocation: 'ჩვენი მისამართი', getDirections: 'მიმართულების მიღება', pickupInfo: 'წაღების ინფორმაცია', dineInInfo: 'ადგილზე ჭამის ინფორმაცია', selectTable: 'მაგიდის არჩევა', orderSummary: 'შეკვეთის შეჯამება', subtotal: 'ქვეჯამი', deliveryFee: 'მიტანის საფასური', total: 'ჯამი', placeOrder: 'შეკვეთის გაფორმება', placing: 'მიმდინარეობს...', shopClosed: 'რესტორანი დახურულია.', paymentMethod: 'გადახდის მეთოდი', cashOnArrival: 'ნაღდი ანგარიშსწორება', payAtCounter: 'გადახდა სალაროში', billedToRoom: 'ოთახზე ჩაწერა' },
+    en: { backToMenu: 'Back to Menu', checkout: 'Checkout', yourInfo: 'Your Information', name: 'Name', phone: 'Phone Number', email: 'Email', city: 'City', street: 'Street name', building: 'Building name / no.', floor: 'Floor', instructions: 'Instructions for driver (Optional)', deliveryArea: 'Delivery Area', ourLocation: 'Our Location', getDirections: 'Get Directions', pickupInfo: 'Your pick-up information', dineInInfo: 'Your dine-in information', selectTable: 'Select Table', orderSummary: 'Order Summary', subtotal: 'Subtotal', deliveryFee: 'Delivery Fee', total: 'Total', placeOrder: 'Place Order', placing: 'Placing...', shopClosed: 'The shop is closed. No orders are being accepted at this time.', paymentMethod: 'Payment method', cashOnArrival: 'Cash on arrival', payAtCounter: 'Pay at counter', billedToRoom: 'Billed to room', standard: 'Standard', table: 'Table', fullName: 'Full name', emailAddress: 'Email Address', cityPlaceholder: 'City', streetPlaceholder: 'Street name', buildingPlaceholder: 'Building name or number', floorPlaceholder: 'Floor level', instructionsPlaceholder: 'e.g. Ring the second bell', getDirectionsGmaps: 'Get Directions on Google Maps', pickupAddressNotAvailable: 'Pickup address is not available yet. Please contact the store directly for pickup location details.', autoScanTable: 'Table number auto-scanned', selectZonePlaceholder: 'Search & select your delivery area...', in: 'In', mins: 'mins', fullNameRequired: 'Full Name is required', phoneRequired: 'Phone Number is required', emailRequired: 'Email Address is required', selectAreaRequired: 'Please select your delivery area', addressRequired: 'All delivery address details (City, Street, Building, Floor) are required', minOrderWarning: 'Minimum order value for delivery is {min}. Your subtotal is {sub}.' },
+    ar: { backToMenu: 'العودة إلى القائمة', checkout: 'الدفع', yourInfo: 'معلوماتك', name: 'الاسم', phone: 'رقم الهاتف', email: 'البريد الإلكتروني', city: 'المدينة', street: 'اسم الشارع', building: 'اسم المبنى / رقمه', floor: 'الطابق', instructions: 'تعليمات للسائق (اختياري)', deliveryArea: 'منطقة التوصيل', ourLocation: 'موقعنا', getDirections: 'الحصول على الاتجاهات', pickupInfo: 'معلومات الاستلام', dineInInfo: 'معلومات تناول الطعام', selectTable: 'اختر الطاولة', orderSummary: 'ملخص الطلب', subtotal: 'المجموع الفرعي', deliveryFee: 'رسوم التوصيل', total: 'الإجمالي', placeOrder: 'تأكيد الطلب', placing: 'جارٍ التأكيد...', shopClosed: 'المتجر مغلق. لا يتم قبول طلبات في الوقت الحالي.', paymentMethod: 'طريقة الدفع', cashOnArrival: 'الدفع عند الوصول', payAtCounter: 'الدفع عند الكاونتر', billedToRoom: 'على حساب الغرفة', standard: 'اعتيادي', table: 'طاولة', fullName: 'الاسم الكامل', emailAddress: 'عنوان البريد الإلكتروني', cityPlaceholder: 'المدينة', streetPlaceholder: 'اسم الشارع', buildingPlaceholder: 'اسم المبنى أو رقمه', floorPlaceholder: 'الطابق', instructionsPlaceholder: 'مثال: رن الجرس الثاني', getDirectionsGmaps: 'الحصول على الاتجاهات على خرائط جوجل', pickupAddressNotAvailable: 'عنوان الاستلام غير متوفر بعد. يرجى الاتصال بالمتجر مباشرة للحصول على تفاصيل موقع الاستلام.', autoScanTable: 'تم تسجيل رقم الطاولة تلقائياً', selectZonePlaceholder: 'ابحث واختر منطقة التوصيل الخاصة بك...', in: 'خلال', mins: 'دقيقة', fullNameRequired: 'الاسم الكامل مطلوب', phoneRequired: 'رقم الهاتف مطلوب', emailRequired: 'البريد الإلكتروني مطلوب', selectAreaRequired: 'يرجى اختيار منطقة التوصيل', addressRequired: 'جميع تفاصيل عنوان التوصيل (المدينة، الشارع، المبنى، الطابق) مطلوبة', minOrderWarning: 'الحد الأدنى لقيمة الطلب للتوصيل هو {min}. مجموعك الفرعي هو {sub}.' },
+    ru: { backToMenu: 'Назад в меню', checkout: 'Оформление', yourInfo: 'Ваша информация', name: 'Имя', phone: 'Телефон', email: 'Эл. почта', city: 'Город', street: 'Улица', building: 'Дом', floor: 'Этаж', instructions: 'Инструкции для курьера (необязательно)', deliveryArea: 'Зона доставки', ourLocation: 'Наш адрес', getDirections: 'Маршрут', pickupInfo: 'Данные для самовывоза', dineInInfo: 'Данные для зала', selectTable: 'Выберите столик', orderSummary: 'Итого заказа', subtotal: 'Подытог', deliveryFee: 'Доставка', total: 'Итого', placeOrder: 'Оформить заказ', placing: 'Оформляем...', shopClosed: 'Ресторан закрыт. В настоящее время заказы не принимаются.', paymentMethod: 'Способ оплаты', cashOnArrival: 'Наличные при доставке', payAtCounter: 'Оплата на кассе', billedToRoom: 'На номер', standard: 'Стандартно', table: 'Столик', fullName: 'Полное имя', emailAddress: 'Адрес эл. почты', cityPlaceholder: 'Город', streetPlaceholder: 'Название улицы', buildingPlaceholder: 'Название или номер дома', floorPlaceholder: 'Этаж', instructionsPlaceholder: 'Например, позвоните во второй звонок', getDirectionsGmaps: 'Маршрут на Google Maps', pickupAddressNotAvailable: 'Адрес самовывоза пока не указан рестораном.', autoScanTable: 'Столик отсканирован автоматически', selectZonePlaceholder: 'Поиск и выбор зоны доставки...', in: 'Через', mins: 'мин', fullNameRequired: 'Необходимо указать полное имя', phoneRequired: 'Необходимо указать номер телефона', emailRequired: 'Необходимо указать адрес эл. почты', selectAreaRequired: 'Пожалуйста, выберите зону доставки', addressRequired: 'Необходимо указать все данные адреса доставки (город, улица, дом, этаж)', minOrderWarning: 'Минимальная сумма заказа для доставки: {min}. Ваш подытог: {sub}.' },
+    es: { backToMenu: 'Volver al menú', checkout: 'Pago', yourInfo: 'Tu información', name: 'Nombre', phone: 'Teléfono', email: 'Correo electrónico', city: 'Ciudad', street: 'Calle', building: 'Edificio', floor: 'Piso', instructions: 'Instrucciones para el conductor (Opcional)', deliveryArea: 'Zona de entrega', ourLocation: 'Nuestra ubicación', getDirections: 'Obtener indicaciones', pickupInfo: 'Info de recogida', dineInInfo: 'Info para comer aquí', selectTable: 'Seleccionar mesa', orderSummary: 'Resumen del pedido', subtotal: 'Subtotal', deliveryFee: 'Envío', total: 'Total', placeOrder: 'Realizar pedido', placing: 'Realizando...', shopClosed: 'La tienda está cerrada. No se aceptan pedidos en este momento.', paymentMethod: 'Método de pago', cashOnArrival: 'Efectivo al llegar', payAtCounter: 'Pagar en caja', billedToRoom: 'Cargo a habitación', standard: 'Estándar', table: 'Mesa', fullName: 'Nombre completo', emailAddress: 'Correo electrónico', cityPlaceholder: 'Ciudad', streetPlaceholder: 'Nombre de calle', buildingPlaceholder: 'Nombre o número de edificio', floorPlaceholder: 'Piso', instructionsPlaceholder: 'Ej. Tocar el segundo timbre', getDirectionsGmaps: 'Ver en Google Maps', pickupAddressNotAvailable: 'Dirección de recogida no disponible por el momento.', autoScanTable: 'Mesa auto-escaneada', selectZonePlaceholder: 'Buscar y seleccionar zona de entrega...', in: 'En', mins: 'min', fullNameRequired: 'El nombre completo es requerido', phoneRequired: 'El número de teléfono es requerido', emailRequired: 'El correo electrónico es requerido', selectAreaRequired: 'Por favor seleccione su zona de entrega', addressRequired: 'Todos los detalles de la dirección de entrega (Ciudad, Calle, Edificio, Piso) son requeridos', minOrderWarning: 'El valor mínimo de pedido para entrega es {min}. Su subtotal es {sub}.' },
+    fr: { backToMenu: 'Retour au menu', checkout: 'Paiement', yourInfo: 'Vos informations', name: 'Nom', phone: 'Téléphone', email: 'E-mail', city: 'Ville', street: 'Rue', building: 'Bâtiment', floor: 'Étage', instructions: 'Instructions pour le livreur (Facultatif)', deliveryArea: 'Zone de livraison', ourLocation: 'Notre adresse', getDirections: 'Itinéraire', pickupInfo: 'Infos retrait', dineInInfo: 'Infos sur place', selectTable: 'Choisir une table', orderSummary: 'Résumé de la commande', subtotal: 'Sous-total', deliveryFee: 'Frais de livraison', total: 'Total', placeOrder: 'Passer la commande', placing: 'Envoi...', shopClosed: 'Le restaurant est fermé. Aucun ordre n\'est accepté pour le moment.', paymentMethod: 'Mode de paiement', cashOnArrival: 'Espèces à la livraison', payAtCounter: 'Payer au comptoir', billedToRoom: 'Facturé à la chambre', standard: 'Standard', table: 'Table', fullName: 'Nom complet', emailAddress: 'Adresse e-mail', cityPlaceholder: 'Ville', streetPlaceholder: 'Nom de rue', buildingPlaceholder: 'Nom ou numéro de bâtiment', floorPlaceholder: 'Étage', instructionsPlaceholder: 'Ex. Sonner à la deuxième cloche', getDirectionsGmaps: 'Itinéraire sur Google Maps', pickupAddressNotAvailable: 'Adresse de retrait non disponible pour le moment.', autoScanTable: 'Table auto-scannée', selectZonePlaceholder: 'Rechercher et sélectionner la zone de livraison...', in: 'Dans', mins: 'min', fullNameRequired: 'Le nom complet est obligatoire', phoneRequired: 'Le numéro de téléphone est obligatoire', emailRequired: 'L\'adresse e-mail est obligatoire', selectAreaRequired: 'Veuillez sélectionner votre zone de livraison', addressRequired: 'Tous les détails de l\'adresse de livraison (ville, rue, bâtiment, étage) sont obligatoires', minOrderWarning: 'Le montant minimum de commande pour la livraison est de {min}. Votre sous-total est de {sub}.' },
+    de: { backToMenu: 'Zurück zum Menü', checkout: 'Kasse', yourInfo: 'Ihre Informationen', name: 'Name', phone: 'Telefon', email: 'E-Mail', city: 'Stadt', street: 'Straße', building: 'Gebäude', floor: 'Stockwerk', instructions: 'Anweisungen für den Fahrer (Optional)', deliveryArea: 'Liefergebiet', ourLocation: 'Unser Standort', getDirections: 'Wegbeschreibung', pickupInfo: 'Abholinformationen', dineInInfo: 'Vor-Ort-Informationen', selectTable: 'Tisch auswählen', orderSummary: 'Bestellübersicht', subtotal: 'Zwischensumme', deliveryFee: 'Liefergebühr', total: 'Gesamt', placeOrder: 'Bestellung aufgeben', placing: 'Wird bestellt...', shopClosed: 'Das Restaurant ist geschlossen. Zurzeit werden keine Bestellungen angenommen.', paymentMethod: 'Zahlungsmethode', cashOnArrival: 'Barzahlung bei Lieferung', payAtCounter: 'An der Kasse zahlen', billedToRoom: 'Auf Zimmer buchen', standard: 'Standard', table: 'Tisch', fullName: 'Vollständiger Name', emailAddress: 'E-Mail-Adresse', cityPlaceholder: 'Stadt', streetPlaceholder: 'Straßenname', buildingPlaceholder: 'Gebäudename oder -nummer', floorPlaceholder: 'Etage', instructionsPlaceholder: 'z.B. Zweite Klingel läuten', getDirectionsGmaps: 'Wegbeschreibung auf Google Maps', pickupAddressNotAvailable: 'Abholadresse ist noch nicht verfügbar.', autoScanTable: 'Tischnummer automatisch gescannt', selectZonePlaceholder: 'Liefergebiet suchen und auswählen...', in: 'In', mins: 'Min.', fullNameRequired: 'Vollständiger Name ist erforderlich', phoneRequired: 'Telefonnummer ist erforderlich', emailRequired: 'E-Mail-Adresse ist erforderlich', selectAreaRequired: 'Bitte wählen Sie Ihr Liefergebiet aus', addressRequired: 'Alle Details zur Lieferadresse (Stadt, Straße, Gebäude, Etage) sind erforderlich', minOrderWarning: 'Der Mindestbestellwert für die Lieferung beträgt {min}. Ihre Zwischensumme beträgt {sub}.' },
+    it: { backToMenu: 'Torna al menu', checkout: 'Cassa', yourInfo: 'Le tue informazioni', name: 'Nome', phone: 'Telefono', email: 'Email', city: 'Città', street: 'Via', building: 'Edificio', floor: 'Piano', instructions: 'Istruzioni per il corriere (Facoltativo)', deliveryArea: 'Zona di consegna', ourLocation: 'La nostra posizione', getDirections: 'Indicazioni stradali', pickupInfo: 'Info ritiro', dineInInfo: 'Info per mangiare al ristorante', selectTable: 'Seleziona tavolo', orderSummary: 'Riepilogo ordine', subtotal: 'Subtotale', deliveryFee: 'Spese di consegna', total: 'Totale', placeOrder: 'Conferma ordine', placing: 'Invio...', shopClosed: 'Il ristorante è chiuso. Non si accettano ordini al momento.', paymentMethod: 'Metodo di pagamento', cashOnArrival: 'Contanti alla consegna', payAtCounter: 'Pagamento al bancone', billedToRoom: 'Addebito in camera', standard: 'Standard', table: 'Tavolo', fullName: 'Nome completo', emailAddress: 'Indirizzo email', cityPlaceholder: 'Città', streetPlaceholder: 'Nome della via', buildingPlaceholder: 'Nome o numero dell\'edificio', floorPlaceholder: 'Piano', instructionsPlaceholder: 'Es. Suonare al secondo campanello', getDirectionsGmaps: 'Indicazioni su Google Maps', pickupAddressNotAvailable: 'Indirizzo di ritiro non disponibile al momento.', autoScanTable: 'Tavolo scansionato automaticamente', selectZonePlaceholder: 'Cerca e seleziona la zona di consegna...', in: 'In', mins: 'min', fullNameRequired: 'Il nome completo è richiesto', phoneRequired: 'Il numero di telefono è richiesto', emailRequired: 'L\'indirizzo email è richiesto', selectAreaRequired: 'Seleziona la zona di consegna', addressRequired: 'Tutti i dettagli dell\'indirizzo di consegna (Città, Via, Edificio, Piano) sono richiesti', minOrderWarning: 'Il valore minimo dell\'ordine per la consegna è {min}. Il tuo totale parziale è {sub}.' },
+    ka: { backToMenu: 'მენიუში დაბრუნება', checkout: 'შეკვეთის გაფორმება', yourInfo: 'თქვენი ინფორმაცია', name: 'სახელი', phone: 'ტელეფონი', email: 'ელ. ფოსტა', city: 'ქალაქი', street: 'ქუჩა', building: 'შენობა', floor: 'სართული', instructions: 'ინსტრუქციები მძღოლისთვის (არჩევითი)', deliveryArea: 'მიტანის ზონა', ourLocation: 'ჩვენი მისამართი', getDirections: 'მიმართულების მიღება', pickupInfo: 'წაღების ინფორმაცია', dineInInfo: 'ადგილზე ჭამის ინფორმაცია', selectTable: 'მაგიდის არჩევა', orderSummary: 'შეკვეთის შეჯამება', subtotal: 'ქვეჯამი', deliveryFee: 'მიტანის საფასური', total: 'ჯამი', placeOrder: 'შეკვეთის გაფორმება', placing: 'მიმდინარეობს...', shopClosed: 'რესტორანი დახურულია. შეკვეთები ამჟამად არ მიიღება.', paymentMethod: 'გადახდის მეთოდი', cashOnArrival: 'ნაღდი ანგარიშსწორება', payAtCounter: 'გადახდა სალაროში', billedToRoom: 'ოთახზე ჩაწერა', standard: 'სტანდარტული', table: 'მაგიდა', fullName: 'სრული სახელი', emailAddress: 'ელ. ფოსტის მისამართი', cityPlaceholder: 'ქალაქი', streetPlaceholder: 'ქუჩის სახელი', buildingPlaceholder: 'შენობის სახელი ან ნომერი', floorPlaceholder: 'სართული', instructionsPlaceholder: 'მაგ. დარეკეთ მეორე ზარზე', getDirectionsGmaps: 'მიმართულებები Google Maps-ზე', pickupAddressNotAvailable: 'მისამართი წაღებისთვის ჯერ არ არის ხელმისაწვდომი.', autoScanTable: 'მაგიდის ნომერი სკანირებულია', selectZonePlaceholder: 'მოძებნეთ და აირჩიეთ მიტანის ზონა...', in: 'შემდეგ', mins: 'წთ', fullNameRequired: 'სახელი სავალდებულოა', phoneRequired: 'ტელეფონის ნომერი სავალდებულოა', emailRequired: 'ელ. ფოსტა სავალდებულოა', selectAreaRequired: 'გთხოვთ აირჩიოთ მიტანის ზონა', addressRequired: 'სავალდებულოა მიტანის მისამართის ყველა დეტალი (ქალაქი, ქუჩა, შენობა, სართული)', minOrderWarning: 'მიწოდების მინიმალური შეკვეთის ღირებულებაა {min}. თქვენი ქვეჯამია {sub}.' },
   };
   const d = dict[lang] || dict.en;
 
@@ -227,36 +227,39 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (submitting) return;
     if (isClosed) {
-      setErrorMessage('The shop is closed. No orders are being accepted at this time.');
+      setErrorMessage(d.shopClosed || 'The shop is closed. No orders are being accepted at this time.');
       return;
     }
 
     // Field validation
     if (!name.trim()) {
-      setErrorMessage('Full Name is required');
+      setErrorMessage(d.fullNameRequired || 'Full Name is required');
       return;
     }
     if (!phoneNum.trim()) {
-      setErrorMessage('Phone Number is required');
+      setErrorMessage(d.phoneRequired || 'Phone Number is required');
       return;
     }
     if (!email.trim()) {
-      setErrorMessage('Email Address is required');
+      setErrorMessage(d.emailRequired || 'Email Address is required');
       return;
     }
 
     if (mode === 'delivery') {
       if (tenant?.deliveryMode === 'custom' && !selectedZoneId) {
-        setErrorMessage('Please select your delivery area');
+        setErrorMessage(d.selectAreaRequired || 'Please select your delivery area');
         return;
       }
       if (!city.trim() || !street.trim() || !building.trim() || !floor.trim()) {
-        setErrorMessage('All delivery address details (City, Street, Building, Floor) are required');
+        setErrorMessage(d.addressRequired || 'All delivery address details (City, Street, Building, Floor) are required');
         return;
       }
       const minOrder = tenant.minOrderValue || 0;
       if (subtotal < minOrder) {
-        setErrorMessage(`Minimum order value for delivery is ${formatPrice(minOrder)}. Your subtotal is ${formatPrice(subtotal)}.`);
+        const warning = (d.minOrderWarning || 'Minimum order value for delivery is {min}. Your subtotal is {sub}.')
+          .replace('{min}', formatPrice(minOrder))
+          .replace('{sub}', formatPrice(subtotal));
+        setErrorMessage(warning);
         return;
       }
     }
@@ -285,7 +288,7 @@ export default function CheckoutPage() {
         },
         items: cart.map(item => ({
           productId: item.productId,
-          name: item.name.en,
+          name: item.name,
           price: item.basePrice,
           quantity: item.quantity,
           size: item.size,
@@ -297,7 +300,7 @@ export default function CheckoutPage() {
         subtotal,
         deliveryFee,
         total,
-        language: 'en'
+        language: lang
       };
 
       const res = await fetch('/api/orders', {
@@ -402,9 +405,9 @@ export default function CheckoutPage() {
         {/* Header navigation back button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <a href={`/${storename}${tableNo ? `?table=${encodeURIComponent(tableNo)}` : ''}`} style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '700', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            ← Back to Menu
+            ← {d.backToMenu || 'Back to Menu'}
           </a>
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: '800' }}>Checkout</h1>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: '800' }}>{d.checkout || 'Checkout'}</h1>
         </div>
 
         {errorMessage && (
@@ -428,12 +431,12 @@ export default function CheckoutPage() {
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="fa-solid fa-motorcycle" style={{ fontSize: '14px' }}></i>
-                      <span>Delivery</span>
+                      <span>{d.delivery || 'Delivery'}</span>
                     </div>
                     <div className="toggle-desc">
                       {tenant.deliveryMode === 'custom' && selectedZone
-                        ? `${selectedZone.time} mins`
-                        : `${tenant.waitTimes?.delivery || 30} mins`}
+                        ? `${selectedZone.time} ${d.mins || 'mins'}`
+                        : `${tenant.waitTimes?.delivery || 30} ${d.mins || 'mins'}`}
                     </div>
                   </div>
                 )}
@@ -444,9 +447,9 @@ export default function CheckoutPage() {
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="fa-solid fa-bag-shopping" style={{ fontSize: '14px' }}></i>
-                      <span>Pickup</span>
+                      <span>{d.pickup || 'Pickup'}</span>
                     </div>
-                    <div className="toggle-desc">{tenant.waitTimes?.pickup || 15} mins</div>
+                    <div className="toggle-desc">{tenant.waitTimes?.pickup || 15} {d.mins || 'mins'}</div>
                   </div>
                 )}
                 {tenant.enabledModes?.dineIn && (
@@ -456,9 +459,9 @@ export default function CheckoutPage() {
                   >
                     <div className="toggle-header" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="fa-solid fa-utensils" style={{ fontSize: '14px' }}></i>
-                      <span>Dine-in</span>
+                      <span>{d.dineIn || 'Dine-in'}</span>
                     </div>
-                    <div className="toggle-desc">{tableNo ? tableNo : 'Table'}</div>
+                    <div className="toggle-desc">{tableNo ? tableNo : (d.table || 'Table')}</div>
                   </div>
                 )}
               </div>
@@ -469,12 +472,12 @@ export default function CheckoutPage() {
               {mode === 'delivery' && (
                 <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
                   <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800', marginBottom: '16px' }}>
-                    Your Information
+                    {d.yourInfo || 'Your Information'}
                   </h3>
 
                   {tenant.deliveryMode === 'custom' && (
                     <div className="form-group">
-                      <label className="form-label">Delivery Area</label>
+                      <label className="form-label">{d.deliveryArea || 'Delivery Area'}</label>
                       <SearchSelect
                         value={selectedZoneId}
                         onChange={(val) => setSelectedZoneId(val)}
@@ -483,18 +486,18 @@ export default function CheckoutPage() {
                           label: `${z.name} (Fee: ${formatPrice(z.fee)} · Time: ${z.time} min)`,
                           subtitle: z.name
                         })) || []}
-                        placeholder="Search & select your delivery area..."
+                        placeholder={d.selectZonePlaceholder || 'Search & select your delivery area...'}
                         style={{ width: '100%', marginBottom: '16px' }}
                       />
                     </div>
                   )}
                   
                   <div className="form-group">
-                    <label className="form-label">Name</label>
+                    <label className="form-label">{d.name || 'Name'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="Full name"
+                      placeholder={d.fullName || 'Full name'}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
@@ -502,7 +505,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Phone Number</label>
+                    <label className="form-label">{d.phone || 'Phone Number'}</label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <SearchSelect
                         value={countryCode}
@@ -517,7 +520,7 @@ export default function CheckoutPage() {
                       <input 
                         type="tel" 
                         className="form-control" 
-                        placeholder="Phone Number"
+                        placeholder={d.phone || 'Phone Number'}
                         value={phoneNum}
                         onChange={(e) => setPhoneNum(e.target.value)}
                         required
@@ -526,11 +529,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Email</label>
+                    <label className="form-label">{d.email || 'Email'}</label>
                     <input 
                       type="email" 
                       className="form-control" 
-                      placeholder="Email Address"
+                      placeholder={d.emailAddress || 'Email Address'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -538,11 +541,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">City</label>
+                    <label className="form-label">{d.city || 'City'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="City"
+                      placeholder={d.cityPlaceholder || 'City'}
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       required
@@ -550,11 +553,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Street name</label>
+                    <label className="form-label">{d.street || 'Street name'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="Street name"
+                      placeholder={d.streetPlaceholder || 'Street name'}
                       value={street}
                       onChange={(e) => setStreet(e.target.value)}
                       required
@@ -562,11 +565,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Building name / no.</label>
+                    <label className="form-label">{d.building || 'Building name / no.'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="Building name or number"
+                      placeholder={d.buildingPlaceholder || 'Building name or number'}
                       value={building}
                       onChange={(e) => setBuilding(e.target.value)}
                       required
@@ -574,11 +577,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Floor</label>
+                    <label className="form-label">{d.floor || 'Floor'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="Floor level"
+                      placeholder={d.floorPlaceholder || 'Floor level'}
                       value={floor}
                       onChange={(e) => setFloor(e.target.value)}
                       required
@@ -586,11 +589,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label">Instructions for driver (Optional)</label>
+                    <label className="form-label">{d.instructions || 'Instructions for driver (Optional)'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="e.g. Ring the second bell"
+                      placeholder={d.instructionsPlaceholder || 'e.g. Ring the second bell'}
                       value={instructions}
                       onChange={(e) => setInstructions(e.target.value)}
                     />
@@ -612,7 +615,7 @@ export default function CheckoutPage() {
                         </span>
                         <div>
                           <div style={{ fontWeight: '700', fontSize: '0.88rem' }}>{tenant.address}</div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Our Location</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{d.ourLocation || 'Our Location'}</span>
                         </div>
                       </div>
 
@@ -650,27 +653,27 @@ export default function CheckoutPage() {
                             textAlign: 'center'
                           }}
                         >
-                          <i className="fa-solid fa-map-location-dot"></i> Get Directions on Google Maps
+                          <i className="fa-solid fa-map-location-dot"></i> {d.getDirectionsGmaps || 'Get Directions on Google Maps'}
                         </a>
                       )}
                     </div>
                   ) : (
                     <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '20px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <i className="fa-solid fa-location-dot" style={{ color: '#d97706' }}></i> Pickup address is not available yet. Please contact the store directly for pickup location details.
+                      <i className="fa-solid fa-location-dot" style={{ color: '#d97706' }}></i> {d.pickupAddressNotAvailable || 'Pickup address is not available yet.'}
                     </div>
                   )}
 
                   <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
                     <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800', marginBottom: '16px' }}>
-                      Your Information
+                      {d.yourInfo || 'Your Information'}
                     </h3>
                     
                     <div className="form-group">
-                      <label className="form-label">Name</label>
+                      <label className="form-label">{d.name || 'Name'}</label>
                       <input 
                         type="text" 
                         className="form-control" 
-                        placeholder="Full name"
+                        placeholder={d.fullName || 'Full name'}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
@@ -678,11 +681,11 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Email</label>
+                      <label className="form-label">{d.email || 'Email'}</label>
                       <input 
                         type="email" 
                         className="form-control" 
-                        placeholder="Email Address"
+                        placeholder={d.emailAddress || 'Email Address'}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -690,7 +693,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Phone Number</label>
+                      <label className="form-label">{d.phone || 'Phone Number'}</label>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <SearchSelect
                           value={countryCode}
@@ -705,7 +708,7 @@ export default function CheckoutPage() {
                         <input 
                           type="tel" 
                           className="form-control" 
-                          placeholder="Phone Number"
+                          placeholder={d.phone || 'Phone Number'}
                           value={phoneNum}
                           onChange={(e) => setPhoneNum(e.target.value)}
                           required
@@ -722,7 +725,7 @@ export default function CheckoutPage() {
               {mode === 'dine-in' && (
                 <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
                   <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800', marginBottom: '16px' }}>
-                    Your Information
+                    {d.yourInfo || 'Your Information'}
                   </h3>
  
                   {/* Auto Assigned read only table input */}
@@ -730,18 +733,18 @@ export default function CheckoutPage() {
                     <input 
                       type="text" 
                       className="form-control" 
-                      value={`Table: ${tableNo || 'Auto Assigning...'}`}
+                      value={`${d.table || 'Table'}: ${tableNo || '...'}`}
                       disabled
                       style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed', fontWeight: '700', color: 'var(--text-main)' }}
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label className="form-label">Name</label>
+                    <label className="form-label">{d.name || 'Name'}</label>
                     <input 
                       type="text" 
                       className="form-control" 
-                      placeholder="Full name"
+                      placeholder={d.fullName || 'Full name'}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
@@ -749,11 +752,11 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Email</label>
+                    <label className="form-label">{d.email || 'Email'}</label>
                     <input 
                       type="email" 
                       className="form-control" 
-                      placeholder="Email Address"
+                      placeholder={d.emailAddress || 'Email Address'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -761,7 +764,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label">Phone Number</label>
+                    <label className="form-label">{d.phone || 'Phone Number'}</label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <SearchSelect
                         value={countryCode}
@@ -776,7 +779,7 @@ export default function CheckoutPage() {
                       <input 
                         type="tel" 
                         className="form-control" 
-                        placeholder="Phone Number"
+                        placeholder={d.phone || 'Phone Number'}
                         value={phoneNum}
                         onChange={(e) => setPhoneNum(e.target.value)}
                         required
@@ -792,13 +795,13 @@ export default function CheckoutPage() {
                   <i className="fa-solid fa-bullseye" style={{ color: 'var(--color-primary)' }}></i>
                 </span>
                 <div>
-                  <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Standard</div>
+                  <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{d.standard || 'Standard'}</div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     {mode === 'delivery'
                       ? (tenant.deliveryMode === 'custom' && selectedZone
-                          ? `In ${selectedZone.time} mins`
-                          : `In ${tenant.waitTimes?.delivery || 30} mins`)
-                      : `In ${tenant.waitTimes?.pickup || 15} mins`}
+                          ? `${d.in || 'In'} ${selectedZone.time} ${d.mins || 'mins'}`
+                          : `${d.in || 'In'} ${tenant.waitTimes?.delivery || 30} ${d.mins || 'mins'}`)
+                      : `${d.in || 'In'} ${tenant.waitTimes?.pickup || 15} ${d.mins || 'mins'}`}
                   </span>
                 </div>
               </div>
@@ -810,14 +813,14 @@ export default function CheckoutPage() {
               {/* Checkout Item List Summary */}
               <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid var(--border-light)' }}>
                 <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: '800', marginBottom: '16px', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
-                  Summary
+                  {d.orderSummary || 'Summary'}
                 </h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
                   {cart.map(item => (
                     <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '0.85rem' }}>
                       <div>
-                        <div style={{ fontWeight: '700' }}>{item.quantity}x {item.name.en}</div>
+                        <div style={{ fontWeight: '700' }}>{item.quantity}x {item.name[lang] || item.name.en}</div>
                         <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                           {item.size && `${item.size}`}
                           {item.addons?.length > 0 && `, +${item.addons.join(', ')}`}
@@ -836,17 +839,17 @@ export default function CheckoutPage() {
 
                 <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                    <span>Item subtotal</span>
+                    <span>{d.subtotal || 'Subtotal'}</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
                   {mode === 'delivery' && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                      <span>Delivery Fee</span>
+                      <span>{d.deliveryFee || 'Delivery Fee'}</span>
                       <span>{formatPrice(deliveryFee)}</span>
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: '800', borderTop: '1px dashed var(--border-light)', marginTop: '12px', paddingTop: '12px' }}>
-                    <span>Total</span>
+                    <span>{d.total || 'Total'}</span>
                     <span>{formatPrice(total)}</span>
                   </div>
                 </div>
@@ -878,19 +881,19 @@ export default function CheckoutPage() {
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {isClosed ? (
                     <>
-                      <i className="fa-solid fa-lock"></i> Shop is Closed
+                      <i className="fa-solid fa-lock"></i> {d.shopClosed || 'Shop is Closed'}
                     </>
                   ) : mode === 'delivery' ? (
                     <>
-                      <i className="fa-solid fa-motorcycle"></i> Place Order
+                      <i className="fa-solid fa-motorcycle"></i> {d.placeOrder || 'Place Order'}
                     </>
                   ) : mode === 'pickup' ? (
                     <>
-                      <i className="fa-solid fa-bag-shopping"></i> Place Order
+                      <i className="fa-solid fa-bag-shopping"></i> {d.placeOrder || 'Place Order'}
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-utensils"></i> Place Order
+                      <i className="fa-solid fa-utensils"></i> {d.placeOrder || 'Place Order'}
                     </>
                   )}
                 </span>

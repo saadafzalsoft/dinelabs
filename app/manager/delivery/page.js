@@ -23,7 +23,7 @@ const CURRENCY_SYM = {
 
 function DeliveryPageContent() {
   const router = useRouter();
-  const { tenantSettings, loading, refreshTenantSettings } = useManager();
+  const { tenantSettings, loading, refreshTenantSettings, t, lang } = useManager();
 
   const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -107,13 +107,13 @@ function DeliveryPageContent() {
 
       if (res.ok) {
         refreshTenantSettings();
-        triggerToast('Delivery settings saved successfully!', 'check');
+        triggerToast(t('Delivery settings saved successfully!'), 'check');
       } else {
-        alert('Failed to save settings');
+        alert(t('Failed to save settings'));
       }
     } catch (e) {
       console.error(e);
-      alert('Error saving settings');
+      alert(t('Error saving settings'));
     } finally {
       setSaving(false);
     }
@@ -143,7 +143,7 @@ function DeliveryPageContent() {
   const handleRemoveZone = (id) => {
     setDeliveryZones(deliveryZones.filter(z => z.id !== id));
     setConfirmDeleteId(null);
-    triggerToast('Area removed', 'trash-2');
+    triggerToast(t('Area removed'), 'trash-2');
   };
 
   // Drag and drop sorting handlers
@@ -175,7 +175,7 @@ function DeliveryPageContent() {
       return (
         <>
           <PauseCircle className="ic" style={{ width: '15px', height: '15px' }} />
-          <span>Delivery is paused — these rules apply the moment you turn it back on.</span>
+          <span>{t('Delivery is paused — these rules apply the moment you turn it back on.')}</span>
         </>
       );
     }
@@ -188,7 +188,7 @@ function DeliveryPageContent() {
         <>
           <Bike className="ic" style={{ width: '15px', height: '15px' }} />
           <span>
-            Every area: <b>{sym}{feeFormatted}</b> fee <span className="sep">·</span> <b>{deliveryWait} min</b> <span className="sep">·</span> Min order <b>{sym}{minFormatted}</b>
+            {t('Every area')}: <b>{sym}{feeFormatted}</b> {t('fee')} <span className="sep">·</span> <b>{deliveryWait} {t('min')}</b> <span className="sep">·</span> {t('Min order')} <b>{sym}{minFormatted}</b>
           </span>
         </>
       );
@@ -198,7 +198,7 @@ function DeliveryPageContent() {
         return (
           <>
             <MapPin className="ic" style={{ width: '15px', height: '15px' }} />
-            <span>Add at least one area so customers can check out for delivery.</span>
+            <span>{t('Add at least one area so customers can check out for delivery.')}</span>
           </>
         );
       } else {
@@ -211,13 +211,13 @@ function DeliveryPageContent() {
 
         const loTime = times.length ? Math.min(...times) : 0;
         const hiTime = times.length ? Math.max(...times) : 0;
-        const tStr = loTime === hiTime ? `${loTime} min` : `${loTime}–${hiTime} min`;
+        const tStr = loTime === hiTime ? `${loTime} ${t('min')}` : `${loTime}–${hiTime} ${t('min')}`;
 
         return (
           <>
             <MapPin className="ic" style={{ width: '15px', height: '15px' }} />
             <span>
-              <b>{n}</b> area{n > 1 ? 's' : ''} <span className="sep">·</span> Fee <b>{feeStr}</b> <span className="sep">·</span> <b>{tStr}</b> <span className="sep">·</span> Min order <b>{sym}{minFormatted}</b>
+              <b>{n}</b> {n === 1 ? t('area') : t('areas')} <span className="sep">·</span> {t('Fee')} <b>{feeStr}</b> <span className="sep">·</span> <b>{tStr}</b> <span className="sep">·</span> {t('Min order')} <b>{sym}{minFormatted}</b>
             </span>
           </>
         );
@@ -263,8 +263,8 @@ function DeliveryPageContent() {
       {/* Page Header */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Delivery</h1>
-          <p className="page-sub">Turn delivery on, set the wait time customers see, and the rules that gate every delivery order.</p>
+          <h1 className="page-title">{t('Delivery')}</h1>
+          <p className="page-sub">{t('Turn delivery on, set the wait time customers see, and the rules that gate every delivery order.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -272,7 +272,7 @@ function DeliveryPageContent() {
           disabled={saving}
         >
           <Check className="ic" />
-          <span>{saving ? 'Saving...' : 'Save changes'}</span>
+          <span>{saving ? t('Saving...') : t('Save changes')}</span>
         </button>
       </div>
 
@@ -286,16 +286,16 @@ function DeliveryPageContent() {
             </div>
             <div>
               <div className="svc-h">
-                <span>Accepting delivery orders</span>
+                <span>{t('Accepting delivery orders')}</span>
                 <span className={`svc-pill ${deliveryEnabled ? 'live' : 'paused'}`}>
                   <span className="dot"></span>
-                  <span>{deliveryEnabled ? 'Live on storefront' : 'Paused'}</span>
+                  <span>{deliveryEnabled ? t('Live on storefront') : t('Paused')}</span>
                 </span>
               </div>
               <div className="svc-sub">
                 {deliveryEnabled 
-                  ? 'Customers can order delivery now. Fee and ETA are pulled from the rules below.'
-                  : 'When off, the delivery option is hidden from the storefront and existing baskets switch to pick-up.'}
+                  ? t('Customers can order delivery now. Fee and ETA are pulled from the rules below.')
+                  : t('When off, the delivery option is hidden from the storefront and existing baskets switch to pick-up.')}
               </div>
             </div>
             <div className="svc-act">
@@ -306,7 +306,7 @@ function DeliveryPageContent() {
                   onChange={(e) => {
                     const nextVal = e.target.checked;
                     setDeliveryEnabled(nextVal);
-                    triggerToast(`Delivery ${nextVal ? 'enabled' : 'paused'}`, nextVal ? 'bike' : 'pause-circle');
+                    triggerToast(t('Delivery {state}').replace('{state}', nextVal ? t('enabled') : t('paused')), nextVal ? 'bike' : 'pause-circle');
                   }}
                 />
                 <span className="track"></span>
@@ -317,12 +317,12 @@ function DeliveryPageContent() {
           {/* Minimum order Rule Section */}
           <div className="svc-section" aria-disabled={!deliveryEnabled}>
             <div className="svc-section-head">
-              <div className="svc-section-title">Minimum order</div>
-              <div className="svc-section-sub">The smallest basket you'll send out for delivery. Applies to every area.</div>
+              <div className="svc-section-title">{t('Minimum order')}</div>
+              <div className="svc-section-sub">{t("The smallest basket you'll send out for delivery. Applies to every area.")}</div>
             </div>
             <div className="svc-fields">
               <div className="field">
-                <label className="label" htmlFor="dlMin">Minimum order value</label>
+                <label className="label" htmlFor="dlMin">{t('Minimum order value')}</label>
                 <div className="money-input">
                   <span className="pfx">{sym}</span>
                   <input 
@@ -337,7 +337,7 @@ function DeliveryPageContent() {
                   />
                 </div>
                 <p className="hint" style={{ fontSize: '11.5px', color: 'var(--ink-3)', marginTop: '6px', lineHeight: '1.4' }}>
-                  Orders below this can't check out for delivery.
+                  {t("Orders below this can't check out for delivery.")}
                 </p>
               </div>
             </div>
@@ -346,17 +346,17 @@ function DeliveryPageContent() {
           {/* Delivery areas: General vs Custom */}
           <div className="svc-section" aria-disabled={!deliveryEnabled}>
             <div className="svc-section-head">
-              <div className="svc-section-title">Delivery fee &amp; time</div>
-              <div className="svc-section-sub">Charge one flat rate everywhere, or tune the fee and ETA for each area you deliver to.</div>
+              <div className="svc-section-title">{t('Delivery fee & time')}</div>
+              <div className="svc-section-sub">{t('Charge one flat rate everywhere, or tune the fee and ETA for each area you deliver to.')}</div>
             </div>
 
-            <div className="mode-switch" role="radiogroup" aria-label="Delivery pricing mode" style={{ marginBottom: '18px' }}>
+            <div className="mode-switch" role="radiogroup" aria-label={t('Delivery pricing mode')} style={{ marginBottom: '18px' }}>
               <button 
                 type="button" 
                 className={`mode-card ${deliveryMode === 'general' ? 'active' : ''}`}
                 onClick={() => {
                   setDeliveryMode('general');
-                  triggerToast('One rate for all areas', 'globe');
+                  triggerToast(t('One rate for all areas'), 'globe');
                 }}
                 role="radio"
                 aria-checked={deliveryMode === 'general'}
@@ -364,8 +364,8 @@ function DeliveryPageContent() {
                 <span className="mode-radio"></span>
                 <span className="mode-ic"><Globe className="ic" style={{ width: '18px', height: '18px' }} /></span>
                 <span className="mode-txt">
-                  <span className="mode-name">Same everywhere</span>
-                  <span className="mode-sub">One delivery fee and time for every order.</span>
+                  <span className="mode-name">{t('Same everywhere')}</span>
+                  <span className="mode-sub">{t('One delivery fee and time for every order.')}</span>
                 </span>
               </button>
               
@@ -374,7 +374,7 @@ function DeliveryPageContent() {
                 className={`mode-card ${deliveryMode === 'custom' ? 'active' : ''}`}
                 onClick={() => {
                   setDeliveryMode('custom');
-                  triggerToast('Custom areas enabled', 'map-pin');
+                  triggerToast(t('Custom areas enabled'), 'map-pin');
                 }}
                 role="radio"
                 aria-checked={deliveryMode === 'custom'}
@@ -382,8 +382,8 @@ function DeliveryPageContent() {
                 <span className="mode-radio"></span>
                 <span className="mode-ic"><MapPin className="ic" style={{ width: '18px', height: '18px' }} /></span>
                 <span className="mode-txt">
-                  <span className="mode-name">Custom by area</span>
-                  <span className="mode-sub">A different fee and time per area.</span>
+                  <span className="mode-name">{t('Custom by area')}</span>
+                  <span className="mode-sub">{t('A different fee and time per area.')}</span>
                 </span>
               </button>
             </div>
@@ -393,7 +393,7 @@ function DeliveryPageContent() {
               <div className="mode-panel show" id="dlGeneralPanel">
                 <div className="svc-fields">
                   <div className="field">
-                    <label className="label" htmlFor="dlFee">Delivery fee</label>
+                    <label className="label" htmlFor="dlFee">{t('Delivery fee')}</label>
                     <div className="money-input">
                       <span className="pfx">{sym}</span>
                       <input 
@@ -409,7 +409,7 @@ function DeliveryPageContent() {
                     </div>
                   </div>
                   <div className="field">
-                    <label className="label" htmlFor="dlTime">Delivery time</label>
+                    <label className="label" htmlFor="dlTime">{t('Delivery time')}</label>
                     <div className="time-input">
                       <input 
                         type="number" 
@@ -417,11 +417,11 @@ function DeliveryPageContent() {
                         max="240" 
                         step="5" 
                         id="dlTime" 
-                        aria-label="Delivery time in minutes"
+                        aria-label={t('Delivery time in minutes')}
                         value={deliveryWait}
                         onChange={(e) => setDeliveryWait(e.target.value)}
                       />
-                      <span className="suffix">min</span>
+                      <span className="suffix">{t('min')}</span>
                     </div>
                   </div>
                 </div>
@@ -433,9 +433,9 @@ function DeliveryPageContent() {
               <div className="mode-panel show" id="dlCustomPanel">
                 {deliveryZones.length > 0 && (
                   <div className="zone-head">
-                    <span>Area</span>
-                    <span>Delivery fee</span>
-                    <span>Time</span>
+                    <span>{t('Area')}</span>
+                    <span>{t('Delivery fee')}</span>
+                    <span>{t('Time')}</span>
                   </div>
                 )}
 
@@ -454,14 +454,14 @@ function DeliveryPageContent() {
                         /* Inline Deletion Confirmation layout */
                         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr auto auto', width: '100%', alignItems: 'center', gap: '10px' }}>
                           <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--ink)' }}>
-                            Remove <b>{zone.name || 'this area'}</b>?
+                            {t('Remove')} <b>{zone.name || t('this area')}</b>?
                           </span>
                           <button 
                             type="button" 
                             className="btn btn-ghost btn-sm"
                             onClick={() => setConfirmDeleteId(null)}
                           >
-                            Cancel
+                            {t('Cancel')}
                           </button>
                           <button 
                             type="button" 
@@ -469,7 +469,7 @@ function DeliveryPageContent() {
                             onClick={() => handleRemoveZone(zone.id)}
                           >
                             <Trash2 className="ic" style={{ width: '14px', height: '14px' }} />
-                            <span>Remove</span>
+                            <span>{t('Remove')}</span>
                           </button>
                         </div>
                       ) : (
@@ -478,7 +478,7 @@ function DeliveryPageContent() {
                           <button 
                             type="button" 
                             className="zone-grip" 
-                            aria-label="Drag to reorder"
+                            aria-label={t('Drag to reorder')}
                             onPointerDown={() => setDraggableRowId(zone.id)}
                             onPointerUp={() => setDraggableRowId(null)}
                             style={{ cursor: 'grab' }}
@@ -491,8 +491,8 @@ function DeliveryPageContent() {
                             type="text" 
                             value={zone.name}
                             onChange={(e) => handleUpdateZone(zone.id, 'name', e.target.value)}
-                            placeholder="Area name" 
-                            aria-label="Area name" 
+                            placeholder={t('Area name')} 
+                            aria-label={t('Area name')} 
                           />
                           
                           <label className="zone-affix money">
@@ -505,7 +505,7 @@ function DeliveryPageContent() {
                               value={zone.fee === '' ? '' : (parseFloat(zone.fee) || 0)}
                               onChange={(e) => handleUpdateZone(zone.id, 'fee', e.target.value === '' ? '' : parseFloat(e.target.value))}
                               placeholder="0.00" 
-                              aria-label="Delivery fee" 
+                              aria-label={t('Delivery fee')} 
                             />
                           </label>
                           
@@ -519,15 +519,15 @@ function DeliveryPageContent() {
                               value={zone.time === '' ? '' : (parseInt(zone.time) || 0)}
                               onChange={(e) => handleUpdateZone(zone.id, 'time', e.target.value === '' ? '' : parseInt(e.target.value))}
                               placeholder="—" 
-                              aria-label="Delivery time" 
+                              aria-label={t('Delivery time')} 
                             />
-                            <span className="sfx">min</span>
+                            <span className="sfx">{t('min')}</span>
                           </label>
                           
                           <button 
                             type="button" 
                             className="zone-del" 
-                            aria-label="Remove area"
+                            aria-label={t('Remove area')}
                             onClick={() => setConfirmDeleteId(zone.id)}
                           >
                             <Trash2 className="ic" style={{ width: '16px', height: '16px' }} />
@@ -541,8 +541,8 @@ function DeliveryPageContent() {
                 {deliveryZones.length === 0 && (
                   <div className="zone-empty show" id="dlZoneEmpty">
                     <div className="ze-ic"><Map className="ic" style={{ width: '22px', height: '22px' }} /></div>
-                    <div className="ze-title">No areas yet</div>
-                    <div className="ze-sub">Add the neighbourhoods or zones you deliver to and set a fee and time for each.</div>
+                    <div className="ze-title">{t('No areas yet')}</div>
+                    <div className="ze-sub">{t('Add the neighbourhoods or zones you deliver to and set a fee and time for each.')}</div>
                   </div>
                 )}
                 
@@ -552,7 +552,7 @@ function DeliveryPageContent() {
                   onClick={handleAddArea}
                 >
                   <Plus className="ic" style={{ width: '16px', height: '16px' }} />
-                  <span>Add area</span>
+                  <span>{t('Add area')}</span>
                 </button>
               </div>
             )}

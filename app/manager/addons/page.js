@@ -18,7 +18,22 @@ import { useManager } from '../layout';
 
 function AddonsPageContent() {
   const router = useRouter();
-  const { modifierGroups: contextModifierGroups, loading, refreshModifierGroups, lang } = useManager();
+  const { modifierGroups: contextModifierGroups, loading, refreshModifierGroups, lang, tenantSettings, t } = useManager();
+
+  const currency = tenantSettings?.baseCurrency || 'USD';
+  const currencySymbols = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    LBP: 'LBP ',
+    AED: 'AED ',
+    SAR: 'SR ',
+    QAR: 'QR ',
+    KWD: 'KD ',
+    BHD: 'BD ',
+    OMR: 'RO '
+  };
+  const currencySymbol = currencySymbols[currency] || (currency + ' ');
 
   const [modifierGroups, setModifierGroups] = useState([]);
 
@@ -84,7 +99,7 @@ function AddonsPageContent() {
 
     const filteredOptions = groupOptions.filter(o => o.name.trim() !== '');
     if (filteredOptions.length === 0) {
-      alert('Must include at least one option.');
+      alert(t('Must include at least one option.'));
       return;
     }
 
@@ -111,9 +126,9 @@ function AddonsPageContent() {
         if (res.ok) {
           fetchModifierGroups();
           closeModifierDrawer();
-          triggerToast(`Saved "${groupName}"`);
+          triggerToast(t('Saved "{groupName}"').replace('{groupName}', groupName));
         } else {
-          alert('Failed saving modifier group changes');
+          alert(t('Failed saving modifier group changes'));
         }
       } else {
         // Add modifier group
@@ -128,9 +143,9 @@ function AddonsPageContent() {
           setModifierGroups([...modifierGroups, data.modifierGroup]);
           refreshModifierGroups();
           closeModifierDrawer();
-          triggerToast(`Created "${groupName}"`);
+          triggerToast(t('Created "{groupName}"').replace('{groupName}', groupName));
         } else {
-          alert(data.error || 'Failed creating modifier group');
+          alert(data.error || t('Failed creating modifier group'));
         }
       }
     } catch (e) {
@@ -141,7 +156,7 @@ function AddonsPageContent() {
   };
 
   const handleDeleteGroup = async (id, name) => {
-    if (!confirm(`Delete modifier group "${name}" permanently? Reference to this group will be automatically removed from all products.`)) return;
+    if (!confirm(t('Delete modifier group "{name}" permanently? Reference to this group will be automatically removed from all products.').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/modifier-groups', {
@@ -152,9 +167,9 @@ function AddonsPageContent() {
       if (res.ok) {
         setModifierGroups(modifierGroups.filter(g => g._id !== id));
         refreshModifierGroups();
-        triggerToast(`Deleted "${name}"`);
+        triggerToast(t('Deleted "{name}"').replace('{name}', name));
       } else {
-        alert('Failed deleting modifier group');
+        alert(t('Failed deleting modifier group'));
       }
     } catch (e) {
       console.error(e);
@@ -208,8 +223,8 @@ function AddonsPageContent() {
       {/* Title */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Modifier Add-ons</h1>
-          <p className="page-sub">Create and configure variations, extras, and ingredient exclusions for storefront customization.</p>
+          <h1 className="page-title">{t('Modifier Add-ons')}</h1>
+          <p className="page-sub">{t('Create and configure variations, extras, and ingredient exclusions for storefront customization.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -219,7 +234,7 @@ function AddonsPageContent() {
           }}
         >
           <Plus className="ic" />
-          <span>Add group</span>
+          <span>{t('Add group')}</span>
         </button>
       </div>
 
@@ -233,10 +248,10 @@ function AddonsPageContent() {
             <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
                 <SlidersHorizontal className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span>Modifier Groups</span>
+                <span>{t('Modifier Groups')}</span>
               </div>
               <span className="card-note" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                {modifierGroups.length} groups
+                {modifierGroups.length} {t('groups')}
               </span>
             </div>
 
@@ -244,7 +259,7 @@ function AddonsPageContent() {
             <div className="card-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', padding: '20px' }}>
               {modifierGroups.length === 0 ? (
                 <div style={{ padding: '48px', textAlign: 'center', color: 'var(--ink-3)', gridColumn: '1 / -1' }}>
-                  No modifier groups created yet. Click Add group to get started.
+                  {t('No modifier groups created yet. Click Add group to get started.')}
                 </div>
               ) : (
                 modifierGroups.map(grp => (
@@ -252,16 +267,16 @@ function AddonsPageContent() {
                     <div className="mod-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                       <span className="mod-title" style={{ fontWeight: '700', fontSize: '1rem' }}>{grp.name[lang] || grp.name.en}</span>
                       <span className="pill pill-soft" style={{ fontSize: '10px', fontWeight: '700', padding: '3px 8px', textTransform: 'uppercase' }}>
-                        {grp.type === 'variations' ? 'Sizes' : grp.type === 'addons' ? 'Add-on' : 'Removal'}
+                        {grp.type === 'variations' ? t('Sizes') : grp.type === 'addons' ? t('Add-on') : t('Removal')}
                       </span>
                     </div>
 
                     <div className="mod-opts" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', flexGrow: 1, alignContent: 'flex-start', marginBottom: '16px' }}>
                       {grp.options?.map((opt, oIdx) => {
-                        const nameLabel = typeof opt.name === 'object' ? (opt.name[lang] || opt.name.en || '') : opt.name;
+                        const nameLabel = typeof opt.name === 'object' ? (opt.name[lang] || opt.name.en || '') : t(opt.name);
                         return (
                           <span key={oIdx} className="tag" style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '8px', backgroundColor: '#f3f4f6', color: '#1f2937', fontWeight: '600' }}>
-                            {nameLabel} {parseFloat(opt.price) > 0 ? `(+$${parseFloat(opt.price).toFixed(2)})` : ''}
+                            {nameLabel} {parseFloat(opt.price) > 0 ? `(+${currencySymbol}${parseFloat(opt.price).toFixed(2)})` : ''}
                           </span>
                         );
                       })}
@@ -299,15 +314,15 @@ function AddonsPageContent() {
       <aside className={`drawer ${isModifierOpen ? 'open' : ''}`}>
         <div className="rail-head">
           <SlidersHorizontal className="ic" />
-          <h3>{editingGroup ? 'Edit modifier group' : 'New modifier group'}</h3>
-          <button className="x" onClick={closeModifierDrawer} title="Close">
+          <h3>{editingGroup ? t('Edit modifier group') : t('New modifier group')}</h3>
+          <button className="x" onClick={closeModifierDrawer} title={t('Close')}>
             <X className="ic" />
           </button>
         </div>
 
         <div className="rail-body">
           <div className="field">
-            <label className="label">Group name</label>
+            <label className="label">{t('Group name')}</label>
             <input 
               className="input" 
               value={groupName}
@@ -317,7 +332,7 @@ function AddonsPageContent() {
           </div>
 
           <div className="field">
-            <label className="label">Type</label>
+            <label className="label">{t('Type')}</label>
             <div className="type-picker" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               <button 
                 type="button" 
@@ -325,7 +340,7 @@ function AddonsPageContent() {
                 onClick={() => setGroupType('variations')}
               >
                 <span className="tc-ic"><Ruler className="ic" /></span>
-                <span className="tc-lbl">Variations</span>
+                <span className="tc-lbl">{t('Variations')}</span>
               </button>
               <button 
                 type="button" 
@@ -333,7 +348,7 @@ function AddonsPageContent() {
                 onClick={() => setGroupType('addons')}
               >
                 <span className="tc-ic"><PlusCircle className="ic" /></span>
-                <span className="tc-lbl">Add-ons</span>
+                <span className="tc-lbl">{t('Add-ons')}</span>
               </button>
               <button 
                 type="button" 
@@ -341,7 +356,7 @@ function AddonsPageContent() {
                 onClick={() => setGroupType('removals')}
               >
                 <span className="tc-ic"><MinusCircle className="ic" /></span>
-                <span className="tc-lbl">Removals</span>
+                <span className="tc-lbl">{t('Removals')}</span>
               </button>
             </div>
           </div>
@@ -349,21 +364,21 @@ function AddonsPageContent() {
           <div className="nm-hint" style={{ display: 'flex', gap: '8px', padding: '12px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', margin: '16px 0', fontSize: '0.78rem', color: '#1e40af' }}>
             <Info className="ic" style={{ flexShrink: 0, width: '16px', height: '16px' }} />
             <span>
-              {groupType === 'variations' && 'Variations forces customers to pick exactly one option (e.g. sizes) that defines the base price.'}
-              {groupType === 'addons' && 'Add-ons lets visitors select multiple optional ingredients for an extra price.'}
-              {groupType === 'removals' && 'Removals lets customers strike out default ingredients for free.'}
+              {groupType === 'variations' && t('Variations forces customers to pick exactly one option (e.g. sizes) that defines the base price.')}
+              {groupType === 'addons' && t('Add-ons lets visitors select multiple optional ingredients for an extra price.')}
+              {groupType === 'removals' && t('Removals lets customers strike out default ingredients for free.')}
             </span>
           </div>
 
           <div className="field">
             <label className="label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Options</span>
+              <span>{t('Options')}</span>
               <button 
                 type="button" 
                 onClick={handleAddOptionRow}
                 style={{ background: 'none', border: 'none', color: 'var(--brand-red)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
               >
-                + Add Option
+                + {t('Add Option')}
               </button>
             </label>
 
@@ -374,12 +389,12 @@ function AddonsPageContent() {
                     className="input" 
                     value={opt.name}
                     onChange={(e) => handleOptionChange(idx, 'name', e.target.value)}
-                    placeholder={groupType === 'variations' ? "e.g. Large" : groupType === 'addons' ? "e.g. Extra Cheese" : "e.g. No Onions"}
+                    placeholder={groupType === 'variations' ? t("e.g. Large") : groupType === 'addons' ? t("e.g. Extra Cheese") : t("e.g. No Onions")}
                     style={{ height: '36px', fontSize: '0.8rem', flex: 2 }}
                   />
                   {groupType !== 'removals' && (
                     <div className="input-affix" style={{ flex: 1 }}>
-                      <span className="pfx" style={{ fontSize: '12px' }}>$</span>
+                      <span className="pfx" style={{ fontSize: '12px' }}>{currencySymbol}</span>
                       <input 
                         className="input" 
                         value={opt.price}
@@ -412,7 +427,7 @@ function AddonsPageContent() {
             style={{ marginTop: '24px' }}
           >
             <Save className="ic" />
-            <span>{savingGroup ? 'Saving...' : (editingGroup ? 'Save changes' : 'Create group')}</span>
+            <span>{savingGroup ? t('Saving...') : (editingGroup ? t('Save changes') : t('Create group'))}</span>
           </button>
         </div>
       </aside>

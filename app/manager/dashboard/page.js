@@ -25,7 +25,22 @@ import { useManager } from '../layout';
 
 export default function ManagerDashboardPage() {
   const [period, setPeriod] = useState('week'); // 'today' | 'week' | 'month'
-  const { session, orders, categories, loading } = useManager();
+  const { session, orders, categories, loading, tenantSettings, t, lang } = useManager();
+
+  const currency = tenantSettings?.baseCurrency || 'USD';
+  const currencySymbols = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    LBP: 'LBP ',
+    AED: 'AED ',
+    SAR: 'SR ',
+    QAR: 'QR ',
+    KWD: 'KD ',
+    BHD: 'BD ',
+    OMR: 'RO '
+  };
+  const currencySymbol = currencySymbols[currency] || (currency + ' ');
 
   // Mouse hover state for chart tooltip
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -37,7 +52,10 @@ export default function ManagerDashboardPage() {
   const categoriesCount = categories.length;
 
   const formatPrice = (amount) => {
-    return '$' + parseFloat(amount).toFixed(2);
+    const formattedAmount = currency === 'LBP' 
+      ? parseFloat(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      : parseFloat(amount).toFixed(2).replace('.', ',');
+    return `${currencySymbol}${formattedAmount}`;
   };
 
   // 1. Filter orders according to period selection
@@ -84,11 +102,11 @@ export default function ManagerDashboardPage() {
     
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-
+ 
     let curOrders = [];
     let prevOrders = [];
     let label = '';
-
+ 
     if (period === 'today') {
       curOrders = orders.filter(o => new Date(o.createdAt) >= startOfToday);
       prevOrders = orders.filter(o => {
@@ -111,27 +129,27 @@ export default function ManagerDashboardPage() {
       });
       label = 'vs last month';
     }
-
+ 
     const curActive = curOrders.filter(o => o.status !== 'declined');
     const prevActive = prevOrders.filter(o => o.status !== 'declined');
-
+ 
     const curRev = curActive.reduce((sum, o) => sum + o.total, 0);
     const prevRev = prevActive.reduce((sum, o) => sum + o.total, 0);
-
+ 
     const curCount = curOrders.length;
     const prevCount = prevOrders.length;
-
+ 
     const curAvg = curCount > 0 ? curRev / curCount : 0;
     const prevAvg = prevCount > 0 ? prevRev / prevCount : 0;
-
+ 
     const curViews = curCount * 12 + 84;
     const prevViews = prevCount * 12 + 84;
-
+ 
     const pct = (cur, prev) => {
       if (prev === 0) return cur > 0 ? 100 : 0;
       return parseFloat((((cur - prev) / prev) * 100).toFixed(1));
     };
-
+ 
     return {
       revenue: pct(curRev, prevRev),
       orders: pct(curCount, prevCount),
@@ -140,9 +158,9 @@ export default function ManagerDashboardPage() {
       label
     };
   };
-
+ 
   const deltas = getDeltas();
-
+ 
   // 3. Compile Area Line Chart Data coordinates
   const getChartDataPoints = () => {
     const activePeriodOrders = activeOrders;
@@ -162,10 +180,10 @@ export default function ManagerDashboardPage() {
         else if (h >= 20 && h < 22) series[6] += o.total;
         else if (h >= 22) series[7] += o.total;
       });
-
+ 
       return { labels, series };
     }
-
+ 
     if (period === 'week') {
       const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const series = [0, 0, 0, 0, 0, 0, 0];
@@ -176,10 +194,10 @@ export default function ManagerDashboardPage() {
         const idx = day === 0 ? 6 : day - 1;
         series[idx] += o.total;
       });
-
+ 
       return { labels, series };
     }
-
+ 
     // Month: group by 5-day intervals
     const labels = ['W1', 'W2', 'W3', 'W4', 'W5'];
     const series = [0, 0, 0, 0, 0];
@@ -191,13 +209,13 @@ export default function ManagerDashboardPage() {
       const idx = Math.min(4, Math.floor((30 - diffDays) / 6));
       if (idx >= 0) series[idx] += o.total;
     });
-
+ 
     return { labels, series };
   };
-
+ 
   const chart = getChartDataPoints();
   const maxVal = Math.max(...chart.series, 100) * 1.18;
-
+ 
   // Chart Layout Sizing
   const chartW = 580;
   const chartH = 260;
@@ -205,11 +223,11 @@ export default function ManagerDashboardPage() {
   const padR = 8;
   const padT = 18;
   const padB = 26;
-
+ 
   const xstep = (chartW - padL - padR) / (chart.series.length - 1);
   const xAt = (i) => padL + i * xstep;
   const yAt = (v) => padT + (1 - v / maxVal) * (chartH - padT - padB);
-
+ 
   // Generate SVG points coordinates
   const pts = chart.series.map((v, i) => [xAt(i), yAt(v)]);
   
@@ -225,12 +243,12 @@ export default function ManagerDashboardPage() {
     }
     return d;
   };
-
+ 
   const linePath = getBezierPath();
   const areaPath = pts.length > 0
     ? `${linePath} L ${xAt(chart.series.length - 1)} ${chartH - padB} L ${padL} ${chartH - padB} Z`
     : '';
-
+ 
   // SVG grid lines ticks
   const ticks = 4;
   const scaleLines = [];
@@ -238,7 +256,7 @@ export default function ManagerDashboardPage() {
     const v = (maxVal / ticks) * i;
     scaleLines.push({ value: v, y: yAt(v) });
   }
-
+ 
   // Handle chart mouse moves
   const handleMouseMove = (e) => {
     if (!chartSvgRef.current) return;
@@ -258,18 +276,18 @@ export default function ManagerDashboardPage() {
       x,
       y
     });
-
+ 
     // Translate percentages coordinates to CSS layout values
     setTooltipX((x / chartW) * 100);
     setTooltipY(y);
   };
-
+ 
   // 4. Channel Split Donut calculations
   const getChannelMetrics = () => {
     const delivery = { count: 0, sales: 0 };
     const pickup = { count: 0, sales: 0 };
     const dinein = { count: 0, sales: 0 };
-
+ 
     currentPeriodOrders.forEach(o => {
       if (o.status === 'declined') return;
       if (o.type === 'delivery') {
@@ -283,25 +301,25 @@ export default function ManagerDashboardPage() {
         dinein.sales += o.total;
       }
     });
-
+ 
     return { delivery, pickup, dinein };
   };
-
+ 
   const channels = getChannelMetrics();
   const channelTotalSales = channels.delivery.sales + channels.pickup.sales + channels.dinein.sales;
-
+ 
   // Donut SVG parameters
   const r = 64;
   const C = 2 * Math.PI * r;
   const sw = 24;
-
+ 
   const getDonutSectors = () => {
     if (channelTotalSales === 0) return [];
     
     let off = 0;
     const order = ['delivery', 'pickup', 'dinein'];
     const shades = { delivery: '#C5DBF2', pickup: '#F5E1A0', dinein: '#C5E2D2' };
-
+ 
     return order.map(k => {
       const val = channels[k].sales;
       const frac = val / channelTotalSales;
@@ -317,9 +335,9 @@ export default function ManagerDashboardPage() {
       };
     });
   };
-
+ 
   const donutSectors = getDonutSectors();
-
+ 
   // 5. Top Sellers progression lists
   const getTopSellers = () => {
     const productsMap = {};
@@ -332,7 +350,7 @@ export default function ManagerDashboardPage() {
         productsMap[it.name].sold += it.quantity;
       });
     });
-
+ 
     const list = Object.values(productsMap).sort((a, b) => b.sold - a.sold).slice(0, 4);
     const maxSold = list.length > 0 ? Math.max(...list.map(l => l.sold)) : 1;
     return list.map(item => ({
@@ -340,25 +358,25 @@ export default function ManagerDashboardPage() {
       percentage: (item.sold / maxSold) * 100
     }));
   };
-
+ 
   const topSellers = getTopSellers();
-
+ 
   // 6. Live Orders snapshot list
   const getSnapshotOrders = () => {
     return orders
       .filter(o => o.status === 'pending' || o.status === 'accepted')
       .slice(0, 4);
   };
-
+ 
   const snapOrders = getSnapshotOrders();
-
+ 
   const STATUS_CONFIG = {
     pending: { label: 'New', dot: 'var(--neg)' },
     accepted: { label: 'Preparing', dot: 'var(--warn)' },
     completed: { label: 'Fulfilled', dot: 'var(--pos)' },
     declined: { label: 'Declined', dot: 'var(--line-strong)' }
   };
-
+ 
   if (loading) {
     return (
       <div className="fade-in">
@@ -370,7 +388,7 @@ export default function ManagerDashboardPage() {
           </div>
           <div className="skeleton" style={{ width: '160px', height: '40px', borderRadius: '10px' }} />
         </div>
-
+ 
         {/* Quick Actions Skeleton */}
         <div className="quick" style={{ marginBottom: '24px' }}>
           {[1, 2, 3, 4].map(i => (
@@ -383,7 +401,7 @@ export default function ManagerDashboardPage() {
             </div>
           ))}
         </div>
-
+ 
         {/* KPIs Cards Skeleton */}
         <div className="kpis" style={{ marginBottom: '24px' }}>
           {[1, 2, 3, 4].map(i => (
@@ -397,7 +415,7 @@ export default function ManagerDashboardPage() {
             </div>
           ))}
         </div>
-
+ 
         {/* Charts & Grids Skeletons */}
         <div className="dash-grid">
           <div className="card" style={{ height: '380px', padding: '24px' }}>
@@ -410,7 +428,7 @@ export default function ManagerDashboardPage() {
             </div>
             <div className="skeleton" style={{ width: '100%', height: '240px', borderRadius: '12px' }} />
           </div>
-
+ 
           <div className="card" style={{ height: '380px', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
               <div className="skeleton" style={{ width: '100px', height: '18px', borderRadius: '4px' }} />
@@ -429,15 +447,15 @@ export default function ManagerDashboardPage() {
       </div>
     );
   }
-
+ 
   return (
     <div className="fade-in">
       
       {/* Welcome Greeting Row */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Welcome back, {restaurantName}</h1>
-          <p className="page-sub">Here&apos;s what&apos;s happening across your storefront today.</p>
+          <h1 className="page-title">{t('Welcome back,')} {restaurantName}</h1>
+          <p className="page-sub">{t("Here's what's happening across your storefront today.")}</p>
         </div>
         
         {/* Period Selector segmented control */}
@@ -446,30 +464,30 @@ export default function ManagerDashboardPage() {
             className={period === 'today' ? 'active' : ''} 
             onClick={() => setPeriod('today')}
           >
-            Today
+            {t('Today')}
           </button>
           <button 
             className={period === 'week' ? 'active' : ''} 
             onClick={() => setPeriod('week')}
           >
-            Week
+            {t('Week')}
           </button>
           <button 
             className={period === 'month' ? 'active' : ''} 
             onClick={() => setPeriod('month')}
           >
-            Month
+            {t('Month')}
           </button>
         </div>
       </div>
-
+ 
       {/* Quick Actions Links Grid */}
       <div className="quick">
         <Link href="/manager/products" className="qa">
           <span className="qa-ic"><UtensilsCrossed className="ic" /></span>
           <span>
-            <span className="qa-t">Add a product</span>
-            <span className="qa-s">New menu item</span>
+            <span className="qa-t">{t('Add a product')}</span>
+            <span className="qa-s">{t('New menu item')}</span>
           </span>
           <ArrowRight className="ic qa-arrow" />
         </Link>
@@ -477,90 +495,90 @@ export default function ManagerDashboardPage() {
         <Link href="/manager/products?tab=categories" className="qa">
           <span className="qa-ic"><Layers className="ic" /></span>
           <span>
-            <span className="qa-t">Manage categories</span>
-            <span className="qa-s">{categoriesCount} active categories</span>
+            <span className="qa-t">{t('Manage categories')}</span>
+            <span className="qa-s">{categoriesCount} {t('active categories')}</span>
           </span>
           <ArrowRight className="ic qa-arrow" />
         </Link>
-
+ 
         <Link href="/manager/live-orders" className="qa">
           <span className="qa-ic"><BellRing className="ic" /></span>
           <span>
-            <span className="qa-t">Live orders</span>
-            <span className="qa-s">{orders.filter(o => o.status === 'pending').length} active right now</span>
+            <span className="qa-t">{t('Live orders')}</span>
+            <span className="qa-s">{orders.filter(o => o.status === 'pending').length} {t('active right now')}</span>
           </span>
           <ArrowRight className="ic qa-arrow" />
         </Link>
-
+ 
         <Link href="/manager/store-profile?tab=hours" className="qa">
           <span className="qa-ic"><Clock className="ic" /></span>
           <span>
-            <span className="qa-t">Opening hours</span>
-            <span className="qa-s">Open &bull; Manage schedules</span>
+            <span className="qa-t">{t('Opening hours')}</span>
+            <span className="qa-s">{t('Open')} &bull; {t('Manage schedules')}</span>
           </span>
           <ArrowRight className="ic qa-arrow" />
         </Link>
       </div>
-
+ 
       {/* KPI Cards Grid */}
       <div className="kpis">
         {/* Card 1: Revenue */}
         <div className="card kpi">
           <div className="kpi-top">
-            <span className="kpi-label">Total revenue</span>
+            <span className="kpi-label">{t('Total revenue')}</span>
             <span className="kpi-ic"><Banknote className="ic" /></span>
           </div>
           <div className="kpi-val tnum">{formatPrice(totalRevenue)}</div>
           <div className={`kpi-delta ${deltas.revenue >= 0 ? 'up' : 'down'}`}>
             {deltas.revenue >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
             {Math.abs(deltas.revenue)}%
-            <span>{deltas.label}</span>
+            <span>{t(deltas.label)}</span>
           </div>
         </div>
-
+ 
         {/* Card 2: Orders Count */}
         <div className="card kpi">
           <div className="kpi-top">
-            <span className="kpi-label">Orders</span>
+            <span className="kpi-label">{t('Orders')}</span>
             <span className="kpi-ic"><ReceiptText className="ic" /></span>
           </div>
           <div className="kpi-val tnum">{totalOrdersCount}</div>
           <div className={`kpi-delta ${deltas.orders >= 0 ? 'up' : 'down'}`}>
             {deltas.orders >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
             {Math.abs(deltas.orders)}%
-            <span>{deltas.label}</span>
+            <span>{t(deltas.label)}</span>
           </div>
         </div>
-
+ 
         {/* Card 3: AOV */}
         <div className="card kpi">
           <div className="kpi-top">
-            <span className="kpi-label">Avg order value</span>
+            <span className="kpi-label">{t('Avg order value')}</span>
             <span className="kpi-ic"><Tag className="ic" /></span>
           </div>
           <div className="kpi-val tnum">{formatPrice(avgOrderValue)}</div>
           <div className={`kpi-delta ${deltas.avg >= 0 ? 'up' : 'down'}`}>
             {deltas.avg >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
             {Math.abs(deltas.avg)}%
-            <span>per order</span>
+            <span>{t('per order')}</span>
           </div>
         </div>
-
+ 
         {/* Card 4: Views */}
         <div className="card kpi">
           <div className="kpi-top">
-            <span className="kpi-label">Menu views</span>
+            <span className="kpi-label">{t('Menu views')}</span>
             <span className="kpi-ic"><Eye className="ic" /></span>
           </div>
           <div className="kpi-val tnum">{computedMenuViews.toLocaleString()}</div>
           <div className={`kpi-delta ${deltas.views >= 0 ? 'up' : 'down'}`}>
             {deltas.views >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
             {Math.abs(deltas.views)}%
-            <span>{deltas.label}</span>
+            <span>{t(deltas.label)}</span>
           </div>
         </div>
       </div>
-
+ 
       {/* Trajectory area chart & channel donut grid */}
       <div className="dash-grid">
         
@@ -568,14 +586,14 @@ export default function ManagerDashboardPage() {
         <section className="card" style={{ position: 'relative' }}>
           <div className="card-head">
             <div>
-              <div className="card-title">Total sales</div>
+              <div className="card-title">{t('Total sales')}</div>
               <div className="card-note">
-                {period === 'today' ? 'Today · so far' : period === 'week' ? 'This week · Mon–Sun' : 'This month · last 30 days'} · {formatPrice(totalRevenue)}
+                {period === 'today' ? t('Today · so far') : period === 'week' ? t('This week · Mon–Sun') : t('This month · last 30 days')} · {formatPrice(totalRevenue)}
               </div>
             </div>
             <span className="pill pill-soft">
               <TrendingUp className="ic" style={{ width: '13px', height: '13px' }} />
-              <span>+{deltas.revenue}% {deltas.label}</span>
+              <span>+{deltas.revenue}% {t(deltas.label)}</span>
             </span>
           </div>
           <div className="card-pad" style={{ paddingTop: '8px' }}>
@@ -594,18 +612,18 @@ export default function ManagerDashboardPage() {
                   <g key={idx}>
                     <line x1={padL} x2={chartW - padR} y1={line.y} y2={line.y} stroke="#f0f0f0" strokeWidth="1" />
                     <text x={padL - 8} y={line.y + 4} textAnchor="end" fontSize="11" fill="#9a9a9a" fontWeight="600" fontFamily="var(--font)">
-                      ${Math.round(line.value)}
+                      {currencySymbol}{Math.round(line.value)}
                     </text>
                   </g>
                 ))}
-
+ 
                 {/* X-axis labels */}
                 {chart.labels.map((lbl, idx) => (
                   <text key={idx} x={xAt(idx)} y={chartH - 6} textAnchor="middle" fontSize="11.5" fill="#9a9a9a" fontWeight="600" fontFamily="var(--font)">
-                    {lbl}
+                    {t(lbl)}
                   </text>
                 ))}
-
+ 
                 {/* SVG Linear Gradient for Area Chart */}
                 <defs>
                   <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -613,13 +631,13 @@ export default function ManagerDashboardPage() {
                     <stop offset="100%" stopColor="#0a0a0a" stopOpacity="0" />
                   </linearGradient>
                 </defs>
-
+ 
                 {/* Area under curve */}
                 {areaPath && <path d={areaPath} fill="url(#chartGrad)" />}
-
+ 
                 {/* Main line path */}
                 {linePath && <path d={linePath} fill="none" stroke="#0a0a0a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />}
-
+ 
                 {/* Interactive Tooltip / Guidelines layers */}
                 {hoveredPoint && (
                   <>
@@ -643,7 +661,7 @@ export default function ManagerDashboardPage() {
                   </>
                 )}
               </svg>
-
+ 
               {/* Vector Hover Floating Tooltip */}
               {hoveredPoint && (
                 <div 
@@ -654,19 +672,19 @@ export default function ManagerDashboardPage() {
                     top: `${tooltipY}px`
                   }}
                 >
-                  <span className="tip-k">{hoveredPoint.label}</span>
+                  <span className="tip-k">{t(hoveredPoint.label)}</span>
                   <b>{formatPrice(hoveredPoint.value)}</b>
                 </div>
               )}
             </div>
           </div>
         </section>
-
+ 
         {/* Channel Split Donut Chart Card */}
         <section className="card">
           <div className="card-head">
-            <div className="card-title"><GitFork className="ic" style={{ marginRight: '7px' }} />Channel split</div>
-            <span className="card-note">{totalOrdersCount} orders</span>
+            <div className="card-title"><GitFork className="ic" style={{ marginRight: '7px' }} />{t('Channel split')}</div>
+            <span className="card-note">{totalOrdersCount} {t('orders')}</span>
           </div>
           <div className="card-pad" style={{ paddingTop: '12px', paddingBottom: '18px' }}>
             <div className="donut-wrap">
@@ -691,11 +709,11 @@ export default function ManagerDashboardPage() {
               </svg>
               
               <div className="donut-center">
-                <div className="donut-val">${Math.round(channelTotalSales).toLocaleString()}</div>
-                <div className="donut-lbl">total sales</div>
+                <div className="donut-val">{currencySymbol}{Math.round(channelTotalSales).toLocaleString()}</div>
+                <div className="donut-lbl">{t('total sales')}</div>
               </div>
             </div>
-
+ 
             {/* Channels Legends list */}
             <div>
               {['delivery', 'pickup', 'dinein'].map(k => {
@@ -709,15 +727,15 @@ export default function ManagerDashboardPage() {
                 const count = channels[k].count;
                 const sales = channels[k].sales;
                 const percentage = channelTotalSales > 0 ? Math.round((sales / channelTotalSales) * 100) : 0;
-
+ 
                 return (
                   <div key={k} className="lg-row">
                     <span className="lg-ic" style={{ backgroundColor: chipBg, color: iconCol }}>
                       <Icon style={{ width: '16px', height: '16px' }} />
                     </span>
                     <div>
-                      <div className="lg-name">{label}</div>
-                      <div className="lg-cnt">{count} orders · {percentage}%</div>
+                      <div className="lg-name">{t(label)}</div>
+                      <div className="lg-cnt">{count} {t('orders')} · {percentage}%</div>
                     </div>
                     <div className="lg-amt tnum">{formatPrice(sales)}</div>
                   </div>
@@ -727,29 +745,29 @@ export default function ManagerDashboardPage() {
           </div>
         </section>
       </div>
-
+ 
       {/* Live orders snapshot + top items grid */}
       <div className="dash-grid" style={{ marginTop: '16px' }}>
         
         {/* Snapshot Panel */}
         <section className="card">
           <div className="card-head">
-            <div className="card-title"><BellRing className="ic" style={{ marginRight: '7px' }} />Live orders snapshot</div>
+            <div className="card-title"><BellRing className="ic" style={{ marginRight: '7px' }} />{t('Live orders snapshot')}</div>
             <Link className="btn btn-ghost btn-sm" href="/manager/live-orders">
-              View board <ArrowRight className="ic" />
+              {t('View board')} <ArrowRight className="ic" />
             </Link>
           </div>
           <div>
             {snapOrders.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center' }} className="mut3">
-                No active preparing orders.
+                {t('No active preparing orders.')}
               </div>
             ) : (
               snapOrders.map(o => {
                 const itemsCount = o.items.reduce((s, it) => s + it.quantity, 0);
                 const config = STATUS_CONFIG[o.status] || { label: o.status, dot: '#ccc' };
                 const ChannelIcon = o.type === 'delivery' ? Bike : o.type === 'pickup' ? ShoppingBag : Utensils;
-
+ 
                 return (
                   <Link key={o._id} className="snap-row" href={`/manager/live-orders?orderNo=${o.orderNo}`}>
                     <span className="snap-ic"><ChannelIcon className="ic" /></span>
@@ -758,11 +776,11 @@ export default function ManagerDashboardPage() {
                         #{o.orderNo}
                         <span className="pill" style={{ height: '21px' }}>
                           <span className="dot" style={{ backgroundColor: config.dot }}></span>
-                          {config.label}
+                          {t(config.label)}
                         </span>
                       </div>
                       <div className="snap-sub">
-                        {o.customer?.name} &bull; {itemsCount} item{itemsCount > 1 ? 's' : ''} &bull; {o.type === 'dine-in' ? 'Dine-in' : o.type === 'pickup' ? 'Pick-up' : 'Delivery'}
+                        {o.customer?.name || t('Walk-in Guest')} &bull; {itemsCount} {itemsCount === 1 ? t('item') : t('items')} &bull; {o.type === 'dine-in' ? t('Dine-in') : o.type === 'pickup' ? t('Pick-up') : t('Delivery')}
                       </div>
                     </div>
                     <div className="snap-right">
@@ -777,17 +795,17 @@ export default function ManagerDashboardPage() {
             )}
           </div>
         </section>
-
+ 
         {/* Top Sellers Cards */}
         <section className="card">
           <div className="card-head">
-            <div className="card-title"><Flame className="ic" style={{ marginRight: '7px' }} />Top sellers</div>
-            <span className="card-note">Active Period</span>
+            <div className="card-title"><Flame className="ic" style={{ marginRight: '7px' }} />{t('Top sellers')}</div>
+            <span className="card-note">{t('Active Period')}</span>
           </div>
           <div className="card-pad" style={{ paddingTop: '8px', paddingBottom: '10px' }}>
             {topSellers.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center' }} className="mut3">
-                No items sold yet.
+                {t('No items sold yet.')}
               </div>
             ) : (
               topSellers.map((seller, idx) => (
@@ -806,7 +824,7 @@ export default function ManagerDashboardPage() {
                   </span>
                   
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: '700', fontSize: '13.5px' }}>{seller.name}</div>
+                    <div style={{ fontWeight: '700', fontSize: '13.5px' }}>{t(seller.name)}</div>
                     
                     {/* Animated progression progress line bar */}
                     <div className="ch-bar" style={{ marginTop: '6px' }}>
@@ -818,7 +836,7 @@ export default function ManagerDashboardPage() {
                     <div style={{ fontWeight: '800', fontSize: '13.5px' }} className="tnum">
                       {seller.sold}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>sold</div>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>{t('sold')}</div>
                   </div>
                 </div>
               ))

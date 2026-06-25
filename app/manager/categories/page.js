@@ -24,7 +24,7 @@ import { useManager } from '../layout';
 
 function CategoriesPageContent() {
   const router = useRouter();
-  const { categories: contextCategories, loading, refreshCategories, lang } = useManager();
+  const { categories: contextCategories, loading, refreshCategories, lang, t } = useManager();
   
   const [categories, setCategories] = useState([]);
   const [savingCategory, setSavingCategory] = useState(false);
@@ -121,9 +121,9 @@ function CategoriesPageContent() {
         if (res.ok) {
           refreshCategories();
           closeCategoryDrawer();
-          triggerToast(`Saved "${catName}"`);
+          triggerToast(t('Saved "{catName}"').replace('{catName}', catName));
         } else {
-          alert('Failed saving category changes');
+          alert(t('Failed saving category changes'));
         }
       } else {
         // Add Category
@@ -137,9 +137,9 @@ function CategoriesPageContent() {
           setCategories([...categories, data.category]);
           refreshCategories();
           closeCategoryDrawer();
-          triggerToast(`Created "${catName}"`);
+          triggerToast(t('Created "{catName}"').replace('{catName}', catName));
         } else {
-          alert(data.error || 'Failed adding category');
+          alert(data.error || t('Failed adding category'));
         }
       }
     } catch (e) {
@@ -171,21 +171,21 @@ function CategoriesPageContent() {
       });
 
       if (res.ok) {
-        triggerToast(newPinnedState ? 'Category pinned storefront!' : 'Category unpinned');
+        triggerToast(newPinnedState ? t('Category pinned storefront!') : t('Category unpinned'));
         refreshCategories();
       } else {
         refreshCategories();
-        alert('Failed to update category pin status');
+        alert(t('Failed to update category pin status'));
       }
     } catch (e) {
       console.error(e);
       refreshCategories();
-      alert('Error updating category pin status');
+      alert(t('Error updating category pin status'));
     }
   };
 
   const handleDeleteCategory = async (id, name) => {
-    if (!confirm(`Delete category "${name}"? Products inside this category won't be deleted but will lose this category reference.`)) return;
+    if (!confirm(t('Delete category "{name}"? Products inside this category won\'t be deleted but will lose this category reference.').replace('{name}', name))) return;
 
     try {
       const res = await fetch('/api/categories', {
@@ -196,9 +196,9 @@ function CategoriesPageContent() {
       if (res.ok) {
         setCategories(categories.filter(c => c._id !== id));
         refreshCategories();
-        triggerToast(`Deleted "${name}"`);
+        triggerToast(t('Deleted "{name}"').replace('{name}', name));
       } else {
-        alert('Failed deleting category');
+        alert(t('Failed deleting category'));
       }
     } catch (e) {
       console.error(e);
@@ -260,8 +260,8 @@ function CategoriesPageContent() {
       {/* Title */}
       <div className="page-head">
         <div>
-          <h1 className="page-title">Categories &amp; Starred</h1>
-          <p className="page-sub">Organise your menu into sections and promote starred categories on the storefront.</p>
+          <h1 className="page-title">{t('Categories & Starred')}</h1>
+          <p className="page-sub">{t('Organise your menu into sections and promote starred categories on the storefront.')}</p>
         </div>
         <button 
           className="btn btn-primary"
@@ -272,7 +272,7 @@ function CategoriesPageContent() {
           }}
         >
           <Plus className="ic" />
-          <span>Add category</span>
+          <span>{t('Add category')}</span>
         </button>
       </div>
 
@@ -286,10 +286,10 @@ function CategoriesPageContent() {
             <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
                 <Layers className="ic" style={{ color: 'var(--text-muted)' }} />
-                <span>Categories</span>
+                <span>{t('Categories')}</span>
               </div>
               <span className="card-note" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                {categories.length} categories
+                {categories.length} {t('categories')}
               </span>
             </div>
 
@@ -297,11 +297,11 @@ function CategoriesPageContent() {
             {showReorderHint && (
               <div className="reorder-hint">
                 <MoveVertical className="ic" />
-                <span>Drag the <span className="grip-chip"><GripVertical className="ic" /></span> handle on any row to reorder your categories.</span>
+                <span>{t('Drag the')} <span className="grip-chip"><GripVertical className="ic" /></span> {t('handle on any row to reorder your categories.')}</span>
                 <button 
                   className="x" 
                   onClick={() => setShowReorderHint(false)}
-                  title="Got it"
+                  title={t('Got it')}
                 >
                   <X className="ic" />
                 </button>
@@ -312,12 +312,12 @@ function CategoriesPageContent() {
             <table className="tbl">
               <thead>
                 <tr>
-                  <th className="drag-col" title="Drag rows to reorder" style={{ width: '40px' }}>
+                  <th className="drag-col" title={t('Drag rows to reorder')} style={{ width: '40px' }}>
                     <ArrowUpDown style={{ width: '14px', height: '14px', color: 'var(--ink-3)' }} />
                   </th>
-                  <th>Category</th>
-                  <th style={{ textAlign: 'center', width: '120px' }}>Pinned</th>
-                  <th style={{ textAlign: 'right', width: '120px' }}>Actions</th>
+                  <th>{t('Category')}</th>
+                  <th style={{ textAlign: 'center', width: '120px' }}>{t('Pinned')}</th>
+                  <th style={{ textAlign: 'right', width: '120px' }}>{t('Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,7 +325,7 @@ function CategoriesPageContent() {
                   <tr>
                     <td colSpan="4" style={{ padding: '48px', textAlign: 'center', color: 'var(--ink-3)' }}>
                       <SearchX style={{ width: '26px', height: '26px', display: 'block', margin: '0 auto 8px' }} />
-                      <div style={{ fontWeight: 600 }}>No categories found. Click add category to start.</div>
+                      <div style={{ fontWeight: 600 }}>{t('No categories found. Click add category to start.')}</div>
                     </td>
                   </tr>
                 ) : (
@@ -406,15 +406,15 @@ function CategoriesPageContent() {
       <aside className={`drawer ${isCategoryOpen ? 'open' : ''}`}>
         <div className="rail-head">
           <FolderPlus className="ic" />
-          <h3>{editingCategory ? 'Edit category' : 'Add category'}</h3>
-          <button className="x" onClick={closeCategoryDrawer} title="Close">
+          <h3>{editingCategory ? t('Edit category') : t('Add category')}</h3>
+          <button className="x" onClick={closeCategoryDrawer} title={t('Close')}>
             <X className="ic" />
           </button>
         </div>
 
         <div className="rail-body">
           <div className="field">
-            <label className="label">Category name</label>
+            <label className="label">{t('Category name')}</label>
             <input 
               className="input" 
               value={catName}
@@ -430,7 +430,7 @@ function CategoriesPageContent() {
             style={{ marginTop: '24px' }}
           >
             <Save className="ic" />
-            <span>{savingCategory ? 'Saving...' : (editingCategory ? 'Save changes' : 'Create category')}</span>
+            <span>{savingCategory ? t('Saving...') : (editingCategory ? t('Save changes') : t('Create category'))}</span>
           </button>
         </div>
       </aside>
