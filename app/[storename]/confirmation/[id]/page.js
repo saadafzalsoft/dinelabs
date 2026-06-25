@@ -535,6 +535,19 @@ export default function OrderConfirmationPage() {
     fetchTenantData();
   }, [storename]);
 
+  // Set dynamic favicon based on store logo
+  useEffect(() => {
+    if (typeof window !== 'undefined' && tenant?.logoUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = tenant.logoUrl;
+    }
+  }, [tenant]);
+
   // Fetch tables and find the table match once order is loaded
   useEffect(() => {
     if (!tenant || !order || order.type !== 'dine-in') return;

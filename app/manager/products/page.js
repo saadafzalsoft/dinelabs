@@ -1297,8 +1297,9 @@ function ProductsPageContent() {
                   <span className="bb-count">{selectedIds.length} {t('selected')}</span>
                   <div style={{ flex: 1 }}></div>
                   
+                  {/* Dropdown 1: General Actions / Status */}
                   <SearchSelect
-                    value={bulkAction}
+                    value={['stock-in', 'stock-out', 'add-to-offers', 'remove-from-offers', 'delete'].includes(bulkAction) ? bulkAction : ''}
                     onChange={setBulkAction}
                     options={[
                       { value: '', label: t('Bulk action…') },
@@ -1306,20 +1307,40 @@ function ProductsPageContent() {
                       { value: 'stock-out', label: t('Mark out of stock') },
                       { value: 'add-to-offers', label: t('Add to Offers & Promotions') },
                       { value: 'remove-from-offers', label: t('Remove from Offers & Promotions') },
-                      { value: 'delete', label: t('Delete selected') },
-                      ...categories.map(c => ({
-                        value: `set-category:${c._id}`,
-                        label: `${t('Assign Category')}: ${c.name[lang] || c.name.en}`,
-                        subtitle: t('Assign Category')
-                      })),
-                      ...modifierGroups.map(mg => ({
-                        value: `add-modifier:${mg._id}`,
-                        label: `${t('Assign Add-ons')}: ${mg.name[lang] || mg.name.en} (${t(mg.type === 'variations' ? 'Sizes' : mg.type === 'addons' ? 'Add-on' : 'Removal')})`,
-                        subtitle: t('Assign Add-ons Group')
-                      }))
+                      { value: 'delete', label: t('Delete selected') }
                     ]}
                     placeholder={t('Bulk action…')}
-                    style={{ width: '260px' }}
+                    style={{ width: '200px' }}
+                  />
+
+                  {/* Dropdown 2: Category Assignment */}
+                  <SearchSelect
+                    value={bulkAction.startsWith('set-category:') ? bulkAction : ''}
+                    onChange={setBulkAction}
+                    options={[
+                      { value: '', label: t('Assign Category') },
+                      ...categories.map(c => ({
+                        value: `set-category:${c._id}`,
+                        label: c.name[lang] || c.name.en
+                      }))
+                    ]}
+                    placeholder={t('Assign Category')}
+                    style={{ width: '180px' }}
+                  />
+
+                  {/* Dropdown 3: Add-ons / Modifiers Assignment */}
+                  <SearchSelect
+                    value={bulkAction.startsWith('add-modifier:') ? bulkAction : ''}
+                    onChange={setBulkAction}
+                    options={[
+                      { value: '', label: t('Assign Add-ons') },
+                      ...modifierGroups.map(mg => ({
+                        value: `add-modifier:${mg._id}`,
+                        label: `${mg.name[lang] || mg.name.en} (${t(mg.type === 'variations' ? 'Sizes' : mg.type === 'addons' ? 'Add-on' : 'Removal')})`
+                      }))
+                    ]}
+                    placeholder={t('Assign Add-ons')}
+                    style={{ width: '220px' }}
                   />
 
                   <button 
@@ -1444,7 +1465,7 @@ function ProductsPageContent() {
                                   {p.discountedPrice && p.discountedPrice > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                       <span className="price tnum" style={{ textDecoration: 'line-through', color: 'var(--ink-3)', fontSize: '0.8em' }}>{currencySymbol}{parseFloat(p.price).toFixed(2)}</span>
-                                      <span className="price tnum" style={{ color: '#ef4444', fontWeight: '700' }}>{currencySymbol}{parseFloat(p.discountedPrice).toFixed(2)}</span>
+                                      <span className="price tnum" style={{ color: '#000000', fontWeight: '700' }}>{currencySymbol}{parseFloat(p.discountedPrice).toFixed(2)}</span>
                                     </div>
                                   ) : (
                                     <span className="price tnum">{currencySymbol}{parseFloat(p.price).toFixed(2)}</span>

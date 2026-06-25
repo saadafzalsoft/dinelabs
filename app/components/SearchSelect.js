@@ -215,7 +215,7 @@ export default function SearchSelect({
                     }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, marginRight: '8px' }}>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: '1.3' }}>
                         {opt.label}
                       </span>
                       {opt.subtitle && (

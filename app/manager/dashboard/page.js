@@ -87,9 +87,6 @@ export default function ManagerDashboardPage() {
   const totalRevenue = activeOrders.reduce((sum, o) => sum + o.total, 0);
   const totalOrdersCount = currentPeriodOrders.length;
   const avgOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
-  
-  // Menu views derived from active traffic formula
-  const computedMenuViews = totalOrdersCount * 12 + 84;
 
   // Render delta calculations (e.g. comparing past period data)
   const getDeltas = () => {
@@ -142,9 +139,6 @@ export default function ManagerDashboardPage() {
     const curAvg = curCount > 0 ? curRev / curCount : 0;
     const prevAvg = prevCount > 0 ? prevRev / prevCount : 0;
  
-    const curViews = curCount * 12 + 84;
-    const prevViews = prevCount * 12 + 84;
- 
     const pct = (cur, prev) => {
       if (prev === 0) return cur > 0 ? 100 : 0;
       return parseFloat((((cur - prev) / prev) * 100).toFixed(1));
@@ -154,7 +148,6 @@ export default function ManagerDashboardPage() {
       revenue: pct(curRev, prevRev),
       orders: pct(curCount, prevCount),
       avg: pct(curAvg, prevAvg),
-      views: pct(curViews, prevViews),
       label
     };
   };
@@ -404,7 +397,7 @@ export default function ManagerDashboardPage() {
  
         {/* KPIs Cards Skeleton */}
         <div className="kpis" style={{ marginBottom: '24px' }}>
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3].map(i => (
             <div key={i} className="card kpi" style={{ padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div className="skeleton" style={{ width: '100px', height: '12px', borderRadius: '4px' }} />
@@ -561,20 +554,6 @@ export default function ManagerDashboardPage() {
             {deltas.avg >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
             {Math.abs(deltas.avg)}%
             <span>{t('per order')}</span>
-          </div>
-        </div>
- 
-        {/* Card 4: Views */}
-        <div className="card kpi">
-          <div className="kpi-top">
-            <span className="kpi-label">{t('Menu views')}</span>
-            <span className="kpi-ic"><Eye className="ic" /></span>
-          </div>
-          <div className="kpi-val tnum">{computedMenuViews.toLocaleString()}</div>
-          <div className={`kpi-delta ${deltas.views >= 0 ? 'up' : 'down'}`}>
-            {deltas.views >= 0 ? <ArrowUpRight className="ic" /> : <ArrowDownRight className="ic" />}
-            {Math.abs(deltas.views)}%
-            <span>{t(deltas.label)}</span>
           </div>
         </div>
       </div>

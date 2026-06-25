@@ -67,6 +67,19 @@ export default function CheckoutPage() {
     localStorage.setItem(`dinelabs_mode_${storename}`, newMode);
   };
 
+  // Set dynamic favicon based on store logo
+  useEffect(() => {
+    if (typeof window !== 'undefined' && tenant?.logoUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = tenant.logoUrl;
+    }
+  }, [tenant]);
+
   // Fetch tenant info and load cart from localStorage on mount
   useEffect(() => {
     async function init() {

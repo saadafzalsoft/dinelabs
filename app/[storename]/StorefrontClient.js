@@ -48,6 +48,19 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [modalNotes, setModalNotes] = useState('');
   const [modalPrice, setModalPrice] = useState(0);
 
+  // Set dynamic favicon based on store logo
+  useEffect(() => {
+    if (typeof window !== 'undefined' && tenant?.logoUrl) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = tenant.logoUrl;
+    }
+  }, [tenant]);
+
   // Load cart and details from localStorage on mount
   useEffect(() => {
     const savedLang = localStorage.getItem(`dinelabs_lang_${tenant.slug}`);
@@ -900,7 +913,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         )}
                         {tenant.status === 'active' && !isClosed && (
                           <div className="plus-overlay-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Plus className="ic" style={{ width: '16px', height: '16px', color: '#ffffff' }} />
+                            <Plus className="ic" style={{ width: '16px', height: '16px', color: '#000000' }} />
                           </div>
                         )}
                       </div>
@@ -909,7 +922,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         {product.discountedPrice && product.discountedPrice > 0 ? (
                           <div className="offer-price" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
                             <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '0.8em' }}>{formatPrice(product.price)}</span>
-                            <span style={{ color: 'var(--brand-red)', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
+                            <span style={{ color: '#000000', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
                           </div>
                         ) : (
                           <p className="offer-price" style={{ margin: 0 }}>{formatPrice(product.price)}</p>
@@ -1040,7 +1053,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                       {product.discountedPrice && product.discountedPrice > 0 ? (
                         <div className="product-price-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
                           <span className="product-price" style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '0.8em' }}>{formatPrice(product.price)}</span>
-                          <span className="product-price" style={{ color: 'var(--brand-red)', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
+                          <span className="product-price" style={{ color: '#000000', fontWeight: '700' }}>{formatPrice(product.discountedPrice)}</span>
                         </div>
                       ) : (
                         <div className="product-price-row" style={{ margin: 0 }}>
