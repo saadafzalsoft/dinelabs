@@ -11,13 +11,13 @@ async function checkSuperAdmin(request) {
 const TIERS_SEED = [
   { _id: 't1', name: 'Tier 1', tag: 'Starter', price: 29, priceAnnual: 290, lv: 1,
     caps: { maxProducts: 30, maxTranslations: 1, langs: ['en', 'ar', 'ka', 'ru'],
-            modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, whatsapp: 0, telegram: 0 } } },
+            modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, telegram: 0 } } },
   { _id: 't2', name: 'Tier 2', tag: 'Pro', price: 79, priceAnnual: 790, lv: 2,
     caps: { maxProducts: 150, maxTranslations: 3, langs: ['en', 'ar', 'ka', 'ru', 'es', 'fr', 'de', 'it'],
-            modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, whatsapp: 1, telegram: 0 } } },
+            modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, telegram: 0 } } },
   { _id: 't3', name: 'Tier 3', tag: 'Enterprise', price: 199, priceAnnual: 1990, lv: 3,
     caps: { maxProducts: 0, maxTranslations: 8, langs: ['en', 'ar', 'ka', 'ru', 'es', 'fr', 'de', 'it'],
-            modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, whatsapp: 1, telegram: 1 } } },
+            modes: { delivery: 1, pickup: 1, dinein: 1 }, channels: { email: 1, telegram: 1 } } },
 ];
 
 export async function GET(request) {
@@ -79,7 +79,7 @@ export async function POST(request) {
         maxTranslations: 1,
         langs: ['en'],
         modes: { delivery: 0, pickup: 1, dinein: 0 },
-        channels: { email: 1, whatsapp: 0, telegram: 0 }
+        channels: { email: 1, telegram: 0 }
       },
       createdAt: new Date()
     };

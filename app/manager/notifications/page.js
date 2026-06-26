@@ -25,8 +25,6 @@ function NotificationsPageContent() {
   // States
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [emailRecipient, setEmailRecipient] = useState('');
-  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
-  const [whatsappRecipient, setWhatsappRecipient] = useState('');
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [telegramChatId, setTelegramChatId] = useState('');
 
@@ -35,8 +33,6 @@ function NotificationsPageContent() {
       setSettings(tenantSettings);
       setEmailEnabled(tenantSettings.notifications?.emailEnabled || false);
       setEmailRecipient(tenantSettings.notifications?.emailRecipient || '');
-      setWhatsappEnabled(tenantSettings.notifications?.whatsappEnabled || false);
-      setWhatsappRecipient(tenantSettings.notifications?.whatsappRecipient || '');
       setTelegramEnabled(tenantSettings.notifications?.telegramEnabled || false);
       setTelegramChatId(tenantSettings.notifications?.telegramChatId || '');
     }
@@ -67,8 +63,6 @@ function NotificationsPageContent() {
           notifications: {
             emailEnabled,
             emailRecipient,
-            whatsappEnabled,
-            whatsappRecipient,
             telegramEnabled,
             telegramChatId
           }
@@ -108,7 +102,6 @@ function NotificationsPageContent() {
   }
 
   const isEmailAssigned = settings?.assignedNotifications?.email !== false;
-  const isWhatsappAssigned = !!settings?.assignedNotifications?.whatsapp;
   const isTelegramAssigned = !!settings?.assignedNotifications?.telegram;
 
   return (
@@ -229,73 +222,6 @@ function NotificationsPageContent() {
               </div>
             </div>
 
-            {/* WhatsApp Channel */}
-            <div 
-              className="notifications-channel-grid"
-              style={{ 
-                backgroundColor: isWhatsappAssigned ? 'transparent' : 'rgba(176,106,0,0.025)'
-              }}
-            >
-              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: whatsappEnabled && isWhatsappAssigned ? 'var(--ink)' : 'var(--surface-2)', color: whatsappEnabled && isWhatsappAssigned ? '#ffffff' : 'var(--ink)', border: '1px solid var(--line)', display: 'grid', placeItems: 'center' }}>
-                <MessageSquare style={{ width: '20px', height: '20px' }} />
-              </div>
-              <div style={{ paddingTop: '2px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: '700' }}>
-                  <span>{t('WhatsApp alerts')}</span>
-                  {!isWhatsappAssigned && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '22px', padding: '0 9px', borderRadius: '999px', background: 'var(--warn-bg)', color: 'var(--warn)', fontSize: '11.5px', fontWeight: '700' }}>
-                      {t('Premium / Locked')}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', lineHeight: '1.45' }}>
-                  {t('An instant chat message to your team — great for kitchens that already live in WhatsApp.')}
-                </div>
-                
-                {isWhatsappAssigned ? (
-                  <div style={{ marginTop: '14px', maxWidth: '380px' }}>
-                    <label className="label" style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                      {t('WhatsApp phone number (with country code)')}
-                    </label>
-                    <input 
-                      type="text" 
-                      className="input" 
-                      placeholder="+995 5xx xxx xxx" 
-                      value={whatsappRecipient}
-                      onChange={(e) => setWhatsappRecipient(e.target.value)}
-                      disabled={!whatsappEnabled}
-                      style={{ height: '40px', borderRadius: '10px' }}
-                    />
-                    {whatsappEnabled && whatsappRecipient && (
-                      <div className="nt-status ok" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--pos)', marginTop: '8px' }}>
-                        <Check style={{ width: '12px', height: '12px' }} />
-                        <span>{t('Active')}</span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)', marginTop: '14px' }}>
-                    <Lock style={{ width: '12px', height: '12px' }} />
-                    <span>{t('Locked: Request admin to activate WhatsApp channel.')}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', paddingOriginal: '6px' }}>
-                {isWhatsappAssigned ? (
-                  <label className="switch">
-                    <input 
-                      type="checkbox"
-                      checked={whatsappEnabled}
-                      onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                    />
-                    <span className="track"></span>
-                  </label>
-                ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('Locked')}</span>
-                )}
-              </div>
-            </div>
 
             {/* Telegram Channel */}
             <div 

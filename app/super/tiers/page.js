@@ -19,7 +19,6 @@ const MODES = {
 
 const CHANNELS = {
   email: { label: 'Email', icon: 'mail' },
-  whatsapp: { label: 'WhatsApp', icon: 'message-circle' },
   telegram: { label: 'Telegram', icon: 'send' },
 };
 
@@ -51,7 +50,7 @@ export default function SuperTiersPage() {
   const [eTrans, setETrans] = useState(1);
   const [eLangs, setELangs] = useState(['en']);
   const [eModes, setEModes] = useState({ delivery: false, pickup: true, dinein: false });
-  const [eChannels, setEChannels] = useState({ email: true, whatsapp: false, telegram: false });
+  const [eChannels, setEChannels] = useState({ email: true, telegram: false });
 
   const getClientCount = (tierId) => {
     return tenants.filter(c => {
@@ -92,7 +91,6 @@ export default function SuperTiersPage() {
       });
       setEChannels({
         email: !!tier.caps?.channels?.email,
-        whatsapp: !!tier.caps?.channels?.whatsapp,
         telegram: !!tier.caps?.channels?.telegram,
       });
     } else {
@@ -107,7 +105,7 @@ export default function SuperTiersPage() {
       setETrans(1);
       setELangs(['en']);
       setEModes({ delivery: false, pickup: true, dinein: false });
-      setEChannels({ email: true, whatsapp: false, telegram: false });
+      setEChannels({ email: true, telegram: false });
     }
     setEditorOpen(true);
   };
@@ -152,7 +150,6 @@ export default function SuperTiersPage() {
         },
         channels: {
           email: eChannels.email ? 1 : 0,
-          whatsapp: eChannels.whatsapp ? 1 : 0,
           telegram: eChannels.telegram ? 1 : 0,
         }
       }
@@ -316,7 +313,7 @@ export default function SuperTiersPage() {
                         </span>
                         <span className="tlimit">
                           <Bell className="ic" style={{ width: '13px', height: '13px' }} />
-                          <span>{getChCount(t)}/3 channels</span>
+                          <span>{getChCount(t)}/2 channels</span>
                         </span>
                       </div>
                       

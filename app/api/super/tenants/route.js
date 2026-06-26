@@ -200,7 +200,7 @@ export async function POST(request) {
       baseCurrency: baseCurrency || 'USD',
       languages: languages || ['en', 'ar'],
       defaultLanguage: defaultLanguage || 'en',
-      assignedNotifications: assignedNotifications || { email: true, whatsapp: false, telegram: false },
+      assignedNotifications: assignedNotifications || { email: true, telegram: false },
       billing: billing || {
         cycle: 'monthly',
         amount: parseInt(tier) === 3 ? 199 : parseInt(tier) === 2 ? 79 : 29,

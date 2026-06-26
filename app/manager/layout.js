@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense, createContext, useContext } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import './manager.css';
@@ -3812,6 +3812,8 @@ function ManagerLayoutContent({ children }) {
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const prevPendingCountRef = React.useRef(0);
+  const sessionRef = React.useRef(session);
+  sessionRef.current = session;
 
   // Cache state variables for manager dashboard and subpages
   const [orders, setOrders] = useState([]);
@@ -3900,7 +3902,7 @@ function ManagerLayoutContent({ children }) {
     }
   };
 
-  const refreshOrders = async () => {
+  const refreshOrders = useCallback(async () => {
     try {
       const res = await fetch('/api/orders');
       if (res.ok) {
@@ -3911,9 +3913,9 @@ function ManagerLayoutContent({ children }) {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const refreshViews = async () => {
+  const refreshViews = useCallback(async () => {
     try {
       const res = await fetch('/api/views');
       if (res.ok) {
@@ -3922,7 +3924,7 @@ function ManagerLayoutContent({ children }) {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
   const refreshCategories = async () => {
     try {
@@ -4044,15 +4046,14 @@ function ManagerLayoutContent({ children }) {
 
   // Poll active pending orders count for sidebar badge and context
   useEffect(() => {
-    if (!session) return;
-    refreshOrders();
-    refreshViews();
     const interval = setInterval(() => {
-      refreshOrders();
-      refreshViews();
+      if (sessionRef.current) {
+        refreshOrders();
+        refreshViews();
+      }
     }, 45000);
     return () => clearInterval(interval);
-  }, [session]);
+  }, []);
 
   // Handle tracking of pending orders count to show/hide the notification banner
   useEffect(() => {

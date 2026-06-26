@@ -108,7 +108,7 @@ export default function RestaurantDetailPage() {
   const [languages, setLanguages] = useState(['en', 'ka']);
   const [defaultLanguage, setDefaultLanguage] = useState('en');
   const [enabledModes, setEnabledModes] = useState({ dineIn: true, pickup: true, delivery: true });
-  const [assignedNotifications, setAssignedNotifications] = useState({ email: true, whatsapp: false, telegram: false });
+  const [assignedNotifications, setAssignedNotifications] = useState({ email: true, telegram: false });
   const [billing, setBilling] = useState({ cycle: 'monthly', amount: 29, start: '', renewal: '' });
   const [ledger, setLedger] = useState([]);
   const [managerPasswordPlain, setManagerPasswordPlain] = useState('');
@@ -181,12 +181,11 @@ export default function RestaurantDetailPage() {
   };
 
   const renderOrderChannels = () => {
-    const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { channels: { email: 1, whatsapp: 1, telegram: 1 } } };
-    const caps = activeTierObj.caps || { channels: { email: 1, whatsapp: 1, telegram: 1 } };
+    const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { channels: { email: 1, telegram: 1 } } };
+    const caps = activeTierObj.caps || { channels: { email: 1, telegram: 1 } };
     
     const channelsList = [
       { key: 'email', label: 'Email', icon: Mail, value: assignedNotifications.email, setter: (val) => setAssignedNotifications(prev => ({ ...prev, email: val })) },
-      { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, value: assignedNotifications.whatsapp, setter: (val) => setAssignedNotifications(prev => ({ ...prev, whatsapp: val })) },
       { key: 'telegram', label: 'Telegram', icon: Send, value: assignedNotifications.telegram, setter: (val) => setAssignedNotifications(prev => ({ ...prev, telegram: val })) },
     ];
     
@@ -249,7 +248,6 @@ export default function RestaurantDetailPage() {
         });
         setAssignedNotifications({
           email: t.assignedNotifications?.email ?? true,
-          whatsapp: t.assignedNotifications?.whatsapp ?? false,
           telegram: t.assignedNotifications?.telegram ?? false
         });
         setBilling(t.billing || {
@@ -300,7 +298,6 @@ export default function RestaurantDetailPage() {
       // Clamp channels
       const updatedChannels = { ...assignedNotifications };
       if (!caps.channels.email) updatedChannels.email = false;
-      if (!caps.channels.whatsapp) updatedChannels.whatsapp = false;
       if (!caps.channels.telegram) updatedChannels.telegram = false;
       setAssignedNotifications(updatedChannels);
 

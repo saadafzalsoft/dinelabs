@@ -26,7 +26,7 @@ function isStoreOpen(openingHours) {
 
 export async function POST(request) {
   try {
-    const { tenantSlug, type, customer, items, subtotal, deliveryFee, total, language } = await request.json();
+    const { tenantSlug, type, customer, items, subtotal, deliveryFee, total, language, notes } = await request.json();
 
     if (!tenantSlug || !type || !customer || !items || items.length === 0) {
       return NextResponse.json({ error: 'Missing required order details' }, { status: 400 });
@@ -70,17 +70,16 @@ export async function POST(request) {
       deliveryFee: parseFloat(deliveryFee || 0),
       total: parseFloat(total),
       language: language || 'en',
+      notes: notes || '',
       createdAt: new Date()
     };
 
     await db.collection('orders').insertOne(newOrder);
 
-    // Dispatch notifications to configured manager alert channels
-    try {
-      await sendOrderNotifications(newOrder, tenant);
-    } catch (notifErr) {
-      console.error('Notification dispatch error:', notifErr);
-    }
+    // Dispatch notifications to configured manager alert channels asynchronously (non-blocking)
+    sendOrderNotifications(newOrder, tenant).catch(notifErr => {
+      console.error('Asynchronous notification dispatch error:', notifErr);
+    });
 
     return NextResponse.json({ success: true, order: newOrder });
   } catch (error) {

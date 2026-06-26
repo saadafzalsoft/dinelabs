@@ -158,7 +158,6 @@ export default function SuperRestaurantsPage() {
         },
         assignedNotifications: {
           email: true,
-          whatsapp: false,
           telegram: false
         },
         logoUrl: '',

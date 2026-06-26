@@ -22,7 +22,8 @@ import {
   PackageCheck,
   CheckCheck,
   StickyNote,
-  AlertCircle
+  AlertCircle,
+  Languages
 } from 'lucide-react';
 import { useManager } from '../layout';
 
@@ -54,6 +55,59 @@ function LiveOrdersPageContent() {
   // Selected order for details modal popup
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // Translation states
+  const [translatedNotes, setTranslatedNotes] = useState('');
+  const [translatedAddress, setTranslatedAddress] = useState('');
+  const [translatedItemNotes, setTranslatedItemNotes] = useState({});
+  const [translatingNotes, setTranslatingNotes] = useState(false);
+  const [translatingAddress, setTranslatingAddress] = useState(false);
+  const [translatingItemNotes, setTranslatingItemNotes] = useState({}); // idx -> boolean
+
+  useEffect(() => {
+    setTranslatedNotes('');
+    setTranslatedAddress('');
+    setTranslatedItemNotes({});
+    setTranslatingNotes(false);
+    setTranslatingAddress(false);
+    setTranslatingItemNotes({});
+  }, [selectedOrder?._id]);
+
+  const handleTranslateText = async (text, type, idx = null) => {
+    if (!text) return;
+    try {
+      if (type === 'notes') setTranslatingNotes(true);
+      else if (type === 'address') setTranslatingAddress(true);
+      else if (type === 'itemNotes') {
+        setTranslatingItemNotes(prev => ({ ...prev, [idx]: true }));
+      }
+
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLang: lang || 'en' })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.translated) {
+          if (type === 'notes') setTranslatedNotes(data.translated);
+          else if (type === 'address') setTranslatedAddress(data.translated);
+          else if (type === 'itemNotes') {
+            setTranslatedItemNotes(prev => ({ ...prev, [idx]: data.translated }));
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+    } finally {
+      if (type === 'notes') setTranslatingNotes(false);
+      else if (type === 'address') setTranslatingAddress(false);
+      else if (type === 'itemNotes') {
+        setTranslatingItemNotes(prev => ({ ...prev, [idx]: false }));
+      }
+    }
+  };
+
   // State for delivery transit minutes modal
   const [deliveryMinutesModal, setDeliveryMinutesModal] = useState(null);
   const [transitMinutes, setTransitMinutes] = useState(20);
@@ -76,12 +130,7 @@ function LiveOrdersPageContent() {
     }
   }, []);
 
-  // Poll orders refresh via context helper every 45 seconds while on the live-orders page
-  useEffect(() => {
-    refreshOrders();
-    const interval = setInterval(refreshOrders, 45000);
-    return () => clearInterval(interval);
-  }, [refreshOrders]);
+
 
   // Check if there is an orderNo query scanning parameter to highlight & auto-open
   useEffect(() => {
@@ -481,6 +530,29 @@ function LiveOrdersPageContent() {
                         </div>
 
                         <div className="oc-cust" style={{ fontWeight: '600', fontSize: '0.85rem' }}>{subtext}</div>
+                        {order.notes && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            backgroundColor: '#fef3c7',
+                            color: '#d97706',
+                            padding: '4px 8px',
+                            borderRadius: '8px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            marginTop: '6px'
+                          }}>
+                            <StickyNote style={{ width: '12px', height: '12px', flexShrink: 0 }} />
+                            <span style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {order.notes}
+                            </span>
+                          </div>
+                        )}
                         
                         <div className="oc-items" style={{ margin: '8px 0', fontSize: '0.82rem' }}>
                           {order.items.slice(0, 3).map((it, idx) => (
@@ -665,12 +737,31 @@ function LiveOrdersPageContent() {
 
                   {/* Fulfillment details */}
                   <div className="od-sec">
-                    <div className="od-sec-t">{getFulfillmentInfo(selectedOrder).label}</div>
+                    <div className="od-sec-t" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <span>{getFulfillmentInfo(selectedOrder).label}</span>
+                      {selectedOrder.type === 'delivery' && selectedOrder.customer?.address && (
+                        <button 
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: '0.72rem', height: '22px', padding: '0 6px', gap: '3px' }}
+                          onClick={() => handleTranslateText(selectedOrder.customer.address, 'address')}
+                          disabled={translatingAddress}
+                        >
+                          <Languages style={{ width: '11px', height: '11px' }} />
+                          <span>{translatingAddress ? t('Translating...') : t('Translate')}</span>
+                        </button>
+                      )}
+                    </div>
                     <div className="od-info">
                       <div className="od-row">
                         <Info className="ic" />
-                        <span>{getFulfillmentInfo(selectedOrder).value}</span>
+                        <span style={{ wordBreak: 'break-word' }}>{selectedOrder.customer?.address || t('N/A')}</span>
                       </div>
+                      {translatedAddress && (
+                        <div style={{ marginTop: '6px', fontSize: '0.8rem', color: '#1d4ed8', backgroundColor: '#eff6ff', borderLeft: '3px solid #3b82f6', padding: '6px 10px', borderRadius: '4px', fontStyle: 'italic' }}>
+                          <span style={{ fontWeight: '600', color: '#2563eb', fontSize: '0.72rem', display: 'block' }}>Translated ({lang}):</span>
+                          {translatedAddress}
+                        </div>
+                      )}
                       {getFulfillmentInfo(selectedOrder).extra && (
                         <div className="od-row od-mut">
                           <Info className="ic" />
@@ -679,6 +770,36 @@ function LiveOrdersPageContent() {
                       )}
                     </div>
                   </div>
+
+                  {/* Special Instructions / Notes */}
+                  {selectedOrder.notes && (
+                    <div className="od-sec" style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '12px' }}>
+                      <div className="od-sec-t" style={{ color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <StickyNote className="ic" style={{ color: '#b45309', width: '16px', height: '16px' }} />
+                          <span>{t('Special Instructions')}</span>
+                        </div>
+                        <button 
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: '0.72rem', height: '24px', padding: '0 8px', gap: '4px', border: '1px solid #d97706', color: '#d97706' }}
+                          onClick={() => handleTranslateText(selectedOrder.notes, 'notes')}
+                          disabled={translatingNotes}
+                        >
+                          <Languages style={{ width: '12px', height: '12px' }} />
+                          <span>{translatingNotes ? t('Translating...') : t('Translate')}</span>
+                        </button>
+                      </div>
+                      <div className="od-info" style={{ marginTop: '8px', color: '#78350f', fontSize: '0.85rem' }}>
+                        <div>{selectedOrder.notes}</div>
+                        {translatedNotes && (
+                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #fde68a', fontStyle: 'italic', fontWeight: '500' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#b45309', display: 'block', marginBottom: '2px' }}>Translated ({lang}):</span>
+                            {translatedNotes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right items column */}
@@ -706,7 +827,7 @@ function LiveOrdersPageContent() {
                             {/* Addon details mapping */}
                             <div className="od-addons" style={{ marginTop: '6px' }}>
                               {item.size && (
-                                <span className="od-addon">{t('Size')}: {item.size}</span>
+                                <span className="od-addon">{t('Size')}: {typeof item.size === 'object' ? (item.size[lang] || item.size.en) : item.size}</span>
                               )}
                               {item.addons?.map((add, aIdx) => (
                                 <span key={aIdx} className="od-addon">+{typeof add === 'object' ? (add[lang] || add.en) : add}</span>
@@ -717,9 +838,26 @@ function LiveOrdersPageContent() {
                             </div>
 
                             {item.notes && (
-                              <div className="od-note" style={{ marginTop: '6px' }}>
-                                <StickyNote className="ic" />
-                                <span>{item.notes}</span>
+                              <div className="od-note" style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <StickyNote className="ic" />
+                                  <span>{item.notes}</span>
+                                  <button 
+                                    className="btn btn-outline"
+                                    style={{ fontSize: '0.68rem', height: '20px', padding: '0 4px', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '6px' }}
+                                    onClick={() => handleTranslateText(item.notes, 'itemNotes', idx)}
+                                    disabled={translatingItemNotes[idx]}
+                                  >
+                                    <Languages style={{ width: '10px', height: '10px' }} />
+                                    <span>{translatingItemNotes[idx] ? t('Translating...') : t('Translate')}</span>
+                                  </button>
+                                </div>
+                                {translatedItemNotes[idx] && (
+                                  <div style={{ paddingLeft: '22px', fontSize: '0.78rem', color: '#16a34a', fontStyle: 'italic', fontWeight: '500' }}>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--ink-3)' }}>Translated: </span>
+                                    {translatedItemNotes[idx]}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>

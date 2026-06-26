@@ -25,6 +25,13 @@ export default function OrderConfirmationPage() {
     }
   }, [storename]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.dir = 'ltr';
+      document.body.dir = 'ltr';
+    }
+  }, [lang]);
+
   const dictRaw = {
     en: {
       connectingTracker: 'Connecting to kitchen tracker...',
@@ -75,12 +82,13 @@ export default function OrderConfirmationPage() {
       'dine-in': 'Dine-In',
       pickup: 'Pickup',
       delivery: 'Delivery',
-      note: 'Note'
+      note: 'Note',
+      no: 'No'
     },
     ar: {
       connectingTracker: 'الاتصال بتعقب المطبخ...',
       notFoundTitle: 'لم يتم العثور على الطلب أو المتجر',
-      notFoundDesc: 'تعذر علينا تحديد موقع صفحة تفاصيل هذا الطلب. يرجى التحقق من الرابط الخاص بك أو العودة إلى القائمة.',
+      notFoundDesc: 'تعذر علينا تحديد موقع صفحة تفاصيل هذا الطلب. ييرجى التحقق من الرابط الخاص بك أو العودة إلى القائمة.',
       backToMenu: 'العودة إلى القائمة',
       returnToMenu: 'العودة إلى القائمة',
       placed: 'تم الطلب',
@@ -126,7 +134,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'داخل المطعم',
       pickup: 'استلام',
       delivery: 'توصيل',
-      note: 'ملاحظة'
+      note: 'ملاحظة',
+      no: 'بدون'
     },
     ru: {
       connectingTracker: 'Подключение к трекеру кухни...',
@@ -177,7 +186,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'В заведении',
       pickup: 'Самовывоз',
       delivery: 'Доставка',
-      note: 'Примечание'
+      note: 'Примечание',
+      no: 'Без'
     },
     es: {
       connectingTracker: 'Conectando al rastreador de cocina...',
@@ -198,25 +208,25 @@ export default function OrderConfirmationPage() {
       orderDeclinedTitle: 'Pedido rechazado',
       enjoyMealTitle: '¡Disfrute de su comida!',
       readyPickupTitle: '¡Listo para recoger!',
-      outDeliveryTitle: '¡Pedido en camino!',
-      trackingTitle: 'Rastreo de su pedido',
+      outDeliveryTitle: '¡Pedido enviado!',
+      trackingTitle: 'Seguimiento de su pedido',
       orderActive: 'El pedido #{orderNo} está activo en el sistema de {tenantName}.',
       estimatedTime: 'Tiempo estimado restante',
       mins: 'min',
       transitInfo: 'El repartidor está en camino',
-      kitchenInfo: 'Incluye el tiempo de cocción en cocina',
-      declinedInfo: 'Lo sentimos, pero su pedido ha sido rechazado. Comuníquese directamente con el restaurante para más detalles.',
+      kitchenInfo: 'Incluye el tiempo de preparación en cocina',
+      declinedInfo: 'Lo sentimos, pero su pedido ha sido rechazado. Comuníquese directamente con el restaurante para obtener detalles.',
       dineInPass: 'Pase de mesa',
-      dineInPassDesc: 'Presente este pase o manténgalo abierto para su mesero.',
+      dineInPassDesc: 'Presente este pase o manténgalo abierto para su camarero.',
       assignedTable: 'Su mesa asignada',
       chairs: 'Sillas',
       section: 'Sección',
       mobileGuide: 'Escanee esta tarjeta para encontrar instantáneamente el pedido #{orderNo} en su dispositivo, aprobar el ticket de cocina y coincidir con la ubicación de la mesa.',
-      scanTitle: 'Código QR del mesero',
-      guideHeader: 'Guía de escaneo para el personal:',
-      noCancelInfo: 'El pedido no se puede cancelar ni modificar después del envío. Para cualquier cambio, comuníquese directamente con el restaurante.',
-      fulfillmentDetails: 'Detalles de cumplimiento',
-      fulfillmentMode: 'Modo de cumplimiento',
+      scanTitle: 'Código QR del camarero',
+      guideHeader: 'Guía de escaneo del personal:',
+      noCancelInfo: 'El pedido no se puede cancelar ni modificar después del envío. Para cualquier cambio, póngase en contacto directamente con el restaurante.',
+      fulfillmentDetails: 'Detalles del servicio',
+      fulfillmentMode: 'Modo de entrega',
       tableCode: 'Código de mesa',
       customerName: 'Nombre del cliente',
       phoneNumber: 'Número de teléfono',
@@ -228,7 +238,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'En el local',
       pickup: 'Recogida',
       delivery: 'Entrega',
-      note: 'Nota'
+      note: 'Nota',
+      no: 'Sin'
     },
     fr: {
       connectingTracker: 'Connexion au suivi de cuisine...',
@@ -279,7 +290,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'Sur place',
       pickup: 'Retrait',
       delivery: 'Livraison',
-      note: 'Note'
+      note: 'Note',
+      no: 'Sans'
     },
     de: {
       connectingTracker: 'Verbindung zum Küchen-Tracker...',
@@ -330,7 +342,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'Vor Ort',
       pickup: 'Abholung',
       delivery: 'Lieferung',
-      note: 'Hinweis'
+      note: 'Hinweis',
+      no: 'Ohne'
     },
     it: {
       connectingTracker: 'Connessione al tracker della cucina...',
@@ -381,7 +394,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'Al tavolo',
       pickup: 'Ritiro',
       delivery: 'Consegna',
-      note: 'Nota'
+      note: 'Nota',
+      no: 'Senza'
     },
     ka: {
       connectingTracker: 'მიმდინარეობს კავშირი სამზარეულოსთან...',
@@ -432,7 +446,8 @@ export default function OrderConfirmationPage() {
       'dine-in': 'ადგილზე',
       pickup: 'წაღება',
       delivery: 'მიწოდება',
-      note: 'შენიშვნა'
+      note: 'შენიშვნა',
+      no: 'გარეშე'
     }
   };
 
@@ -446,6 +461,12 @@ export default function OrderConfirmationPage() {
       });
     }
   });
+
+  const resolveText = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    return val[lang] || val['en'] || '';
+  };
 
   // Sound play helper using Web Audio API
   const playStatusChangeSound = () => {
@@ -689,6 +710,7 @@ export default function OrderConfirmationPage() {
 
   return (
     <div 
+      dir="ltr"
       onClick={handleInteraction}
       style={{ backgroundColor: 'var(--bg-secondary)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'var(--font-body)', color: 'var(--text-main)' }}
     >
@@ -1010,9 +1032,9 @@ export default function OrderConfirmationPage() {
                 <div>
                   <div style={{ fontWeight: '700' }}>{item.quantity}x {typeof item.name === 'object' ? (item.name[lang] || item.name.en) : item.name}</div>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    {item.size && `${item.size}`}
-                    {item.addons && item.addons.length > 0 && `, +${item.addons.join(', ')}`}
-                    {item.removedIngredients && item.removedIngredients.length > 0 && `, (No ${item.removedIngredients.join(', ')})`}
+                    {item.size && `${resolveText(item.size)}`}
+                    {item.addons && item.addons.length > 0 && `, +${item.addons.map(a => resolveText(a)).join(', ')}`}
+                    {item.removedIngredients && item.removedIngredients.length > 0 && `, (${dict[lang].no || 'No'} ${item.removedIngredients.map(r => resolveText(r)).join(', ')})`}
                   </span>
                   {item.notes && (
                     <div style={{ fontSize: '0.72rem', color: 'var(--brand-red)', fontStyle: 'italic', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>

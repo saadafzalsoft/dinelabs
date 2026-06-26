@@ -31,6 +31,13 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.dir = 'ltr';
+      document.body.dir = 'ltr';
+    }
+  }, [lang]);
+
   const LANGUAGES = WORLD_LANGUAGES;
   const [activeCategory, setActiveCategory] = useState('all');
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
@@ -145,6 +152,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Helper to resolve translated keys
   const t = (textMap) => {
     if (!textMap) return '';
+    if (typeof textMap === 'string') return textMap;
     return textMap[lang] || textMap['en'] || '';
   };
 
@@ -638,15 +646,57 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       return;
     }
 
+    // Resolve size, addons, and removals to full name objects
+    let resolvedSize = modalSize;
+    if (modalSize) {
+      const pv = selectedProduct.variations?.find(o => (o.name?.en || o.name) === modalSize);
+      if (pv && typeof pv.name === 'object') {
+        resolvedSize = pv.name;
+      } else if (sizeMod) {
+        const opt = sizeMod.options.find(o => o.name.en === modalSize);
+        if (opt && typeof opt.name === 'object') {
+          resolvedSize = opt.name;
+        }
+      }
+    }
+
+    const resolvedAddons = modalAddons.map(addonName => {
+      const pa = selectedProduct.addons?.find(o => (o.name?.en || o.name) === addonName);
+      if (pa && typeof pa.name === 'object') {
+        return pa.name;
+      }
+      for (const group of initialModifierGroups.filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id))) {
+        const opt = group.options.find(o => o.name.en === addonName);
+        if (opt && typeof opt.name === 'object') {
+          return opt.name;
+        }
+      }
+      return addonName;
+    });
+
+    const resolvedRemovals = modalRemovals.map(removalName => {
+      const pr = selectedProduct.removals?.find(o => (o.name?.en || o.name) === removalName);
+      if (pr && typeof pr.name === 'object') {
+        return pr.name;
+      }
+      for (const group of initialModifierGroups.filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups?.includes(m._id))) {
+        const opt = group.options.find(o => o.name.en === removalName);
+        if (opt && typeof opt.name === 'object') {
+          return opt.name;
+        }
+      }
+      return removalName;
+    });
+
     const cartItem = {
       id: new Date().getTime().toString(), // Unique cart element id
       productId: selectedProduct._id,
       name: selectedProduct.name,
       basePrice: (selectedProduct.discountedPrice && selectedProduct.discountedPrice > 0) ? selectedProduct.discountedPrice : selectedProduct.price,
       quantity: modalQty,
-      size: modalSize,
-      addons: modalAddons,
-      removedIngredients: modalRemovals,
+      size: resolvedSize,
+      addons: resolvedAddons,
+      removedIngredients: resolvedRemovals,
       notes: modalNotes,
       unitPrice: modalPrice / modalQty,
       totalPrice: modalPrice,
@@ -687,7 +737,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const total = subtotal + deliveryFee;
 
   return (
-    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="main-viewport">
+    <div dir="ltr" className="main-viewport">
       {/* 1. Subscription suspended header warning bar */}
       {tenant.status !== 'active' && (
         <div className="masquerade-banner" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>
@@ -878,7 +928,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             const promoProducts = initialProducts.filter(p => p.categories.includes(cat._id));
             if (promoProducts.length === 0) return null;
             return (
-              <section key={cat._id} className="promo-section" style={{ marginBottom: '32px' }}>
+              <section key={cat._id} className="promo-section" style={{ marginBottom: '-14px' }}>
                 <div className="section-header">
                   <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Star style={{ width: '18px', height: '18px', fill: '#eab308', color: '#eab308' }} />
@@ -1153,9 +1203,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                     <div className="basket-item-info">
                       <h4 className="basket-item-name">{t(item.name)}</h4>
                       <p className="basket-item-customizations">
-                        {item.size && `${item.size}`}
-                        {item.addons.length > 0 && `, +${item.addons.join(', ')}`}
-                        {item.removedIngredients.length > 0 && `, (No ${item.removedIngredients.join(', ')})`}
+                        {item.size && `${t(item.size)}`}
+                        {item.addons.length > 0 && `, +${item.addons.map(a => t(a)).join(', ')}`}
+                        {item.removedIngredients.length > 0 && `, (${{ en: 'No', ar: 'بدون', ru: 'Без', es: 'Sin', fr: 'Sans', de: 'Ohne', it: 'Senza', ka: 'გარეშე' }[lang] || 'No'} ${item.removedIngredients.map(r => t(r)).join(', ')})`}
                       </p>
                       <span className="basket-item-price">{formatPrice(item.totalPrice)}</span>
                     </div>
