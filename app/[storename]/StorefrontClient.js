@@ -543,18 +543,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
   const isClosed = !checkIfStoreOpen(tenant.openingHours);
 
-  // Filter products based on search query and category pill
+  // Filter products based on search query
   const filteredProducts = initialProducts.filter(product => {
-    // Search query filter
+    if (!searchQuery) return true;
     const nameMatch = t(product.name).toLowerCase().includes(searchQuery.toLowerCase());
     const descMatch = t(product.description).toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSearch = nameMatch || descMatch;
-
-    if (!matchesSearch) return false;
-
-    // Category filter
-    if (activeCategory === 'all') return true;
-    return product.categories.includes(activeCategory);
+    return nameMatch || descMatch;
   });
 
   // Category list filter: Pinned category will be pinned to the top of the storefront list
@@ -563,6 +557,18 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     if (!a.isPinned && b.isPinned) return 1;
     return a.order - b.order;
   });
+
+  const handleSelectCategory = (catId) => {
+    setActiveCategory(catId);
+    if (catId === 'all') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(`cat-section-${catId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
 
   // Opening the tripartite customisation modal
   const openCustomizer = (product) => {
@@ -1006,7 +1012,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           <div className="categories-row-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div className="categories-pills-list" style={{ flex: 1 }}>
               <button 
-                onClick={() => setActiveCategory('all')}
+                onClick={() => handleSelectCategory('all')}
                 className={`category-pill ${activeCategory === 'all' ? 'active' : ''}`}
                 style={{ border: 'none', font: 'inherit' }}
               >
@@ -1015,7 +1021,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               {sortedCategories.map(cat => (
                 <button
                   key={cat._id}
-                  onClick={() => setActiveCategory(cat._id)}
+                  onClick={() => handleSelectCategory(cat._id)}
                   className={`category-pill ${activeCategory === cat._id ? 'active' : ''}`}
                   style={{ border: 'none', font: 'inherit' }}
                 >
@@ -1048,10 +1054,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             </button>
           </div>
 
-          {/* 2-Column Product Grid list */}
+          {/* Categorized Product Grid list */}
           <section className="products-list-section">
-            <div className="products-grid">
-              {filteredProducts.map(product => (
+            {(() => {
+              const renderProductCard = (product) => (
                 <div 
                   key={product._id} 
                   className="product-card"
@@ -1116,8 +1122,86 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+
+              const categoriesToDisplay = sortedCategories;
+
+              const categorizedProductIds = new Set();
+              const categoryBlocks = categoriesToDisplay.map(cat => {
+                const catProducts = filteredProducts.filter(p => p.categories && p.categories.includes(cat._id));
+                if (catProducts.length === 0) return null;
+
+                catProducts.forEach(p => categorizedProductIds.add(p._id));
+
+                return (
+                  <div id={`cat-section-${cat._id}`} key={cat._id} className="category-section-block" style={{ marginBottom: '32px', scrollMarginTop: '130px' }}>
+                    <div className="category-section-header" style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      marginBottom: '16px',
+                      paddingBottom: '8px',
+                      borderBottom: '2px solid var(--line)'
+                    }}>
+                      <h2 style={{ 
+                        fontFamily: 'var(--font-heading)', 
+                        fontSize: '1.25rem', 
+                        fontWeight: '800', 
+                        margin: 0, 
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em'
+                      }}>
+                        {t(cat.name)}
+                      </h2>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                        {catProducts.length} {catProducts.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+                    <div className="products-grid">
+                      {catProducts.map(renderProductCard)}
+                    </div>
+                  </div>
+                );
+              }).filter(Boolean);
+
+              // Check for products not matched in mapped categories (uncategorized)
+              const uncategorizedProducts = filteredProducts.filter(p => !categorizedProductIds.has(p._id));
+
+              return (
+                <>
+                  {categoryBlocks}
+                  {uncategorizedProducts.length > 0 && (
+                    <div className="category-section-block" style={{ marginBottom: '32px' }}>
+                      <div className="category-section-header" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        marginBottom: '16px',
+                        paddingBottom: '8px',
+                        borderBottom: '2px solid var(--line)'
+                      }}>
+                        <h2 style={{ 
+                          fontFamily: 'var(--font-heading)', 
+                          fontSize: '1.25rem', 
+                          fontWeight: '800', 
+                          margin: 0, 
+                          color: 'var(--text-main)',
+                          letterSpacing: '-0.02em'
+                        }}>
+                          {t('Other Items')}
+                        </h2>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                          {uncategorizedProducts.length} {uncategorizedProducts.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                      <div className="products-grid">
+                        {uncategorizedProducts.map(renderProductCard)}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </section>
         </main>
 
@@ -1934,7 +2018,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
               <button
                 onClick={() => {
-                  setActiveCategory('all');
+                  handleSelectCategory('all');
                   setIsFilterPopupOpen(false);
                 }}
                 style={{
@@ -1959,7 +2043,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <button
                   key={cat._id}
                   onClick={() => {
-                    setActiveCategory(cat._id);
+                    handleSelectCategory(cat._id);
                     setIsFilterPopupOpen(false);
                   }}
                   style={{
