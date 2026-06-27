@@ -10,7 +10,7 @@ async function main() {
     
     const tenants = await db.collection('tenants').find({}).toArray();
     console.log('--- TENANTS ---');
-    console.log(tenants.map(t => ({ _id: t._id, slug: t.slug, name: t.name })));
+    console.log(JSON.stringify(tenants, null, 2));
   } catch (e) {
     console.error(e);
   } finally {

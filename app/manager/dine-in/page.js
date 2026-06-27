@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useManager } from '../layout';
+import qrcode from 'qrcode-generator';
 import {
   Armchair,
   Plus,
@@ -17,6 +18,281 @@ import {
   Check,
   Save
 } from 'lucide-react';
+
+const generateQRDataUrl = async (data, logoUrl, storeName, qrStyle = 'fluid') => {
+  return new Promise((resolve) => {
+    try {
+      // 1. Initialize QR Code
+      const qr = qrcode(0, 'H');
+      qr.addData(data);
+      qr.make();
+      const count = qr.getModuleCount();
+
+      // 2. Setup canvas
+      const canvasSize = 1000;
+      const margin = 80;
+      const drawSize = canvasSize - 2 * margin;
+      const moduleSize = drawSize / count;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+      const ctx = canvas.getContext('2d');
+
+      // 3. Draw Background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+      // 4. Center logic
+      const center = Math.floor(count / 2);
+      const clearRadius = 3; // 7x7 modules centered
+      
+      const isCenter = (r, c) => {
+        return Math.abs(r - center) <= clearRadius && Math.abs(c - center) <= clearRadius;
+      };
+
+      const isFinder = (r, c, count) => {
+        if (r < 7 && c < 7) return true; // Top-Left
+        if (r < 7 && c >= count - 7) return true; // Top-Right
+        if (r >= count - 7 && c < 7) return true; // Bottom-Left
+        return false;
+      };
+
+      const isModuleDark = (r, c) => {
+        if (r < 0 || r >= count || c < 0 || c >= count) return false;
+        if (isFinder(r, c, count) || isCenter(r, c)) return false;
+        return qr.isDark(r, c);
+      };
+
+      // 5. Draw Custom Modules
+      ctx.fillStyle = '#000000';
+
+      const drawCustomRoundedRect = (ctx, x, y, w, h, tl, tr, br, bl) => {
+        const pad = 0.4;
+        x = x - pad / 2;
+        y = y - pad / 2;
+        w = w + pad;
+        h = h + pad;
+        if (tl > 0) tl += pad / 2;
+        if (tr > 0) tr += pad / 2;
+        if (br > 0) br += pad / 2;
+        if (bl > 0) bl += pad / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x + tl, y);
+        ctx.lineTo(x + w - tr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+        ctx.lineTo(x + w, y + h - br);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+        ctx.lineTo(x + bl, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+        ctx.lineTo(x, y + tl);
+        ctx.quadraticCurveTo(x, y, x + tl, y);
+        ctx.closePath();
+      };
+
+      const drawCircle = (ctx, cx, cy, r) => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+        ctx.closePath();
+      };
+
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (isModuleDark(r, c)) {
+            const x = margin + c * moduleSize;
+            const y = margin + r * moduleSize;
+
+            if (qrStyle === 'fluid') {
+              const top = isModuleDark(r - 1, c);
+              const bottom = isModuleDark(r + 1, c);
+              const left = isModuleDark(r, c - 1);
+              const right = isModuleDark(r, c + 1);
+
+              const tl = (!top && !left) ? moduleSize * 0.5 : 0;
+              const tr = (!top && !right) ? moduleSize * 0.5 : 0;
+              const br = (!bottom && !right) ? moduleSize * 0.5 : 0;
+              const bl = (!bottom && !left) ? moduleSize * 0.5 : 0;
+
+              drawCustomRoundedRect(ctx, x, y, moduleSize, moduleSize, tl, tr, br, bl);
+              ctx.fill();
+            } else {
+              // circular style
+              drawCircle(ctx, x + moduleSize / 2, y + moduleSize / 2, moduleSize * 0.43);
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      // 6. Draw Finder Patterns (Squircles vs Concentric Circular Star)
+      const drawFinder = (x, y) => {
+        const size = 7 * moduleSize;
+        const cx = x + 3.5 * moduleSize;
+        const cy = y + 3.5 * moduleSize;
+
+        if (qrStyle === 'fluid') {
+          // Outer squircle
+          ctx.fillStyle = '#000000';
+          drawCustomRoundedRect(ctx, x, y, size, size, 2.2 * moduleSize, 2.2 * moduleSize, 2.2 * moduleSize, 2.2 * moduleSize);
+          ctx.fill();
+
+          // White border squircle
+          ctx.fillStyle = '#ffffff';
+          drawCustomRoundedRect(ctx, x + moduleSize, y + moduleSize, 5 * moduleSize, 5 * moduleSize, 1.4 * moduleSize, 1.4 * moduleSize, 1.4 * moduleSize, 1.4 * moduleSize);
+          ctx.fill();
+
+          // Inner solid dot squircle
+          ctx.fillStyle = '#000000';
+          drawCustomRoundedRect(ctx, x + 2 * moduleSize, y + 2 * moduleSize, 3 * moduleSize, 3 * moduleSize, 0.8 * moduleSize, 0.8 * moduleSize, 0.8 * moduleSize, 0.8 * moduleSize);
+          ctx.fill();
+        } else {
+          // concentric circles + star
+          // 1. Outer black circle
+          ctx.fillStyle = '#000000';
+          drawCircle(ctx, cx, cy, 3.5 * moduleSize);
+          ctx.fill();
+
+          // 2. Middle white circle
+          ctx.fillStyle = '#ffffff';
+          drawCircle(ctx, cx, cy, 2.5 * moduleSize);
+          ctx.fill();
+
+          // 3. Inner 4-pointed star (concave sides)
+          ctx.fillStyle = '#000000';
+          const r = 1.5 * moduleSize;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - r);
+          // Top to Right
+          ctx.quadraticCurveTo(cx + r * 0.15, cy - r * 0.15, cx + r, cy);
+          // Right to Bottom
+          ctx.quadraticCurveTo(cx + r * 0.15, cy + r * 0.15, cx, cy + r);
+          // Bottom to Left
+          ctx.quadraticCurveTo(cx - r * 0.15, cy + r * 0.15, cx - r, cy);
+          // Left to Top
+          ctx.quadraticCurveTo(cx - r * 0.15, cy - r * 0.15, cx, cy - r);
+          ctx.closePath();
+          ctx.fill();
+        }
+      };
+
+      // Top-Left Finder
+      drawFinder(margin, margin);
+      // Top-Right Finder
+      drawFinder(margin + (count - 7) * moduleSize, margin);
+      // Bottom-Left Finder
+      drawFinder(margin, margin + (count - 7) * moduleSize);
+
+      // 7. Draw White Backing Card at the center
+      const centerAreaSize = (2 * clearRadius + 1) * moduleSize;
+      const centerCardX = margin + (center - clearRadius) * moduleSize;
+      const centerCardY = margin + (center - clearRadius) * moduleSize;
+      const cardRadius = qrStyle === 'fluid' ? 2.0 * moduleSize : 0.8 * moduleSize;
+
+      // Slightly increase the size of the backing card to clear neighboring dots
+      const backingOffset = 4;
+      ctx.fillStyle = '#ffffff';
+      drawCustomRoundedRect(
+        ctx, 
+        centerCardX - backingOffset, 
+        centerCardY - backingOffset, 
+        centerAreaSize + 2 * backingOffset, 
+        centerAreaSize + 2 * backingOffset, 
+        cardRadius, cardRadius, cardRadius, cardRadius
+      );
+      ctx.fill();
+
+      // 8. Load Logo / Initials Fallback
+      const logoSize = centerAreaSize * (qrStyle === 'fluid' ? 0.75 : 0.85);
+      const logoX = canvasSize / 2 - logoSize / 2;
+      const logoY = canvasSize / 2 - logoSize / 2;
+
+      const drawInitials = () => {
+        // Fallback: draw colored initials card inside white backing
+        const fallbackSize = centerAreaSize * 0.75;
+        const fallbackX = canvasSize / 2 - fallbackSize / 2;
+        const fallbackY = canvasSize / 2 - fallbackSize / 2;
+        
+        ctx.fillStyle = '#000000'; // Dark elegant backing
+        drawCustomRoundedRect(
+          ctx, 
+          fallbackX, 
+          fallbackY, 
+          fallbackSize, 
+          fallbackSize, 
+          fallbackSize * 0.35, 
+          fallbackSize * 0.35, 
+          fallbackSize * 0.35, 
+          fallbackSize * 0.35
+        );
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.floor(fallbackSize * 0.55)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const initials = (storeName || 'QR')
+          .split(/\s+/)
+          .map(w => w[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+
+        ctx.fillText(initials, canvasSize / 2, canvasSize / 2);
+        resolve(canvas.toDataURL('image/png'));
+      };
+
+      if (!logoUrl) {
+        drawInitials();
+      } else {
+        // Fetch as a Blob client-side from the local proxy to bypass CORS/tainting completely!
+        fetch(logoUrl)
+          .then(res => {
+            if (!res.ok) throw new Error('Proxy returned bad status');
+            return res.blob();
+          })
+          .then(blob => {
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+              const base64data = reader.result;
+              const img = new Image();
+              img.onload = () => {
+                let dx = logoX;
+                let dy = logoY;
+                let dw = logoSize;
+                let dh = logoSize;
+
+                if (img.width > img.height) {
+                  dh = logoSize * (img.height / img.width);
+                  dy = canvasSize / 2 - dh / 2;
+                } else if (img.height > img.width) {
+                  dw = logoSize * (img.width / img.height);
+                  dx = canvasSize / 2 - dw / 2;
+                }
+
+                ctx.drawImage(img, dx, dy, dw, dh);
+                resolve(canvas.toDataURL('image/png'));
+              };
+              img.onerror = (e) => {
+                console.error('Image load from local base64 failed', e);
+                drawInitials();
+              };
+              img.src = base64data;
+            };
+          })
+          .catch(err => {
+            console.warn('QR logo load via fetch failed, using fallback initials', err);
+            drawInitials();
+          });
+      }
+    } catch (err) {
+      console.error('Error generating custom QR code canvas', err);
+      resolve('');
+    }
+  });
+};
 
 function DineInPageContent() {
   const router = useRouter();
@@ -43,6 +319,8 @@ function DineInPageContent() {
   // QR Drawer States
   const [qrOpen, setQrOpen] = useState(false);
   const [activeTable, setActiveTable] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrStyle, setQrStyle] = useState('fluid');
 
   // Floor Plan drag-and-drop refs & state
   const boardRef = useRef(null);
@@ -288,9 +566,32 @@ function DineInPageContent() {
     return `https://dinelabs.co/${settings?.slug}?table=${encodeURIComponent(tableName)}`;
   };
 
+  useEffect(() => {
+    let active = true;
+    if (qrOpen && activeTable && settings) {
+      setQrDataUrl('');
+      const data = getTableUrl(activeTable.name);
+      const logoUrl = settings.logoUrl || tenantSettings?.logoUrl;
+      const storeName = settings.name || tenantSettings?.name || 'DineLabs';
+
+      let finalLogoUrl = logoUrl;
+      if (logoUrl && logoUrl.startsWith('http')) {
+        finalLogoUrl = `/api/proxy-image?url=${encodeURIComponent(logoUrl)}`;
+      }
+
+      generateQRDataUrl(data, finalLogoUrl, storeName, qrStyle).then((dataUrl) => {
+        if (active) {
+          setQrDataUrl(dataUrl);
+        }
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [qrOpen, activeTable, settings, tenantSettings, qrStyle]);
+
   const handlePrintQR = () => {
-    if (!activeTable || !settings) return;
-    const qrUrlStr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(getTableUrl(activeTable.name))}`;
+    if (!activeTable || !settings || !qrDataUrl) return;
     const w = window.open('', '_blank', 'width=480,height=640');
     w.document.write(`
       <html><head><title>${activeTable.name} — QR Code</title>
@@ -303,7 +604,7 @@ function DineInPageContent() {
       </style></head>
       <body>
         <div class="name">${activeTable.name}</div>
-        <img src="${qrUrlStr}" />
+        <img src="${qrDataUrl}" />
         <div class="scan">${t('Scan to order at your table')}</div>
         <div class="u">${getTableUrl(activeTable.name)}</div>
         <script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script>
@@ -312,22 +613,16 @@ function DineInPageContent() {
   };
 
   const handleDownloadQR = async () => {
-    if (!activeTable) return;
-    const qrUrlStr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(getTableUrl(activeTable.name))}`;
+    if (!activeTable || !qrDataUrl) return;
     try {
-      const response = await fetch(qrUrlStr);
-      const blob = await response.blob();
-      const blobURL = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = blobURL;
+      a.href = qrDataUrl;
       a.download = `${activeTable.name.replace(/\s+/g, '-')}-qr.png`;
       a.click();
-      URL.revokeObjectURL(blobURL);
       triggerToast(t('QR Code download started'));
     } catch (err) {
       console.error('Failed to download QR code image', err);
-      // Fallback: open in new tab
-      window.open(qrUrlStr, '_blank');
+      window.open(qrDataUrl, '_blank');
     }
   };
 
@@ -655,12 +950,59 @@ function DineInPageContent() {
                 <div className="qr-stage" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
                   <div className="qr-table-name" style={{ fontSize: '1.25rem', fontWeight: '800' }}>{activeTable.name}</div>
                   
+                  {/* Style selector */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>{t('QR Code Style')}</label>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%', backgroundColor: 'var(--surface-2)', padding: '4px', borderRadius: '8px', border: '1px solid var(--line)' }}>
+                      <button 
+                        onClick={() => setQrStyle('fluid')} 
+                        style={{
+                          flex: 1,
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          backgroundColor: qrStyle === 'fluid' ? '#ffffff' : 'transparent',
+                          color: qrStyle === 'fluid' ? 'var(--brand-red)' : 'var(--text-muted)',
+                          boxShadow: qrStyle === 'fluid' ? 'var(--sh-sm)' : 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {t('Fluid Connected')}
+                      </button>
+                      <button 
+                        onClick={() => setQrStyle('circular')} 
+                        style={{
+                          flex: 1,
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          backgroundColor: qrStyle === 'circular' ? '#ffffff' : 'transparent',
+                          color: qrStyle === 'circular' ? 'var(--brand-red)' : 'var(--text-muted)',
+                          boxShadow: qrStyle === 'circular' ? 'var(--sh-sm)' : 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {t('Circular Star')}
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="qr-frame" style={{ width: '220px', height: '220px', border: '1px solid var(--line-2)', borderRadius: '16px', backgroundColor: '#ffffff', display: 'grid', placeItems: 'center', boxShadow: 'var(--sh-sm)', padding: '12px' }}>
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(getTableUrl(activeTable.name))}`} 
-                      alt="Concierge QR code" 
-                      style={{ width: '100%', height: '100%', borderRadius: '8px' }}
-                    />
+                    {qrDataUrl ? (
+                      <img 
+                        src={qrDataUrl} 
+                        alt="Concierge QR code" 
+                        style={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                      />
+                    ) : (
+                      <div className="skeleton" style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
+                    )}
                   </div>
 
                   <div className="qr-url" style={{ fontSize: '12.5px', color: 'var(--ink-2)', fontFamily: 'monospace', wordBreak: 'break-all', textAlign: 'center', backgroundColor: 'var(--surface-2)', border: '1px solid var(--line)', padding: '9px 12px', borderRadius: '9px', width: '100%' }}>
