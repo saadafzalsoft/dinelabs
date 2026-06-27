@@ -1359,7 +1359,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       </div>
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
-      {cart.length > 0 && tenant.status === 'active' && !isClosed && (
+      {tenant.status === 'active' && !isClosed && (
         <button
           type="button"
           onClick={() => setIsMobileCartOpen(true)}
