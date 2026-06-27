@@ -45,7 +45,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const [cart, setCart] = useState([]);
   const [mode, setMode] = useState('dine-in'); // 'dine-in' | 'pickup' | 'delivery'
   const [tableNo, setTableNo] = useState('');
-  
+
   // Customizer modal state
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalSize, setModalSize] = useState('');
@@ -143,7 +143,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       OMR: 'RO '
     };
     const symbol = currencySymbols[currency] || (currency + ' ');
-    const formattedAmount = currency === 'LBP' 
+    const formattedAmount = currency === 'LBP'
       ? parseFloat(amount).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
       : parseFloat(amount).toFixed(2).replace('.', ',');
     return `${symbol}${formattedAmount}`;
@@ -526,11 +526,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Check if store is open
   const checkIfStoreOpen = (openingHours) => {
     if (!openingHours || !Array.isArray(openingHours)) return true;
-    
+
     const now = new Date();
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const currentDay = days[now.getDay()];
-    
+
     const hoursToday = openingHours.find(h => h.day === currentDay);
     if (!hoursToday || !hoursToday.isOpen) return false;
 
@@ -545,7 +545,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
   // Filter products based on search query
   const filteredProducts = initialProducts.filter(product => {
-    if (!searchQuery) return true;
+    // Search query filter
     const nameMatch = t(product.name).toLowerCase().includes(searchQuery.toLowerCase());
     const descMatch = t(product.description).toLowerCase().includes(searchQuery.toLowerCase());
     return nameMatch || descMatch;
@@ -557,18 +557,6 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     if (!a.isPinned && b.isPinned) return 1;
     return a.order - b.order;
   });
-
-  const handleSelectCategory = (catId) => {
-    setActiveCategory(catId);
-    if (catId === 'all') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const el = document.getElementById(`cat-section-${catId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  };
 
   // Opening the tripartite customisation modal
   const openCustomizer = (product) => {
@@ -597,7 +585,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   // Real-time customizer item price calculation
   useEffect(() => {
     if (!selectedProduct) return;
-    
+
     let price = (selectedProduct.discountedPrice && selectedProduct.discountedPrice > 0) ? selectedProduct.discountedPrice : selectedProduct.price;
 
     // Size impact
@@ -753,14 +741,14 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* 2. Shop Closed warning marquee banner */}
       {isClosed && (
-        <div className="closed-banner" style={{ 
-          position: 'fixed', 
-          top: tenant.status !== 'active' ? '40px' : 0, 
-          left: 0, 
-          right: 0, 
-          height: '40px', 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div className="closed-banner" style={{
+          position: 'fixed',
+          top: tenant.status !== 'active' ? '40px' : 0,
+          left: 0,
+          right: 0,
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#f59e0b',
           color: '#000000',
@@ -776,12 +764,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       )}
 
       {/* Header */}
-      <header className="header" style={{ 
-        top: (tenant.status !== 'active' && isClosed) ? '80px' : (tenant.status !== 'active' || isClosed) ? '40px' : 0 
+      <header className="header" style={{
+        top: (tenant.status !== 'active' && isClosed) ? '80px' : (tenant.status !== 'active' || isClosed) ? '40px' : 0
       }}>
         <div className="header-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button 
+            <button
               onClick={() => setSidebarOpen(true)}
               className="menu-toggle-btn"
               style={{
@@ -796,12 +784,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             >
               <Menu className="ic" style={{ width: '22px', height: '22px' }} />
             </button>
-            
+
             <Link href={`/${tenant.slug}`} className="logo" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               {tenant.logoUrl && !logoError ? (
-                <img 
-                  src={tenant.logoUrl} 
-                  alt={tenant.name} 
+                <img
+                  src={tenant.logoUrl}
+                  alt={tenant.name}
                   style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
                   onError={() => setLogoError(true)}
                 />
@@ -849,7 +837,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
                 {langMenuOpen && (
                   <>
-                    <div 
+                    <div
                       onClick={() => setLangMenuOpen(false)}
                       style={{
                         position: 'fixed',
@@ -915,20 +903,20 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
         </div>
       </header>
 
-       {/* Main Grid Wrapper */}
-      <div 
-        className="main-wrapper" 
-        style={{ 
-          paddingTop: (tenant.status !== 'active' && isClosed) 
-            ? 'calc(var(--header-height) + 80px)' 
-            : (tenant.status !== 'active' || isClosed) 
-              ? 'calc(var(--header-height) + 40px)' 
+      {/* Main Grid Wrapper */}
+      <div
+        className="main-wrapper"
+        style={{
+          paddingTop: (tenant.status !== 'active' && isClosed)
+            ? 'calc(var(--header-height) + 80px)'
+            : (tenant.status !== 'active' || isClosed)
+              ? 'calc(var(--header-height) + 40px)'
               : 'var(--header-height)'
         }}
       >
         {/* Left catalog panel */}
         <main className="left-panel">
-          
+
           {/* Starred Promotion pinned category banner */}
           {sortedCategories.filter(c => c.isPinned).map(cat => {
             const promoProducts = initialProducts.filter(p => p.categories.includes(cat._id));
@@ -937,32 +925,32 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               <section key={cat._id} className="promo-section" style={{ marginBottom: '-14px' }}>
                 <div className="section-header">
                   <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Star style={{ width: '18px', height: '18px', fill: '#eab308', color: '#eab308' }} />
+                  
                     <span>{t(cat.name)}</span>
                   </h2>
                 </div>
                 <div className="offers-row">
                   {promoProducts.map(product => (
-                    <div 
-                      key={product._id} 
+                    <div
+                      key={product._id}
                       className="offer-card"
                       onClick={() => { if (product.isAvailable) openCustomizer(product); }}
-                      style={{ 
-                        opacity: (!product.isAvailable || isClosed) ? 0.5 : 1, 
+                      style={{
+                        opacity: (!product.isAvailable || isClosed) ? 0.5 : 1,
                         cursor: (!product.isAvailable || isClosed) ? 'default' : 'pointer'
                       }}
                     >
                       <div className="offer-image-wrapper">
                         {product.imageUrl ? (
-                          <img 
-                            src={product.imageUrl} 
-                            alt={t(product.name)} 
+                          <img
+                            src={product.imageUrl}
+                            alt={t(product.name)}
                             className="offer-img"
                           />
                         ) : (
-                          <img 
-                            src="/assets/No Image Icon.svg" 
-                            alt={t(product.name)} 
+                          <img
+                            src="/assets/No Image Icon.svg"
+                            alt={t(product.name)}
                             className="offer-img"
                             style={{ objectFit: 'cover' }}
                           />
@@ -996,9 +984,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
           {/* Search bar */}
           <div className="search-container">
-            <input 
-              type="text" 
-              placeholder={dict[lang].searchPlaceholder} 
+            <input
+              type="text"
+              placeholder={dict[lang].searchPlaceholder}
               className="search-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -1011,8 +999,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           {/* Categories Pills bar */}
           <div className="categories-row-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div className="categories-pills-list" style={{ flex: 1 }}>
-              <button 
-                onClick={() => handleSelectCategory('all')}
+              <button
+                onClick={() => {
+                  setActiveCategory('all');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className={`category-pill ${activeCategory === 'all' ? 'active' : ''}`}
                 style={{ border: 'none', font: 'inherit' }}
               >
@@ -1021,7 +1012,15 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               {sortedCategories.map(cat => (
                 <button
                   key={cat._id}
-                  onClick={() => handleSelectCategory(cat._id)}
+                  onClick={() => {
+                    setActiveCategory(cat._id);
+                    const el = document.getElementById(`cat-section-${cat._id}`);
+                    if (el) {
+                      const yOffset = -120; // offset for sticky header
+                      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: y, behavior: 'smooth' });
+                    }
+                  }}
                   className={`category-pill ${activeCategory === cat._id ? 'active' : ''}`}
                   style={{ border: 'none', font: 'inherit' }}
                 >
@@ -1058,26 +1057,26 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           <section className="products-list-section">
             {(() => {
               const renderProductCard = (product) => (
-                <div 
-                  key={product._id} 
+                <div
+                  key={product._id}
                   className="product-card"
                   onClick={() => { if (product.isAvailable) openCustomizer(product); }}
-                  style={{ 
-                    opacity: (!product.isAvailable || isClosed) ? 0.5 : 1, 
-                    cursor: (!product.isAvailable || isClosed) ? 'default' : 'pointer' 
+                  style={{
+                    opacity: (!product.isAvailable || isClosed) ? 0.5 : 1,
+                    cursor: (!product.isAvailable || isClosed) ? 'default' : 'pointer'
                   }}
                 >
                   <div className="product-image-container" style={{ position: 'relative' }}>
                     {product.imageUrl ? (
-                      <img 
-                        src={product.imageUrl} 
-                        alt={t(product.name)} 
+                      <img
+                        src={product.imageUrl}
+                        alt={t(product.name)}
                         className="product-img"
                       />
                     ) : (
-                      <img 
-                        src="/assets/No Image Icon.svg" 
-                        alt={t(product.name)} 
+                      <img
+                        src="/assets/No Image Icon.svg"
+                        alt={t(product.name)}
                         className="product-img"
                         style={{ objectFit: 'cover' }}
                       />
@@ -1104,7 +1103,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   <div className="product-info" style={{ display: 'flex', flexDirection: 'column' }}>
                     <h3 className="product-title">{t(product.name)}</h3>
                     <p className="product-desc">{t(product.description)}</p>
-                    
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: 'auto' }}>
                       {product.discountedPrice && product.discountedPrice > 0 ? (
                         <div className="product-price-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
@@ -1134,20 +1133,20 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 catProducts.forEach(p => categorizedProductIds.add(p._id));
 
                 return (
-                  <div id={`cat-section-${cat._id}`} key={cat._id} className="category-section-block" style={{ marginBottom: '32px', scrollMarginTop: '130px' }}>
-                    <div className="category-section-header" style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                  <div key={cat._id} id={`cat-section-${cat._id}`} className="category-section-block" style={{ marginBottom: '32px' }}>
+                    <div className="category-section-header" style={{
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'space-between',
                       marginBottom: '16px',
                       paddingBottom: '8px',
                       borderBottom: '2px solid var(--line)'
                     }}>
-                      <h2 style={{ 
-                        fontFamily: 'var(--font-heading)', 
-                        fontSize: '1.25rem', 
-                        fontWeight: '800', 
-                        margin: 0, 
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: '1.25rem',
+                        fontWeight: '800',
+                        margin: 0,
                         color: 'var(--text-main)',
                         letterSpacing: '-0.02em'
                       }}>
@@ -1172,19 +1171,19 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   {categoryBlocks}
                   {uncategorizedProducts.length > 0 && (
                     <div className="category-section-block" style={{ marginBottom: '32px' }}>
-                      <div className="category-section-header" style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div className="category-section-header" style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'space-between',
                         marginBottom: '16px',
                         paddingBottom: '8px',
                         borderBottom: '2px solid var(--line)'
                       }}>
-                        <h2 style={{ 
-                          fontFamily: 'var(--font-heading)', 
-                          fontSize: '1.25rem', 
-                          fontWeight: '800', 
-                          margin: 0, 
+                        <h2 style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '1.25rem',
+                          fontWeight: '800',
+                          margin: 0,
                           color: 'var(--text-main)',
                           letterSpacing: '-0.02em'
                         }}>
@@ -1211,7 +1210,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             <h2 className="basket-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto', fontFamily: 'var(--font-heading)', fontWeight: '800', fontSize: '20px' }}>
               {dict[lang].basket}
             </h2>
-            <button 
+            <button
               type="button"
               onClick={() => setIsMobileCartOpen(false)}
               className="mobile-only-close-basket"
@@ -1232,7 +1231,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           {tenant.status === 'active' && (
             <div className="delivery-toggle-wrapper">
               {tenant.enabledModes.dineIn && (
-                <div 
+                <div
                   onClick={() => handleModeChange('dine-in')}
                   className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}
                 >
@@ -1244,7 +1243,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 </div>
               )}
               {tenant.enabledModes.pickup && (
-                <div 
+                <div
                   onClick={() => handleModeChange('pickup')}
                   className={`toggle-option ${mode === 'pickup' ? 'active' : ''}`}
                 >
@@ -1256,7 +1255,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 </div>
               )}
               {tenant.enabledModes.delivery && (
-                <div 
+                <div
                   onClick={() => handleModeChange('delivery')}
                   className={`toggle-option ${mode === 'delivery' ? 'active' : ''}`}
                 >
@@ -1296,7 +1295,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
                     {tenant.status === 'active' && (
                       <div className="basket-qty-control">
-                        <span 
+                        <span
                           className="basket-qty-btn"
                           onClick={() => {
                             if (item.quantity === 1) {
@@ -1309,7 +1308,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                           {item.quantity === 1 ? '🗑️' : '-'}
                         </span>
                         <span className="basket-qty-num">{item.quantity}</span>
-                        <span 
+                        <span
                           className="basket-qty-btn"
                           onClick={() => updateCartQty(item.id, 1)}
                         >
@@ -1361,10 +1360,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
       {cart.length > 0 && tenant.status === 'active' && !isClosed && (
-        <button 
+        <button
           type="button"
           onClick={() => setIsMobileCartOpen(true)}
-          className="mobile-cart-float visible" 
+          className="mobile-cart-float visible"
           style={{ border: 'none', font: 'inherit', width: 'calc(100% - 32px)', cursor: 'pointer', zIndex: 90 }}
         >
           <div className="mobile-cart-left">
@@ -1389,20 +1388,20 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             {/* Header / Close */}
             <div className="modal-image-wrapper">
               {selectedProduct.imageUrl ? (
-                <img 
-                  src={selectedProduct.imageUrl} 
-                  alt={t(selectedProduct.name)} 
+                <img
+                  src={selectedProduct.imageUrl}
+                  alt={t(selectedProduct.name)}
                   className="modal-pizza-img"
                 />
               ) : (
-                <img 
-                  src="/assets/No Image Icon.svg" 
-                  alt={t(selectedProduct.name)} 
+                <img
+                  src="/assets/No Image Icon.svg"
+                  alt={t(selectedProduct.name)}
                   className="modal-pizza-img"
                   style={{ objectFit: 'cover' }}
                 />
               )}
-              <button 
+              <button
                 onClick={() => setSelectedProduct(null)}
                 className="modal-close-btn"
               >
@@ -1412,12 +1411,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
             {/* Modal Customizer Body */}
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', maxHeight: '80vh', padding: 0 }}>
-              
+
               {/* Scrollable Options List */}
               <div style={{ overflowY: 'auto', padding: '24px', flex: 1 }}>
                 <h3 className="modal-title">{t(selectedProduct.name)}</h3>
                 <p className="modal-desc">{t(selectedProduct.description)}</p>
-                
+
                 {/* Product-Level Variations */}
                 {selectedProduct.variations && selectedProduct.variations.length > 0 ? (
                   <div className="modal-modifier-section">
@@ -1428,9 +1427,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         return (
                           <label key={idx} className="option-row">
                             <div className="option-row-left">
-                              <input 
-                                type="radio" 
-                                name="product-size" 
+                              <input
+                                type="radio"
+                                name="product-size"
                                 value={optName}
                                 checked={modalSize === optName}
                                 onChange={() => setModalSize(optName)}
@@ -1454,9 +1453,9 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                           {group.options.map((option, idx) => (
                             <label key={idx} className="option-row">
                               <div className="option-row-left">
-                                <input 
-                                  type="radio" 
-                                  name="pizza-size" 
+                                <input
+                                  type="radio"
+                                  name="pizza-size"
                                   value={option.name.en}
                                   checked={modalSize === option.name.en}
                                   onChange={() => setModalSize(option.name.en)}
@@ -1484,7 +1483,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         return (
                           <label key={idx} className="option-row">
                             <div className="option-row-left">
-                              <input 
+                              <input
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={(e) => {
@@ -1517,7 +1516,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                           return (
                             <label key={idx} className="option-row">
                               <div className="option-row-left">
-                                <input 
+                                <input
                                   type="checkbox"
                                   checked={isChecked}
                                   onChange={(e) => {
@@ -1547,12 +1546,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         const optName = option.name?.en || option.name;
                         const isRemoved = modalRemovals.includes(optName);
                         return (
-                          <label 
-                            key={idx} 
+                          <label
+                            key={idx}
                             className={`remove-option-row ${isRemoved ? 'removed' : ''}`}
                           >
                             <div className="remove-option-left">
-                              <input 
+                              <input
                                 type="checkbox"
                                 checked={isRemoved}
                                 onChange={(e) => {
@@ -1583,12 +1582,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                         {group.options.map((option, idx) => {
                           const isRemoved = modalRemovals.includes(option.name.en);
                           return (
-                            <label 
-                              key={idx} 
+                            <label
+                              key={idx}
                               className={`remove-option-row ${isRemoved ? 'removed' : ''}`}
                             >
                               <div className="remove-option-left">
-                                <input 
+                                <input
                                   type="checkbox"
                                   checked={isRemoved}
                                   onChange={(e) => {
@@ -1638,21 +1637,21 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               {/* Fixed Footer Bar */}
               <div className="modal-footer-bar" style={{ padding: '16px 24px 24px', margin: 0, borderTop: '1px solid var(--border-light)', backgroundColor: '#ffffff', borderBottomLeftRadius: '28px', borderBottomRightRadius: '28px', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
                 <div className="modal-qty-selector">
-                  <span 
+                  <span
                     className="modal-qty-btn"
                     onClick={() => setModalQty(Math.max(1, modalQty - 1))}
                   >
                     -
                   </span>
                   <span className="modal-qty-num">{modalQty}</span>
-                  <span 
+                  <span
                     className="modal-qty-btn"
                     onClick={() => setModalQty(modalQty + 1)}
                   >
                     +
                   </span>
                 </div>
-                <button 
+                <button
                   onClick={addToCart}
                   className="modal-add-btn"
                   style={{ flex: 1 }}
@@ -1668,8 +1667,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
         </div>
       )}
       {/* Sidebar Categories Menu Drawer */}
-      <div 
-        className={`drawer-scrim ${sidebarOpen ? 'open' : ''}`} 
+      <div
+        className={`drawer-scrim ${sidebarOpen ? 'open' : ''}`}
         onClick={() => setSidebarOpen(false)}
         style={{
           position: 'fixed',
@@ -1681,7 +1680,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           zIndex: 2000
         }}
       ></div>
-      <aside 
+      <aside
         style={{
           position: 'fixed',
           top: 0,
@@ -1714,10 +1713,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             boxSizing: 'border-box'
           }}>
             {tenant.logoUrl ? (
-              <img 
-                src={tenant.logoUrl} 
-                alt={tenant.name} 
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+              <img
+                src={tenant.logoUrl}
+                alt={tenant.name}
+                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
               />
             ) : (
               <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontWeight: 'bold' }}>
@@ -1731,12 +1730,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               {tenant.name}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-              <span style={{ 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%', 
-                backgroundColor: isClosed ? '#ef4444' : '#22c55e', 
-                display: 'inline-block' 
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: isClosed ? '#ef4444' : '#22c55e',
+                display: 'inline-block'
               }}></span>
               <span style={{ fontSize: '0.85rem', fontWeight: '600', color: isClosed ? '#ef4444' : '#22c55e' }}>
                 {isClosed ? (dict[lang].closed || 'Closed') : (dict[lang].open || 'Open')}
@@ -1744,7 +1743,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => setSidebarOpen(false)}
             style={{
               width: '36px',
@@ -1772,10 +1771,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             </h4>
             <div style={{ display: 'flex', gap: '12px' }}>
               {/* WhatsApp */}
-              <a 
-                href={`https://wa.me/${(tenant.whatsappNumber || (tenant.notifications && tenant.notifications.whatsappNumber) || '').replace(/\D/g, '')}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href={`https://wa.me/${(tenant.whatsappNumber || (tenant.notifications && tenant.notifications.whatsappNumber) || '').replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
                   width: '44px',
                   height: '44px',
@@ -1793,10 +1792,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               </a>
               {/* Instagram */}
               {tenant.instagram && (
-                <a 
-                  href={tenant.instagram.startsWith('http') ? tenant.instagram : `https://instagram.com/${tenant.instagram}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={tenant.instagram.startsWith('http') ? tenant.instagram : `https://instagram.com/${tenant.instagram}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     width: '44px',
                     height: '44px',
@@ -1815,10 +1814,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               )}
               {/* TikTok */}
               {tenant.tiktok && (
-                <a 
-                  href={tenant.tiktok.startsWith('http') ? tenant.tiktok : `https://tiktok.com/@${tenant.tiktok}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={tenant.tiktok.startsWith('http') ? tenant.tiktok : `https://tiktok.com/@${tenant.tiktok}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     width: '44px',
                     height: '44px',
@@ -1912,17 +1911,17 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 const daysOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 const currentDayIndex = new Date().getDay();
                 const currentDayName = daysOrder[currentDayIndex];
-                
+
                 return daysOrder.map(day => {
                   const hours = tenant.openingHours?.find(h => h.day === day) || { isOpen: false, open: '', close: '' };
                   const isCurrent = day === currentDayName;
-                  
+
                   return (
-                    <div 
-                      key={day} 
-                      style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                    <div
+                      key={day}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         fontSize: '0.9rem',
                         fontWeight: isCurrent ? '700' : '400',
                         color: isCurrent ? '#000000' : '#6b7280'
@@ -1940,11 +1939,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           </div>
 
           {/* Badge footer */}
-          <div style={{ 
-            marginTop: 'auto', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            paddingTop: '20px' 
+          <div style={{
+            marginTop: 'auto',
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: '20px'
           }}>
             <div style={{
               backgroundColor: '#f3f4f6',
@@ -1966,8 +1965,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       {/* Categories Filter Popup Modal */}
       {isFilterPopupOpen && (
         <>
-          <div 
-            className="filter-scrim" 
+          <div
+            className="filter-scrim"
             onClick={() => setIsFilterPopupOpen(false)}
             style={{
               position: 'fixed',
@@ -1977,7 +1976,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               backdropFilter: 'blur(2px)'
             }}
           />
-          <div 
+          <div
             className="filter-popup pop-in"
             style={{
               position: 'fixed',
@@ -1999,7 +1998,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <img src="/assets/Categories Icon.svg" alt="Categories" style={{ width: '18px', height: '18px', display: 'block' }} />
                 <span>Categories</span>
               </h3>
-              <button 
+              <button
                 onClick={() => setIsFilterPopupOpen(false)}
                 style={{
                   background: 'none',
@@ -2018,7 +2017,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
               <button
                 onClick={() => {
-                  handleSelectCategory('all');
+                  setActiveCategory('all');
                   setIsFilterPopupOpen(false);
                 }}
                 style={{
@@ -2043,7 +2042,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 <button
                   key={cat._id}
                   onClick={() => {
-                    handleSelectCategory(cat._id);
+                    setActiveCategory(cat._id);
                     setIsFilterPopupOpen(false);
                   }}
                   style={{
@@ -2071,7 +2070,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
 
       {/* Mobile Cart Scrim Overlay */}
       {isMobileCartOpen && (
-        <div 
+        <div
           onClick={() => setIsMobileCartOpen(false)}
           className="mobile-cart-scrim"
           style={{
