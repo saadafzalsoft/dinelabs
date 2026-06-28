@@ -47,6 +47,13 @@ function LiveOrdersPageContent() {
     OMR: 'RO '
   };
   const currencySymbol = currencySymbols[currency] || (currency + ' ');
+  const resolveTranslation = (opt) => {
+    if (!opt) return '';
+    if (typeof opt === 'object') {
+      return opt[lang] || opt['en'] || opt['ar'] || Object.values(opt)[0] || '';
+    }
+    return t(opt) || opt;
+  };
   const [channelFilter, setChannelFilter] = useState(''); // '' | 'delivery' | 'pickup' | 'dine-in'
   
   // Local storage cleared completed orders ids to keep Kanban board clean
@@ -827,13 +834,13 @@ function LiveOrdersPageContent() {
                             {/* Addon details mapping */}
                             <div className="od-addons" style={{ marginTop: '6px' }}>
                               {item.size && (
-                                <span className="od-addon">{t('Size')}: {typeof item.size === 'object' ? (item.size[lang] || item.size.en) : item.size}</span>
+                                <span className="od-addon">{t('Size')}: {resolveTranslation(item.size)}</span>
                               )}
                               {item.addons?.map((add, aIdx) => (
-                                <span key={aIdx} className="od-addon">+{typeof add === 'object' ? (add[lang] || add.en) : add}</span>
+                                <span key={aIdx} className="od-addon">+{resolveTranslation(add)}</span>
                               ))}
                               {item.removedIngredients?.map((rem, rIdx) => (
-                                <span key={rIdx} className="od-addon rem">{t('No')} {typeof rem === 'object' ? (rem[lang] || rem.en) : rem}</span>
+                                <span key={rIdx} className="od-addon rem">{t('No')} {resolveTranslation(rem)}</span>
                               ))}
                             </div>
 

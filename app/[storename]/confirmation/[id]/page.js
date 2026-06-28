@@ -402,27 +402,11 @@ export default function OrderConfirmationPage() {
       notFoundTitle: 'შეკვეთა ან მაღაზია ვერ მოიძებნა',
       notFoundDesc: 'ამ შეკვეთის დეტალების გვერდი ვერ მოიძებნა. გთხოვთ, შეამოწმოთ ბმული ან დაბრუნდეთ მენიუში.',
       backToMenu: 'მენიუში დაბრუნება',
-      returnToMenu: 'მენიუში დაბრუნება',
-      placed: 'გაფორმდა',
-      placedDesc: 'შეკვეთა მიღებულია სამზარეულოში',
-      preparing: 'მზადდება',
-      preparingDesc: 'შეკვეთა მზადდება სამზარეულოში',
-      ready: 'მზადაა',
-      readyDesc: 'მზადაა წასაღებად',
-      onTheWay: 'გზაშია',
-      onTheWayDesc: 'გადაცემულია კურიერისთვის',
-      completed: 'დასრულდა',
-      completedDesc: 'გმადლობთ სტუმრობისთვის!',
-      orderDeclinedTitle: 'შეკვეთა უარყოფილია',
-      enjoyMealTitle: 'გემრიელად მიირთვით!',
-      readyPickupTitle: 'მზადაა წასაღებად!',
-      outDeliveryTitle: 'შეკვეთა გზაშია!',
-      trackingTitle: 'შეკვეთის თვალყურის დევნება',
-      orderActive: 'შეკვეთა #{orderNo} აქტიურია {tenantName}-ს სისტემაში.',
-      estimatedTime: 'დარჩენილი სავარაუდო დრო',
-      mins: 'წთ',
-      transitInfo: 'კურიერი გზაშია',
-      kitchenInfo: 'მოიცავს სამზარეულოს მომზადების დროს',
+      returnToMenu: 'Return to Menu'
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    return val[lang] || val['en'] || val['ar'] || Object.values(val)[0] || '';
+  };,
       declinedInfo: 'სამწუხაროდ, თქვენი შეკვეთა უარყოფილია. გთხოვთ, დაუკავშირდეთ რესტორანს დეტალებისთვის.',
       dineInPass: 'მაგიდის საშვი',
       dineInPassDesc: 'წარუდგინეთ ეს საშვი ოფიციანტს ან დატოვეთ გახსნილი.',
@@ -464,8 +448,23 @@ export default function OrderConfirmationPage() {
 
   const resolveText = (val) => {
     if (!val) return '';
-    if (typeof val === 'string') return val;
-    return val[lang] || val['en'] || '';
+    if (typeof val === 'string') {
+      const globalDict = {
+        'Extra Nutella': { en: 'Extra Nutella', ar: 'إكسترا نوتيلا', fr: 'Extra Nutella', de: 'Extra Nutella', es: 'Extra Nutella', ru: 'Доп. Нутелла', ka: 'დამატებითი ნუტელა' },
+        'Extra Star Shaped Ice': { en: 'Extra Star Shaped Ice', ar: 'ثلج نجمي إضافي', fr: 'Glaçons étoile extra', de: 'Extra Sterneneis', es: 'Hielo estrella extra', ru: 'Доп. лед в форме звезд', ka: 'დამატებითი ვარსკვლავისებრი ყინული' },
+        'No Ice': { en: 'No Ice', ar: 'بدون ثلج', fr: 'Sans glaçons', de: 'Ohne Eis', es: 'Sin hielo', ru: 'Без льда', ka: 'უყინულოდ' },
+        'No Glass': { en: 'No Glass', ar: 'بدون كوب', fr: 'Sans verre', de: 'Ohne Glas', es: 'Sin vaso', ru: 'Без стакана', ka: 'უჭიქოდ' },
+        'Small': { en: 'Small', ar: 'صغير', fr: 'Petit', de: 'Klein', es: 'Pequeño', ru: 'Маленький', ka: 'პატარა' },
+        'Medium': { en: 'Medium', ar: 'وسط', fr: 'Moyen', de: 'Mittel', es: 'Mediano', ru: 'Средний', ka: 'საშუალო' },
+        'Large': { en: 'Large', ar: 'كبير', fr: 'Grand', de: 'Groß', es: 'Grande', ru: 'Большой', ka: 'დიდი' },
+        'Extra Large': { en: 'Extra Large', ar: 'كبير جداً', fr: 'Très grand', de: 'Sehr groß', es: 'Muy grande', ru: 'Очень большой', ka: 'ძალიან დიდი' }
+      };
+      if (globalDict[val]) {
+        return globalDict[val][lang] || globalDict[val]['en'] || val;
+      }
+      return val;
+    }
+    return val[lang] || val['en'] || val['ar'] || Object.values(val)[0] || '';
   };
 
   // Sound play helper using Web Audio API

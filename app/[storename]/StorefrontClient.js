@@ -153,7 +153,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
   const t = (textMap) => {
     if (!textMap) return '';
     if (typeof textMap === 'string') return textMap;
-    return textMap[lang] || textMap['en'] || '';
+    return textMap[lang] || textMap['en'] || textMap['ar'] || Object.values(textMap)[0] || '';
   };
 
   // UI dictionary translations
@@ -643,11 +643,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     // Resolve size, addons, and removals to full name objects
     let resolvedSize = modalSize;
     if (modalSize) {
-      const pv = selectedProduct.variations?.find(o => (o.name?.en || o.name) === modalSize);
+      const pv = selectedProduct.variations?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === modalSize : o.name === modalSize));
       if (pv && typeof pv.name === 'object') {
         resolvedSize = pv.name;
       } else if (sizeMod) {
-        const opt = sizeMod.options.find(o => o.name.en === modalSize);
+        const opt = sizeMod.options?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === modalSize : o.name === modalSize));
         if (opt && typeof opt.name === 'object') {
           resolvedSize = opt.name;
         }
@@ -655,12 +655,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     }
 
     const resolvedAddons = modalAddons.map(addonName => {
-      const pa = selectedProduct.addons?.find(o => (o.name?.en || o.name) === addonName);
+      const pa = selectedProduct.addons?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === addonName : o.name === addonName));
       if (pa && typeof pa.name === 'object') {
         return pa.name;
       }
       for (const group of initialModifierGroups.filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'addons' && selectedProduct.modifierGroups?.includes(m._id))) {
-        const opt = group.options.find(o => o.name.en === addonName);
+        const opt = group.options?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === addonName : o.name === addonName));
         if (opt && typeof opt.name === 'object') {
           return opt.name;
         }
@@ -669,12 +669,12 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     });
 
     const resolvedRemovals = modalRemovals.map(removalName => {
-      const pr = selectedProduct.removals?.find(o => (o.name?.en || o.name) === removalName);
+      const pr = selectedProduct.removals?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === removalName : o.name === removalName));
       if (pr && typeof pr.name === 'object') {
         return pr.name;
       }
       for (const group of initialModifierGroups.filter(m => m.tenantId.toString() === tenant._id.toString() && m.type === 'removals' && selectedProduct.modifierGroups?.includes(m._id))) {
-        const opt = group.options.find(o => o.name.en === removalName);
+        const opt = group.options?.find(o => (typeof o.name === 'object' ? (o.name.en || Object.values(o.name)[0]) === removalName : o.name === removalName));
         if (opt && typeof opt.name === 'object') {
           return opt.name;
         }

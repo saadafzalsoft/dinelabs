@@ -72,7 +72,7 @@ export default function CheckoutPage() {
   const resolveText = (val) => {
     if (!val) return '';
     if (typeof val === 'string') return val;
-    return val[lang] || val['en'] || '';
+    return val[lang] || val['en'] || val['ar'] || Object.values(val)[0] || '';
   };
 
   const handleModeChange = (newMode) => {
