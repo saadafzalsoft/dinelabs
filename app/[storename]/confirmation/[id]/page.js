@@ -402,11 +402,7 @@ export default function OrderConfirmationPage() {
       notFoundTitle: 'შეკვეთა ან მაღაზია ვერ მოიძებნა',
       notFoundDesc: 'ამ შეკვეთის დეტალების გვერდი ვერ მოიძებნა. გთხოვთ, შეამოწმოთ ბმული ან დაბრუნდეთ მენიუში.',
       backToMenu: 'მენიუში დაბრუნება',
-      returnToMenu: 'Return to Menu'
-    if (!val) return '';
-    if (typeof val === 'string') return val;
-    return val[lang] || val['en'] || val['ar'] || Object.values(val)[0] || '';
-  };,
+      returnToMenu: 'მენიუში დაბრუნება',
       declinedInfo: 'სამწუხაროდ, თქვენი შეკვეთა უარყოფილია. გთხოვთ, დაუკავშირდეთ რესტორანს დეტალებისთვის.',
       dineInPass: 'მაგიდის საშვი',
       dineInPassDesc: 'წარუდგინეთ ეს საშვი ოფიციანტს ან დატოვეთ გახსნილი.',
