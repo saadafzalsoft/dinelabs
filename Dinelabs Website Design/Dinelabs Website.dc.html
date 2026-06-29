@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:#fff}
+  section[id]{scroll-margin-top:78px}
+  @keyframes qrpop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+  /* ---- Responsive ---- */
+  @media (max-width:1024px){
+    [data-r="hero"],[data-r="split"],[data-r="qrsplit"]{grid-template-columns:1fr!important;gap:48px!important}
+    [data-r="mgrgrid"]{grid-template-columns:1fr!important}
+    [data-r="grid4"]{grid-template-columns:repeat(2,1fr)!important}
+    [data-r="navlinks"]{gap:24px!important}
+    [data-mgr-phone]{transform:scale(.8);transform-origin:bottom right}
+  }
+  @media (max-width:760px){
+    section{padding-left:20px!important;padding-right:20px!important;padding-top:60px!important;padding-bottom:60px!important}
+    #top{padding-top:92px!important}
+    [data-r="grid3"],[data-r="grid2"],[data-r="grid4"],[data-r="pricing"]{grid-template-columns:1fr!important}
+    [data-r="pricing"]{max-width:440px;margin-left:auto!important;margin-right:auto!important;gap:34px!important}
+    [data-r="qrgrid"]{grid-template-columns:repeat(2,1fr)!important}
+    [data-qr-extra]{display:none!important}
+    [data-mgr-phone]{display:none!important}
+    [data-nav]>div{padding-left:20px!important;padding-right:20px!important}
+    [data-logoimg]{height:20px!important}
+    #top a[data-cta]{justify-content:center!important;width:100%!important}
+    [data-r="herotitle"]{white-space:normal!important}
+    [data-r="trust"]{flex-direction:column!important;gap:8px!important}
+    [data-r="herotitle"]{font-size:clamp(36px,10vw,50px)!important}
+  }
+  @media (max-width:860px){
+    [data-r="navlinks"]{display:none!important}
+    [data-hamburger]{display:flex!important}
+  }
+  @media (max-width:760px){
+    [data-r="trio"]{flex-direction:column!important;align-items:stretch!important;gap:6px!important;max-width:440px!important;margin:0 auto!important;overflow:visible!important}
+    [data-r="trio"]>div{flex:none!important;min-width:0!important;width:auto!important}
+    [data-r="trio"]>div:nth-child(2){display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:12px!important;transform:none!important;padding:6px 0!important}
+    [data-r="trio"]>div:nth-child(2) svg{transform:rotate(90deg)}
+    [data-r="langtrack-wrap"]{padding:0 4px}
+    [data-r="mgrtitle"]{white-space:normal!important}
+  }
+  @media (max-width:560px){
+    [data-r="langtrack"]{padding:5px!important}
+    [data-r="langtrack"] button{flex-direction:column!important;gap:4px!important;padding:9px 2px!important;font-size:11px!important;line-height:1.1!important}
+    [data-r="langtrack"] button>span:first-child{font-size:17px!important}
+  }
+  @media (max-width:960px){
+    [data-r="econgrid"]{grid-template-columns:1fr!important;gap:36px!important}
+  }
+  /* ---- Motion ---- */
+  @keyframes toastIn{0%{opacity:0;transform:translateX(30px) scale(.95)}10%,78%{opacity:1;transform:translateX(0) scale(1)}100%{opacity:0;transform:translateX(30px) scale(.95)}}
+  @keyframes toastUp{0%{opacity:0;transform:translate(-50%,28px) scale(.96)}10%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,28px) scale(.96)}}
+  @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(31,138,91,.5)}70%{box-shadow:0 0 0 7px rgba(31,138,91,0)}100%{box-shadow:0 0 0 0 rgba(31,138,91,0)}}
+  @keyframes rowIn{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:none}}
+  @keyframes dotBlink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  @keyframes videoPulse{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.55);opacity:0}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes modalIn{0%{opacity:0;transform:scale(.94)}100%{opacity:1;transform:scale(1)}}
+  @keyframes labelDotPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 55%,transparent)}70%{box-shadow:0 0 0 8px color-mix(in srgb,currentColor 0%,transparent)}100%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 0%,transparent)}}
+  @keyframes translatePulse{0%{transform:scale(.85);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  @keyframes translateBob{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+  @keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  @keyframes thumbPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ink) 35%,transparent),0 6px 14px -4px rgba(17,17,20,.35)}50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--ink) 0%,transparent),0 6px 14px -4px rgba(17,17,20,.35)}}
+  @keyframes saveCount{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  input[type=range].dl-range{-webkit-appearance:none;appearance:none;width:100%;background:transparent;cursor:pointer;height:34px}
+  input[type=range].dl-range::-webkit-slider-runnable-track{height:8px;border-radius:100px;background:linear-gradient(to right,var(--ink) 0%,var(--ink) var(--fill,30%),rgba(17,17,20,.10) var(--fill,30%),rgba(17,17,20,.10) 100%)}
+  input[type=range].dl-range::-moz-range-track{height:8px;border-radius:100px;background:linear-gradient(to right,var(--ink) 0%,var(--ink) var(--fill,30%),rgba(17,17,20,.10) var(--fill,30%),rgba(17,17,20,.10) 100%)}
+  input[type=range].dl-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid var(--ink);margin-top:-8px;box-shadow:0 6px 14px -4px rgba(17,17,20,.35);animation:thumbPulse 2.2s ease-out infinite;cursor:grab}
+  input[type=range].dl-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--ink);box-shadow:0 6px 14px -4px rgba(17,17,20,.35);animation:thumbPulse 2.2s ease-out infinite;cursor:grab}
+  [data-r="trio"]::-webkit-scrollbar{display:none}
+  [data-arrow]{display:inline-block;transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+  a:hover [data-arrow],button:hover [data-arrow]{transform:translateX(5px)}
+  [data-cta]:active{transform:scale(.97)!important}
+  [data-r="qrgrid"]>div{transition:transform .32s cubic-bezier(.2,.7,.2,1),box-shadow .32s}
+  [data-r="qrgrid"]>div:hover{transform:translateY(-5px) rotate(-1.4deg);box-shadow:0 32px 56px -28px rgba(17,17,20,.4)}
+  [data-spin]>i{display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;margin:0 1px;animation:dotBlink 1s infinite}
+  [data-spin]>i:nth-child(2){animation-delay:.16s}
+  [data-spin]>i:nth-child(3){animation-delay:.32s}
+  [data-faq-body]{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.2,.7,.2,1)}
+  [data-faq-body][data-open="true"]{max-height:340px}
+  [data-faq-card]{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:background .25s,border-color .25s,color .25s}
+  [data-faq-card]:hover{border-color:var(--line2)}
+  [data-faq-card]:has([data-faq-body][data-open="true"]){background:var(--ink);border-color:var(--ink);color:#fff}
+  [data-faq-card]:has([data-faq-body][data-open="true"]) button>span:first-child{color:#fff!important}
+  [data-faq-card]:has([data-faq-body][data-open="true"]) [data-faq-body] div{color:rgba(255,255,255,.72)!important}
+  @media (prefers-reduced-motion: reduce){
+    [data-arrow],[data-r="qrgrid"]>div{transition:none!important}
+    [style*="toastIn"],[style*="toastUp"],[style*="livePulse"],[style*="videoPulse"],[style*="labelDotPulse"],[style*="translatePulse"],[style*="translateBob"],[data-floatcard],[data-spin]>i,input[type=range].dl-range::-webkit-slider-thumb,input[type=range].dl-range::-moz-range-thumb,[style*="saveCount"]{animation:none!important}
+  }
+</style>
+<script src="translations.js"></script>
+</helmet>
+
+<div ref="{{ rootRef }}" style="--acc:#0EA5B7;--ink:#111114;--soft:#5c5c63;--faint:#9a9aa1;--line:rgba(17,17,20,.10);--line2:rgba(17,17,20,.18);--paper:#f5f5f7;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;overflow-x:hidden">
+
+  <!-- ============ NAV ============ -->
+  <header data-nav style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid var(--line)">
+    <div style="max-width:1320px;margin:0 auto;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+      <a href="#top" style="display:flex;align-items:center"><img data-logoimg src="assets/dinelabs-logo.svg" alt="Dinelabs" style="height:25px;display:block"></a>
+      <nav data-r="navlinks" style="display:flex;align-items:center;gap:34px">
+        <a href="#how" data-navlink style="font-size:15px;font-weight:600;color:var(--soft);text-decoration:none;transition:color .25s,font-weight .25s" style-hover="color:var(--ink)">How it works</a>
+        <a href="#languages" data-navlink style="font-size:15px;font-weight:600;color:var(--soft);text-decoration:none;transition:color .25s" style-hover="color:var(--ink)">Languages</a>
+        <a href="#manager" data-navlink style="font-size:15px;font-weight:600;color:var(--soft);text-decoration:none;transition:color .25s" style-hover="color:var(--ink)">Product</a>
+        <a href="#pricing" data-navlink style="font-size:15px;font-weight:600;color:var(--soft);text-decoration:none;transition:color .25s" style-hover="color:var(--ink)">Pricing</a>
+        <a href="#faq" data-navlink style="font-size:15px;font-weight:600;color:var(--soft);text-decoration:none;transition:color .25s" style-hover="color:var(--ink)">FAQs</a>
+        <div data-rightgroup style="display:flex;align-items:center;gap:12px">
+        <div data-langwrap style="position:relative">
+          <button onClick="{{ toggleLangMenu }}" aria-haspopup="true" aria-expanded="{{ langMenuOpen }}" aria-label="Change language" style="display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line2);border-radius:100px;padding:11px 16px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit;transition:border-color .2s" style-hover="border-color:var(--ink)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><path d="M3.6 9h16.8M3.6 15h16.8"></path><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>
+            <span>{{ langLabel }}</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <div data-langmenu style="{{ langMenuStyle }}">
+            <button onClick="{{ pickLang }}" data-lang="en" style="{{ liEN }}"><span style="font-size:18px;line-height:1">🇬🇧</span> English</button>
+            <button onClick="{{ pickLang }}" data-lang="de" style="{{ liDE }}"><span style="font-size:18px;line-height:1">🇩🇪</span> Deutsch</button>
+            <button onClick="{{ pickLang }}" data-lang="ka" style="{{ liKA }}"><span style="font-size:18px;line-height:1">🇬🇪</span> ქართული</button>
+            <button onClick="{{ pickLang }}" data-lang="ar" style="{{ liAR }}"><span style="font-size:18px;line-height:1">🇸🇦</span> العربية</button>
+            <button onClick="{{ pickLang }}" data-lang="ru" style="{{ liRU }}"><span style="font-size:18px;line-height:1">🇷🇺</span> Русский</button>
+          </div>
+        </div>
+        <a href="Book%20a%20Demo.dc.html" data-cta style="display:inline-flex;align-items:center;gap:9px;background:var(--ink);color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:11px 20px;border-radius:100px;transition:transform .25s,box-shadow .25s" style-hover="transform:translateY(-1px);box-shadow:0 10px 22px -10px rgba(17,17,20,.45)">Book a free demo <span data-arrow style="color:#fff">→</span></a>
+        </div>
+      </nav>
+      <button data-hamburger onClick="{{ toggleMenu }}" aria-label="Open menu" aria-expanded="{{ menuOpen }}" style="display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:transparent;cursor:pointer;padding:0;position:relative;flex:none">
+        <span style="{{ barTopStyle }}"></span>
+        <span style="{{ barBotStyle }}"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ MOBILE MENU ============ -->
+  <div data-mobilemenu style="{{ mobileMenuStyle }}">
+    <div style="display:flex;flex-direction:column;padding:6px 22px 24px">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 16px;margin-bottom:6px;border-bottom:1px solid var(--line)">
+        <button onClick="{{ pickLang }}" data-lang="en" style="{{ mpEN }}"><span style="font-size:16px;line-height:1">🇬🇧</span> English</button>
+        <button onClick="{{ pickLang }}" data-lang="de" style="{{ mpDE }}"><span style="font-size:16px;line-height:1">🇩🇪</span> Deutsch</button>
+        <button onClick="{{ pickLang }}" data-lang="ka" style="{{ mpKA }}"><span style="font-size:16px;line-height:1">🇬🇪</span> ქართული</button>
+        <button onClick="{{ pickLang }}" data-lang="ar" style="{{ mpAR }}"><span style="font-size:16px;line-height:1">🇸🇦</span> العربية</button>
+        <button onClick="{{ pickLang }}" data-lang="ru" style="{{ mpRU }}"><span style="font-size:16px;line-height:1">🇷🇺</span> Русский</button>
+      </div>
+      <a href="#how" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 2px;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)">How it works <span style="color:var(--faint)">→</span></a>
+      <a href="#languages" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 2px;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)">Languages <span style="color:var(--faint)">→</span></a>
+      <a href="#manager" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 2px;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)">Product <span style="color:var(--faint)">→</span></a>
+      <a href="#pricing" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 2px;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)">Pricing <span style="color:var(--faint)">→</span></a>
+      <a href="#faq" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:space-between;padding:16px 2px;font-size:18px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)">FAQs <span style="color:var(--faint)">→</span></a>
+      <a href="Book%20a%20Demo.dc.html" onClick="{{ closeMenu }}" data-cta style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:18px;background:var(--ink);color:#fff;font-size:17px;font-weight:600;text-decoration:none;padding:16px;border-radius:100px">Book a Free Demo <span data-arrow style="color:#fff">→</span></a>
+      <a href="#" target="_blank" rel="noopener" onClick="{{ closeMenu }}" style="display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-decoration:none;padding:16px;border-radius:100px;border:1px solid var(--line2)">See a live storefront <span data-arrow style="color:var(--ink)">→</span></a>
+    </div>
+  </div>
+
+  <!-- ============ HERO ============ -->
+  <section id="top" style="position:relative;padding:124px 32px 92px">
+    <!-- depth layers: accent glow + dot grid + frosted glass (decorative) -->
+    <div aria-hidden="true" data-r="herobg" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <!-- soft accent glow, top-right -->
+      <div style="position:absolute;top:-220px;right:-140px;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle at center, color-mix(in srgb, var(--acc) 7%, transparent), transparent 66%);filter:blur(26px)"></div>
+      <!-- faint secondary glow, top-left -->
+      <div style="position:absolute;top:-200px;left:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle at center, color-mix(in srgb, var(--acc) 3%, transparent), transparent 70%);filter:blur(32px)"></div>
+      <!-- techy line grid, concentrated top-right behind the product visual -->
+      <div style="position:absolute;inset:0;opacity:.55;background-image:linear-gradient(to right, color-mix(in srgb, var(--acc) 7%, transparent) 1px, transparent 1px),linear-gradient(to bottom, color-mix(in srgb, var(--acc) 7%, transparent) 1px, transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(72% 80% at 92% 6%, #000 0%, transparent 70%);mask-image:radial-gradient(72% 80% at 92% 6%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div data-r="hero" style="position:relative;z-index:1;max-width:1320px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center">
+      <div>
+        <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);box-shadow:0 6px 18px -12px rgba(17,17,20,.25);margin-bottom:26px">
+          <span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> Digital ordering for hospitality
+        </div>
+        <h1 data-reveal data-r="herotitle" style="font-size:clamp(46px,5.6vw,80px);font-weight:800;letter-spacing:-.03em;line-height:1.02;margin:0 0 26px;white-space:nowrap">Your menu.<br>Your customers.<br><span style="color:var(--acc)">Zero commission.</span></h1>
+        <p data-reveal style="font-size:20px;line-height:1.5;color:var(--soft);font-weight:500;max-width:520px;margin:0 0 34px">Dinelabs turns a QR code into an app-quality storefront guests open straight from the browser — no download, no commission, no waiting. You keep the customer and every cent.</p>
+        <div data-reveal style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <a href="Book%20a%20Demo.dc.html" data-cta style="display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#fff;font-size:17px;font-weight:600;text-decoration:none;padding:16px 28px;border-radius:100px;transition:transform .25s,box-shadow .25s" style-hover="transform:translateY(-2px);box-shadow:0 16px 34px -14px rgba(17,17,20,.5)">Get a free month <span data-arrow style="color:#fff">→</span></a>
+          <a href="#" target="_blank" rel="noopener" data-cta style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);font-size:17px;font-weight:600;text-decoration:none;padding:15px 27px;border-radius:100px;border:1px solid var(--line2);transition:transform .25s,box-shadow .25s,border-color .25s" style-hover="transform:translateY(-2px);box-shadow:0 16px 34px -16px rgba(17,17,20,.2);border-color:var(--ink)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9h18"/><path d="M9 14h6"/></svg>
+            See a live storefront <span data-arrow style="color:var(--ink)">→</span>
+          </a>
+        </div>
+      </div>
+      <div data-reveal data-reveal-from="right" data-r="herovisual" style="position:relative;aspect-ratio:16/9;width:100%">
+        <button onClick="{{ openVideo }}" aria-label="Play Dinelabs explainer video" style="position:absolute;inset:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;padding:0;cursor:pointer;background:linear-gradient(135deg,#1a1a1f 0%,#2a2a32 55%,#3a2820 100%);box-shadow:0 40px 80px -36px rgba(17,17,20,.5),0 12px 28px -14px rgba(17,17,20,.18)" style-hover="transform:translateY(-2px)">
+          <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 55%),radial-gradient(circle at 82% 78%, rgba(255,255,255,.06), transparent 60%);pointer-events:none"></div>
+          <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(to right, rgba(255,255,255,.04) 1px, transparent 1px),linear-gradient(to bottom, rgba(255,255,255,.04) 1px, transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(60% 60% at 50% 50%, #000, transparent 75%);mask-image:radial-gradient(60% 60% at 50% 50%, #000, transparent 75%);pointer-events:none"></div>
+          <div style="position:absolute;top:18px;left:18px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:100px;padding:7px 13px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#fff"><span style="width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb, var(--acc) 25%, transparent)"></span> Watch · 1:42</div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:108px;height:108px;display:flex;align-items:center;justify-content:center">
+            <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.18);animation:videoPulse 2.4s ease-out infinite"></span>
+            <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.14);animation:videoPulse 2.4s ease-out infinite;animation-delay:1.2s"></span>
+            <span style="position:relative;width:84px;height:84px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 22px 44px -16px rgba(0,0,0,.55)">
+              <svg viewBox="0 0 24 24" width="30" height="30" fill="var(--ink)" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOGO / TRUST STRIP ============ -->
+  <section style="padding:0 32px 40px">
+    <div data-reveal data-r="trust" style="max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--faint);font-size:14px;font-weight:600">
+      <span>Now onboarding restaurants in</span>
+      <div style="display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center">
+        <span style="display:inline-flex;align-items:center;gap:7px;color:var(--ink)">🇩🇪 Germany</span><span style="opacity:.4">·</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;color:var(--ink)">🇬🇪 Georgia</span><span style="opacity:.4">·</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;color:var(--ink)">🇱🇧 Lebanon</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROBLEM ============ -->
+  <section style="position:relative;padding:96px 32px;background:var(--paper)">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;right:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div style="position:relative;z-index:1;max-width:1320px;margin:0 auto">
+      <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> The problem</div>
+      <h2 data-reveal style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 14px;max-width:760px">Ordering today is slow, costly, and out of your hands</h2>
+      <p data-reveal style="font-size:19px;color:var(--soft);font-weight:500;line-height:1.5;max-width:620px;margin:0 0 46px">Four frictions quietly drain margin from every table you serve.</p>
+      <div data-r="grid4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:32px 28px 0;display:flex;flex-direction:column;overflow:hidden;min-height:340px">
+          <h3 style="font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Static menus</h3>
+          <p style="font-size:15px;color:var(--soft);line-height:1.45;margin:0">Every new price or dish means a reprint — outdated the day it lands.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)">
+            <div style="position:absolute;left:14%;right:14%;top:18px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 40px -26px rgba(17,17,20,.3);padding:16px 18px;transform:rotate(-3deg)">
+              <div style="font-size:13px;font-weight:800;letter-spacing:.14em;text-align:center;margin-bottom:10px">MENU</div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--soft);padding:5px 0;border-bottom:1px dotted var(--line2)"><span>Margherita</span><span>$12</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--soft);padding:5px 0;border-bottom:1px dotted var(--line2)"><span>Pepperoni</span><span style="text-decoration:line-through;color:var(--faint)">$14</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--soft);padding:5px 0"><span>Calzone</span><span>$15</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:32px 28px 0;display:flex;flex-direction:column;overflow:hidden;min-height:340px">
+          <h3 style="font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Manual ordering</h3>
+          <p style="font-size:15px;color:var(--soft);line-height:1.45;margin:0">At rush hour, every guest waits for a free server before ordering a thing.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)">
+            <div style="position:absolute;left:8%;right:8%;top:14px;display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;box-shadow:0 16px 30px -24px rgba(17,17,20,.3)"><div style="width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">2</div><div style="flex:1;height:6px;background:#ececef;border-radius:4px;overflow:hidden"><div style="height:100%;width:82%;background:var(--ink)"></div></div><div style="font-family:monospace;font-size:13px;font-weight:700">8:42</div></div>
+              <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;box-shadow:0 16px 30px -24px rgba(17,17,20,.3)"><div style="width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">5</div><div style="flex:1;height:6px;background:#ececef;border-radius:4px;overflow:hidden"><div style="height:100%;width:60%;background:var(--ink)"></div></div><div style="font-family:monospace;font-size:13px;font-weight:700">5:18</div></div>
+              <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;box-shadow:0 16px 30px -24px rgba(17,17,20,.3)"><div style="width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">7</div><div style="flex:1;height:6px;background:#ececef;border-radius:4px;overflow:hidden"><div style="height:100%;width:38%;background:var(--ink)"></div></div><div style="font-family:monospace;font-size:13px;font-weight:700">3:07</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:32px 28px 0;display:flex;flex-direction:column;overflow:hidden;min-height:340px">
+          <h3 style="font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Lost in translation</h3>
+          <p style="font-size:15px;color:var(--soft);line-height:1.45;margin:0">Guests and kitchen don't share a language, so orders get garbled.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)">
+            <div style="padding:22px 8px 0">
+              <div style="max-width:82%;padding:12px 15px;font-size:15px;font-weight:600;border-radius:16px;margin-bottom:12px;background:#ececef;border-bottom-left-radius:5px">Sans oignons, bien cuit</div>
+              <div style="max-width:82%;padding:12px 15px;font-size:15px;font-weight:600;border-radius:16px;margin-left:auto;background:var(--ink);color:#fff;border-bottom-right-radius:5px">？ … 잘 모르겠어요</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:32px 28px 0;display:flex;flex-direction:column;overflow:hidden;min-height:340px">
+          <h3 style="font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">The platform tax</h3>
+          <p style="font-size:15px;color:var(--soft);line-height:1.45;margin:0">Delivery apps take up to 30% of every order — and keep your customer.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)">
+            <div style="position:absolute;left:0;right:0;top:8px;background:#fefefe;box-shadow:0 16px 30px -16px rgba(0,0,0,.28);padding:14px 16px 20px;font-family:monospace">
+              <div style="font-size:12px;font-weight:800;letter-spacing:.14em;text-align:center">★ DELIVERY CO ★</div>
+              <div style="font-size:10px;text-align:center;color:var(--faint);margin-bottom:8px;padding-bottom:7px;border-bottom:1px dashed var(--line2);letter-spacing:.06em">ORDER #4218 · 19:42</div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--soft);padding:4px 0"><span>2× Pizza</span><span>$24.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--soft);padding:4px 0"><span>Garlic bread</span><span>$6.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:17px;font-weight:800;color:var(--ink);padding-top:6px">
+                <span>Platform fee</span><span style="color:var(--acc)">−30%</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how" style="position:relative;padding:108px 32px">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;left:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 8% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 8% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div style="position:relative;z-index:1;max-width:1320px;margin:0 auto">
+      <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> How it works</div>
+      <h2 data-reveal style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 14px;max-width:760px">From table to kitchen</h2>
+      <p data-reveal style="font-size:19px;color:var(--soft);font-weight:500;line-height:1.5;max-width:680px;margin:0 0 52px">No staff in the loop, no waiting — guests run the whole order themselves. Built to feel like a native app, with nothing to download.</p>
+      <div data-r="grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:36px 34px 0;display:flex;flex-direction:column;overflow:hidden;min-height:380px;transition:transform .3s,box-shadow .3s" style-hover="transform:translateY(-4px);box-shadow:0 36px 60px -34px rgba(17,17,20,.3)">
+          <div style="font-size:14px;font-weight:800;color:var(--acc);letter-spacing:.06em;margin-bottom:18px">STEP 01</div>
+          <h3 style="font-size:28px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Scan</h3>
+          <p style="font-size:16px;color:var(--soft);line-height:1.5;margin:0">A guest scans the QR on the table. The storefront opens instantly — no app, no install.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)">
+            <div data-qr data-seed="11" style="position:absolute;left:50%;top:18px;transform:translateX(-50%) rotate(-4deg);width:140px;height:140px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 40px -22px rgba(17,17,20,.35);padding:14px"></div>
+          </div>
+        </div>
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:36px 34px 0;display:flex;flex-direction:column;overflow:hidden;min-height:380px;transition:transform .3s,box-shadow .3s" style-hover="transform:translateY(-4px);box-shadow:0 36px 60px -34px rgba(17,17,20,.3)">
+          <div style="font-size:14px;font-weight:800;color:var(--acc);letter-spacing:.06em;margin-bottom:18px">STEP 02</div>
+          <h3 style="font-size:28px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Browse</h3>
+          <p style="font-size:16px;color:var(--soft);line-height:1.5;margin:0">A photo-rich, interactive menu with categories, modifiers and live availability.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)">
+            <div style="position:absolute;left:12%;right:12%;top:14px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 40px -24px rgba(17,17,20,.3);padding:14px 16px;transform:rotate(-2deg);display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#dcdce1,#bcbcc4)"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:8px;border-radius:4px;background:#dededf"></div><div style="height:8px;width:58%;border-radius:4px;background:#ececef"></div></div></div>
+              <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#c6c6cd,#9c9ca4)"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:8px;border-radius:4px;background:#dededf"></div><div style="height:8px;width:58%;border-radius:4px;background:#ececef"></div></div></div>
+              <div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#d2d2d8,#aaaab2)"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="height:8px;border-radius:4px;background:#dededf"></div><div style="height:8px;width:58%;border-radius:4px;background:#ececef"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 48px -34px rgba(17,17,20,.2);padding:36px 34px 0;display:flex;flex-direction:column;overflow:hidden;min-height:380px;transition:transform .3s,box-shadow .3s" style-hover="transform:translateY(-4px);box-shadow:0 36px 60px -34px rgba(17,17,20,.3)">
+          <div style="font-size:14px;font-weight:800;color:var(--acc);letter-spacing:.06em;margin-bottom:18px">STEP 03</div>
+          <h3 style="font-size:28px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px">Order</h3>
+          <p style="font-size:16px;color:var(--soft);line-height:1.5;margin:0">Orders go straight to the kitchen — accurate, time-stamped, in the kitchen's language.</p>
+          <div style="margin-top:auto;position:relative;height:170px;-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent);mask-image:linear-gradient(to bottom,#000 72%,transparent)">
+            <div style="position:absolute;left:14%;right:14%;top:14px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 40px -24px rgba(17,17,20,.3);padding:15px 17px;transform:rotate(2deg);font-family:monospace">
+              <div style="font-size:12px;font-weight:800;letter-spacing:.14em;text-align:center;margin-bottom:9px;padding-bottom:8px;border-bottom:1px dashed var(--line2)">KITCHEN · 19:42</div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--soft);padding:3px 0"><span>2× Margherita</span><b style="color:var(--ink)">fire</b></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--soft);padding:3px 0"><span>1× Calzone</span><b style="color:var(--ink)">fire</b></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--soft);padding:3px 0"><span>+ no onion</span><b style="color:var(--acc)">note</b></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRANSLATION (dark) ============ -->
+  <section id="languages" style="padding:104px 32px;background-color:#0a0a0c;background-image:radial-gradient(120% 70% at 82% -10%,rgba(31,138,91,.16),transparent 58%),radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:auto,26px 26px;color:#fff">
+    <div style="max-width:1320px;margin:0 auto">
+      <div data-reveal style="display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#e2e2e6;margin-bottom:22px"><span style="color:#1f8a5b;width:7px;height:7px;border-radius:50%;background:#1f8a5b;animation:labelDotPulse 2s ease-out infinite"></span> Built-in translation</div>
+      <h2 data-reveal style="font-size:clamp(30px,3.8vw,46px);font-weight:700;letter-spacing:-.025em;line-height:1.08;margin:0 0 16px;max-width:880px">Every guest orders in their language.<br>The kitchen reads it in theirs.</h2>
+      <p data-reveal style="font-size:19px;color:#b8b8bf;font-weight:500;line-height:1.5;max-width:820px;margin:0 0 48px">High-end translation runs across the whole menu — including free-text order notes. A guest orders in French; your kitchen receives the ticket, and the special requests, in whatever language they work in.</p>
+      <div data-reveal data-r="langtrack-wrap" style="display:flex;justify-content:center;margin:0 auto 28px">
+        <div data-r="langtrack" style="position:relative;display:inline-flex;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:6px;width:100%;max-width:560px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)">
+          <span style="{{ langIndicatorStyle }}"></span>
+          <sc-for list="{{ langButtons }}" as="lb" hint-placeholder-count="4">
+            <button onClick="{{ lb.pick }}" style="{{ lb.buttonStyle }}"><span style="font-size:16px;line-height:1">{{ lb.flag }}</span><span>{{ lb.name }}</span></button>
+          </sc-for>
+        </div>
+      </div>
+      <div data-r="trio" data-reveal style="display:flex;align-items:stretch;gap:24px;max-width:1100px;margin:0 auto">
+
+        <!-- LEFT card · guest taps -->
+        <div style="flex:1;min-width:0;background:#fff;color:var(--ink);border-radius:22px;box-shadow:0 30px 80px -40px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 24px 16px;border-bottom:1px solid var(--line)">
+            <div style="font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)">What the guest taps</div>
+            <span style="background:var(--paper);border-radius:100px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--ink);display:inline-flex;gap:7px;align-items:center;flex:none;white-space:nowrap"><span style="font-size:14px;line-height:1">{{ srcFlag }}</span><span>{{ srcLangName }}</span></span>
+          </div>
+          <div data-src-body style="padding:6px 24px 22px;flex:1">
+            <sc-for list="{{ srcLines }}" as="line" hint-placeholder-count="3">
+              <div data-rrow style="display:flex;align-items:baseline;gap:8px;padding:18px 0;border-bottom:1px solid var(--line);font-size:17px;letter-spacing:-.005em">
+                <span style="color:var(--faint);font-weight:600;min-width:24px">{{ line.qty }}</span>
+                <span style="font-weight:700">{{ line.t }}</span>
+              </div>
+            </sc-for>
+            <div data-rrow style="display:flex;align-items:center;gap:11px;padding:20px 0 4px;font-size:16px">
+              <span style="font-size:18px;line-height:1;flex:none">📝</span>
+              <span style="font-weight:700">{{ srcNote }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER · auto-translate arrow -->
+        <div style="flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;align-self:center;padding:0 4px">
+          <div style="position:relative;width:64px;height:64px;display:flex;align-items:center;justify-content:center">
+            <span style="position:absolute;inset:6px;border-radius:50%;background:rgba(255,255,255,.1);animation:translatePulse 2.4s ease-out infinite"></span>
+            <span style="position:absolute;inset:6px;border-radius:50%;background:rgba(255,255,255,.14);animation:translatePulse 2.4s ease-out infinite;animation-delay:.9s"></span>
+            <span style="position:relative;width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 32px -8px rgba(0,0,0,.45)">
+              <span style="display:inline-flex;animation:translateBob 2.4s ease-in-out infinite">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#111114" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+            </span>
+          </div>
+          <div style="font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#9a9aa1;text-align:center;line-height:1.3">Auto<br>Translate</div>
+        </div>
+
+        <!-- RIGHT card · kitchen reads -->
+        <div style="flex:1;min-width:0;background:#fff;color:var(--ink);border-radius:22px;box-shadow:0 30px 80px -40px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 24px 16px;border-bottom:1px solid var(--line)">
+            <div style="font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)">What the kitchen reads</div>
+            <span style="background:var(--paper);border-radius:100px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--ink);display:inline-flex;gap:7px;align-items:center;flex:none;white-space:nowrap"><span style="font-size:14px;line-height:1">{{ tgtFlag }}</span><span>{{ tgtLangName }}</span></span>
+          </div>
+          <div data-tgt-body style="padding:6px 24px 22px;flex:1">
+            <sc-for list="{{ tgtLines }}" as="line" hint-placeholder-count="3">
+              <div data-rrow style="display:flex;align-items:baseline;gap:8px;padding:18px 0;border-bottom:1px solid var(--line);font-size:17px;letter-spacing:-.005em">
+                <span style="color:var(--faint);font-weight:600;min-width:24px">{{ line.qty }}</span>
+                <span style="font-weight:700">{{ line.t }}</span>
+              </div>
+            </sc-for>
+            <div data-rrow style="display:flex;align-items:center;gap:11px;padding:20px 0 4px;font-size:16px">
+              <span style="font-size:18px;line-height:1;flex:none">📝</span>
+              <span style="font-weight:700">{{ tgtNote }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <p data-reveal style="text-align:center;font-size:15px;color:#8a8a90;font-weight:600;margin:32px 0 0">Auto-detected, translated both ways — 25+ languages, including order notes.</p>
+    </div>
+  </section>
+
+  <!-- ============ KEEP 100% REVENUE ============ -->
+  <section id="revenue" style="position:relative;padding:104px 32px">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;right:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div data-r="econgrid" style="position:relative;z-index:1;max-width:1320px;margin:0 auto;display:grid;grid-template-columns:.95fr 1.05fr;gap:64px;align-items:center">
+      <div>
+        <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> The economics</div>
+        <h2 data-reveal style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 14px">Keep <span style="color:var(--acc)">100%</span> of your revenue</h2>
+        <p data-reveal style="font-size:18px;color:var(--soft);font-weight:500;line-height:1.5;margin:0 0 28px">Guests order directly from you. No marketplace skims a fee off every plate — and no one stands between you and your customer.</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div data-reveal style="display:flex;gap:13px;align-items:center"><span style="width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span><span style="font-size:16px;font-weight:600">0% commission, ever</span></div>
+          <div data-reveal style="display:flex;gap:13px;align-items:center"><span style="width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span><span style="font-size:16px;font-weight:600">Flat monthly subscription</span></div>
+          <div data-reveal style="display:flex;gap:13px;align-items:center"><span style="width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span><span style="font-size:16px;font-weight:600">You own the guest relationship &amp; data</span></div>
+          <div data-reveal style="display:flex;gap:13px;align-items:center"><span style="width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span><span style="font-size:16px;font-weight:600">Payouts settle straight to your account</span></div>
+        </div>
+      </div>
+      <!-- Live savings calculator -->
+      <div data-r="calc" data-reveal style="background:#fff;border:1px solid var(--line);border-radius:24px;padding:32px;box-shadow:0 30px 60px -40px rgba(17,17,20,.18);display:flex;flex-direction:column;gap:24px">
+        <div>
+          <div style="font-size:11.5px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:14px">Live savings calculator</div>
+          <div style="margin-bottom:26px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px">
+              <label style="font-size:15px;font-weight:600;color:var(--ink)">Orders per day</label>
+              <div style="font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums">{{ calcOrders }}</div>
+            </div>
+            <input type="range" min="20" max="500" step="5" value="{{ calcOrders }}" onChange="{{ setCalcOrders }}" onInput="{{ setCalcOrders }}" class="dl-range" style="--fill:{{ sliderFillPct }}" aria-label="Orders per day">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--faint);font-weight:600;margin-top:2px"><span>20</span><span>500</span></div>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:10px">Their commission rate</div>
+            <div style="display:flex;gap:10px">
+              <button onClick="{{ pickPct25 }}" style="{{ pct25Style }}">25%</button>
+              <button onClick="{{ pickPct30 }}" style="{{ pct30Style }}">30%</button>
+              <button onClick="{{ pickPct35 }}" style="{{ pct35Style }}">35%</button>
+            </div>
+            <div style="font-size:13px;color:var(--faint);font-weight:500;margin-top:14px">Avg order value · <span style="color:var(--ink);font-weight:700">$25</span></div>
+          </div>
+        </div>
+        <div style="background:color-mix(in srgb,var(--acc) 8%,#fff);border:1px solid color-mix(in srgb,var(--acc) 25%,transparent);color:var(--ink);border-radius:16px;padding:24px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-60%;right:-30%;width:120%;height:160%;background:radial-gradient(circle,color-mix(in srgb,var(--acc) 18%,transparent),transparent 60%);filter:blur(28px);pointer-events:none"></div>
+          <div style="position:relative">
+            <div style="font-size:11.5px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:8px">You save with Dinelabs</div>
+            <div style="font-size:clamp(36px,4.4vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1;animation:saveCount .4s ease-out;color:var(--ink)">{{ calcDaily }}<span style="font-size:.42em;font-weight:700;color:var(--soft);margin-left:6px">/ day</span></div>
+            <div style="font-size:13px;color:var(--soft);font-weight:500;margin-top:8px">{{ calcBreakdown }}</div>
+            <div style="height:1px;background:color-mix(in srgb,var(--acc) 25%,transparent);margin:18px 0"></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+              <span style="font-size:13px;color:var(--soft);font-weight:500">Monthly</span>
+              <span style="font-size:22px;font-weight:800;letter-spacing:-.02em;animation:saveCount .4s ease-out;color:var(--ink)">{{ calcMonthly }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUILT TO UPSELL ============ -->
+  <section style="position:relative;padding:104px 32px">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;right:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div data-r="split" style="position:relative;z-index:1;max-width:1320px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center">
+      <div>
+        <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> Higher order value</div>
+        <h2 data-reveal style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 18px">Built to upsell — automatically</h2>
+        <p data-reveal style="font-size:19px;color:var(--soft);font-weight:500;line-height:1.5;max-width:560px;margin:0 0 36px">A built-in modifiers and add-ons framework surfaces the right upgrade at the right moment: extra toppings, sides, pairings, premium swaps. Average order value climbs without a single extra word from your staff.</p>
+        <div style="display:flex;flex-direction:column;gap:16px;max-width:560px">
+          <div data-reveal style="display:flex;gap:15px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg></div><span style="font-size:18px;font-weight:600">Add-ons attach to any item in one tap</span></div>
+          <div data-reveal style="display:flex;gap:15px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 17l6-6 4 4 7-8"/></svg></div><span style="font-size:18px;font-weight:600">Suggested pairings appear at checkout</span><span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:rgba(17,17,20,.08);border-radius:100px;padding:4px 10px;margin-left:10px;white-space:nowrap">Coming soon</span></div>
+          <div data-reveal style="display:flex;gap:15px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 4h16v5H4zM4 13h16v7H4z"/></svg></div><span style="font-size:18px;font-weight:600">You set the rules from the portal</span></div>
+        </div>
+      </div>
+      <div data-reveal style="position:relative;display:flex;justify-content:center;align-items:center;min-height:560px">
+        <!-- Phone -->
+        <div style="position:relative;width:248px;height:516px;border-radius:40px;background:#111114;padding:10px;box-shadow:0 50px 90px -36px rgba(17,17,20,.45);margin-left:60px">
+          <div style="position:absolute;top:22px;left:50%;transform:translateX(-50%);width:80px;height:21px;background:#111114;border-radius:12px;z-index:5"></div>
+          <div style="width:100%;height:100%;border-radius:30px;overflow:hidden;background:#f8f8fa"><img src="assets/menu-item-pancakes.png" alt="Marina Mini Pancakes item detail with add-ons" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block"></div>
+        </div>
+        <!-- Floating card -->
+        <div data-floatcard style="position:absolute;left:-48px;bottom:48px;width:260px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 60px -24px rgba(17,17,20,.22);padding:6px 18px 6px;animation:cardFloat 5.5s ease-in-out infinite;will-change:transform">
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)">
+            <div style="width:46px;height:46px;border-radius:13px;background:var(--paper);display:flex;align-items:center;justify-content:center;flex:none">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding-top:2px">
+              <b style="font-size:15px;font-weight:700;letter-spacing:-.01em">Choose size</b>
+              <span style="font-size:13px;color:var(--faint);font-weight:500">Small · Medium · Large</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)">
+            <div style="width:46px;height:46px;border-radius:13px;background:var(--paper);display:flex;align-items:center;justify-content:center;flex:none">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding-top:2px">
+              <b style="font-size:15px;font-weight:700;letter-spacing:-.01em">Remove ingredients</b>
+              <span style="font-size:13px;color:var(--faint);font-weight:500">Onions, peppers…</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 0">
+            <div style="width:46px;height:46px;border-radius:13px;background:var(--paper);display:flex;align-items:center;justify-content:center;flex:none">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;padding-top:2px">
+              <b style="font-size:15px;font-weight:700;letter-spacing:-.01em">Extras &amp; add-ons</b>
+              <span style="font-size:13px;color:var(--faint);font-weight:500">Premium toppings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MANAGER PORTAL ============ -->
+  <section id="manager" style="position:relative;padding:104px 32px 0">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;left:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 8% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 8% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div style="position:relative;z-index:1;max-width:1320px;margin:0 auto">
+      <div style="margin-bottom:56px;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div data-reveal style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> The manager portal</div>
+        <h2 data-reveal data-r="mgrtitle" style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 18px;white-space:nowrap">Run the whole storefront yourself</h2>
+        <p data-reveal style="font-size:19px;color:var(--soft);font-weight:500;line-height:1.5;max-width:600px;margin:0 0 36px">Menu, prices, photos, hours, availability — every detail lives in one portal, with live sales on the dashboard. Hit save and changes go live in seconds.</p>
+        <div data-r="mgrbullets" style="display:flex;flex-direction:row;justify-content:center;gap:32px;flex-wrap:wrap;max-width:1100px">
+          <div data-reveal style="display:flex;gap:13px;align-items:center;text-align:left"><span style="width:38px;height:38px;border-radius:11px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><span style="font-size:16px;font-weight:600">Edit menu &amp; pricing</span></div>
+          <div data-reveal style="display:flex;gap:13px;align-items:center;text-align:left"><span style="width:38px;height:38px;border-radius:11px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span style="font-size:16px;font-weight:600">Track revenue live</span></div>
+          <div data-reveal style="display:flex;gap:13px;align-items:center;text-align:left"><span style="width:38px;height:38px;border-radius:11px;background:var(--paper);color:var(--ink);display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11M19 6h1M4 12h1M9 12h11M4 18h7M15 18h5"/><circle cx="17" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><circle cx="13" cy="18" r="2"/></svg></span><span style="font-size:16px;font-weight:600">Manage stock &amp; hours</span></div>
+        </div>
+      </div>
+<div data-reveal style="position:relative;border-radius:16px 16px 0 0;overflow:hidden;background:#fff;border:1px solid var(--line);border-bottom:none">
+        <div style="display:flex;align-items:center;gap:7px;padding:13px 18px;background:#f0f0f2;border-bottom:1px solid var(--line)"><span style="width:11px;height:11px;border-radius:50%;background:#cfcfd4"></span><span style="width:11px;height:11px;border-radius:50%;background:#cfcfd4"></span><span style="width:11px;height:11px;border-radius:50%;background:#cfcfd4"></span><span style="margin-left:12px;font-size:13px;font-weight:600;color:var(--soft)">manager.dinelabs.co/live-orders</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:#1f8a5b;letter-spacing:.05em"><span data-livedot style="width:9px;height:9px;border-radius:50%;background:#1f8a5b;animation:livePulse 2s infinite"></span>LIVE</span></div>
+        <div style="max-height:500px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,#000 56%,transparent);mask-image:linear-gradient(to bottom,#000 56%,transparent)"><img src="assets/manager-live-orders-board.png" alt="Dinelabs live orders board" style="display:block;width:100%;height:auto"></div>
+        <div data-toast style="position:absolute;bottom:18px;left:50%;transform:translate(-50%,28px) scale(.96);width:246px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 42px -20px rgba(17,17,20,.32);padding:9px 12px;display:flex;align-items:center;gap:10px;opacity:0">
+          <span data-toast-icon style="width:32px;height:32px;border-radius:9px;background:#1f8a5b;color:#fff;display:flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M20 2c-1.6 0-2.6 1.8-2.6 4.5S18.4 11 20 11M17.4 11v11"/></svg></span>
+          <div style="flex:1;min-width:0">
+            <div data-toast-id style="font-size:13px;font-weight:800;letter-spacing:-.01em">New order #1278</div>
+            <div data-toast-meta style="font-size:11.5px;color:var(--faint);font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Table 12 · just now</div>
+          </div>
+          <span data-toast-price style="font-size:14px;font-weight:800;flex:none">$50.20</span>
+        </div>
+      </div>
+
+      <!-- Storefront phone, in front of the dashboard -->
+      <div data-mgr-phone data-reveal style="position:absolute;right:40px;bottom:-56px;z-index:4;width:264px;height:548px;border-radius:42px;background:#111114;padding:11px;box-shadow:0 60px 100px -38px rgba(17,17,20,.5),0 0 0 1px rgba(17,17,20,.06)">
+        <div style="position:absolute;top:24px;left:50%;transform:translateX(-50%);width:84px;height:22px;background:#111114;border-radius:12px;z-index:5"></div>
+        <div style="width:100%;height:100%;border-radius:32px;overflow:hidden;background:#fff"><img src="assets/storefront-phone.png" alt="Pizza Hut storefront on a phone" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section id="faq" style="position:relative;padding:104px 32px;background:var(--paper)">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-220px;right:-160px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 68%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%);mask-image:radial-gradient(80% 86% at 92% 4%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div style="position:relative;z-index:1;max-width:880px;margin:0 auto">
+      <div data-reveal style="display:flex;flex-direction:column;align-items:center;text-align:center;margin:0 auto 44px">
+        <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> Common questions</div>
+        <h2 style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0">Everything we get asked</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq0 }}" aria-expanded="{{ faq0Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">Is it really commission-free — what's the catch?</span>
+            <span style="{{ faq0IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq0Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">Yes — one flat monthly fee and you keep 100% of every order. We never take a percentage, and there’s no per-order or hidden “success” fee. The only extra is your payment processor’s standard card fee, which goes to them, not to us.</div>
+          </div>
+        </div>
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq1 }}" aria-expanded="{{ faq1Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">Do I need to change my POS or buy new hardware?</span>
+            <span style="{{ faq1IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq1Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">No. Dinelabs runs in any browser, so you keep your current POS, tablets and printers. Orders fire straight to your existing thermal printer or kitchen screen — nothing to rip out, nothing new to buy.</div>
+          </div>
+        </div>
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq2 }}" aria-expanded="{{ faq2Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">How fast can I go live?</span>
+            <span style="{{ faq2IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq2Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">Most venues are live the same day. We build your storefront with you on the demo call — menu, photos, branding and QR codes — usually in about 30 minutes, and any edit after that goes live in seconds.</div>
+          </div>
+        </div>
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq3 }}" aria-expanded="{{ faq3Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">What about delivery — who actually delivers?</span>
+            <span style="{{ faq3IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq3Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">You stay in control. Dinelabs takes the order and sends it to your kitchen; you deliver with your own drivers or your existing delivery partner. Either way the guest orders from you — not a third-party app — so you keep the margin and the relationship.</div>
+          </div>
+        </div>
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq4 }}" aria-expanded="{{ faq4Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">Can I cancel anytime, or am I locked in?</span>
+            <span style="{{ faq4IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq4Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">No lock-in. It’s month to month — cancel anytime from the portal and you won’t be charged again. Your menu and customer data stay yours; export them whenever you like.</div>
+          </div>
+        </div>
+        <div data-faq-card data-reveal>
+          <button onClick="{{ toggleFaq5 }}" aria-expanded="{{ faq5Open }}" style="width:100%;border:none;background:transparent;cursor:pointer;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;font:inherit">
+            <span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.005em">Do you support my language and currency?</span>
+            <span style="{{ faq5IconStyle }}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+          </button>
+          <div data-faq-body data-open="{{ faq5Open }}">
+            <div style="padding:0 26px 24px;font-size:15.5px;color:var(--soft);line-height:1.55">Yes. Guests order in their own language and your kitchen reads it in yours — 25+ languages, including free-text notes. Prices show in your local currency (LBP, GEL, EUR and more), and your whole menu can run multilingual.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICING ============ -->
+  <section id="pricing" style="position:relative;padding:108px 32px">
+    <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0">
+      <div style="position:absolute;top:-260px;left:50%;transform:translateX(-50%);width:820px;height:600px;border-radius:50%;background:radial-gradient(circle, color-mix(in srgb, var(--acc) 5%, transparent), transparent 66%);filter:blur(28px)"></div>
+      <div style="position:absolute;inset:0;background-image:radial-gradient(color-mix(in srgb, var(--acc) 20%, transparent) 1px, transparent 1.5px);background-size:24px 24px;-webkit-mask-image:radial-gradient(72% 78% at 50% 0%, #000 0%, transparent 70%);mask-image:radial-gradient(72% 78% at 50% 0%, #000 0%, transparent 70%)"></div>
+    </div>
+    <div style="position:relative;z-index:1;max-width:1320px;margin:0 auto">
+      <div data-reveal style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:54px">
+        <div style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:100px;padding:7px 15px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:22px"><span style="color:var(--acc);width:8px;height:8px;border-radius:50%;background:var(--acc);animation:labelDotPulse 2s ease-out infinite"></span> Pricing</div>
+        <h2 style="font-size:clamp(32px,4.2vw,50px);font-weight:700;letter-spacing:-.025em;line-height:1.05;margin:0 0 14px">Simple, flat pricing</h2>
+        <p style="font-size:19px;color:var(--soft);font-weight:500;line-height:1.5;max-width:600px;margin:0">One predictable monthly fee — no commission, no per-order cut. <span data-freemonth style="color:var(--ink);font-weight:700">First month free for new restaurants.</span></p>
+      </div>
+      <div data-r="pricing" data-reveal-stagger="280" style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;align-items:start;max-width:940px;margin:0 auto">
+
+        <div data-reveal style="background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 48px -36px rgba(17,17,20,.2);padding:40px 36px;display:flex;flex-direction:column;transition:transform .3s,box-shadow .3s" style-hover="transform:translateY(-4px);box-shadow:0 40px 70px -40px rgba(17,17,20,.3)">
+          <div style="font-size:24px;font-weight:800;letter-spacing:-.01em">Café</div>
+          <div style="font-size:16px;color:var(--faint);margin-top:4px">Food trucks &amp; small cafés</div>
+          <div style="font-size:64px;font-weight:800;letter-spacing:-.03em;margin-top:22px;line-height:1"><span style="font-size:34px;font-weight:700;vertical-align:super;margin-right:2px">$</span>27<span style="font-size:18px;font-weight:600;color:var(--faint);letter-spacing:0"> /month</span></div>
+          <div style="height:1px;background:var(--line);margin:26px 0"></div>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px">
+            <li style="font-size:16px;font-weight:500;color:var(--soft);padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--paper);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Unlimited orders &amp; categories</li>
+            <li style="font-size:16px;font-weight:500;color:var(--soft);padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--paper);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Up to 50 products · 2 languages</li>
+            <li style="font-size:16px;font-weight:500;color:var(--soft);padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--paper);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Dine-in, pick-up &amp; delivery</li>
+            <li style="font-size:16px;font-weight:500;color:var(--soft);padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--paper);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>6 tables included · $0.60 each extra</li>
+            <li style="font-size:16px;font-weight:500;color:var(--soft);padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:var(--paper);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>0% commission, always</li>
+          </ul>
+          <a href="Book%20a%20Demo.dc.html" style="margin-top:auto;padding-top:28px;font-size:17px;font-weight:700;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:8px">Start with Café <span style="color:var(--acc)">→</span></a>
+        </div>
+
+        <div data-reveal style="background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:22px;box-shadow:0 40px 70px -38px rgba(17,17,20,.5);padding:40px 36px;display:flex;flex-direction:column;position:relative;transition:transform .3s" style-hover="transform:translateY(-6px)">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:24px;font-weight:800;letter-spacing:-.01em">Restaurant</div><div style="background:#fff;color:var(--ink);border-radius:100px;padding:5px 13px;font-size:12.5px;font-weight:700">Most popular</div></div>
+          <div style="font-size:16px;color:#b8b8bf;margin-top:4px">Full-service restaurants</div>
+          <div style="font-size:64px;font-weight:800;letter-spacing:-.03em;margin-top:22px;line-height:1"><span style="font-size:34px;font-weight:700;vertical-align:super;margin-right:2px">$</span>37<span style="font-size:18px;font-weight:600;color:#b8b8bf;letter-spacing:0"> /month</span></div>
+          <div style="height:1px;background:rgba(255,255,255,.16);margin:26px 0"></div>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px">
+            <li style="font-size:16px;font-weight:500;color:#dcdce0;padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Everything in Café, unlimited</li>
+            <li style="font-size:16px;font-weight:500;color:#dcdce0;padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Unlimited products &amp; menu languages</li>
+            <li style="font-size:16px;font-weight:500;color:#dcdce0;padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Modifiers, add-ons &amp; upsell rules</li>
+            <li style="font-size:16px;font-weight:500;color:#dcdce0;padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>Built-in menu &amp; order translation</li>
+            <li style="font-size:16px;font-weight:500;color:#dcdce0;padding-left:30px;position:relative;line-height:1.35"><span style="position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">✓</span>20 tables included · $0.40 each extra</li>
+          </ul>
+          <a href="Book%20a%20Demo.dc.html" style="margin-top:auto;padding-top:28px;font-size:17px;font-weight:700;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:8px">Start with Restaurant <span style="color:#fff">→</span></a>
+        </div>
+
+      </div>
+      <div data-reveal style="max-width:940px;margin:32px auto 0;border:1px solid var(--line);border-radius:18px;background:#fff;padding:20px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <span style="font-size:15.5px;color:var(--soft);font-weight:500;line-height:1.4">Running a <b style="color:var(--ink);font-weight:700">hotel, multi-outlet venue or chain</b>? Let’s talk about custom pricing.</span>
+        <a href="Book%20a%20Demo.dc.html" style="font-size:15px;font-weight:700;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:7px;flex:none">Get in touch <span style="color:var(--acc)">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA (dark) ============ -->
+  <section id="demo" style="padding:112px 32px;background-color:#0a0a0c;background-image:radial-gradient(130% 80% at 50% -20%,rgba(31,138,91,.18),transparent 60%),radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:auto,26px 26px;color:#fff">
+    <div style="max-width:1320px;margin:0 auto">
+      <div style="max-width:880px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center">
+        <div data-reveal data-freemonth style="display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--ink);border-radius:100px;padding:8px 16px;font-size:14px;font-weight:700;margin-bottom:26px">★ First month free for new restaurants</div>
+        <h2 data-reveal style="font-size:clamp(40px,5.6vw,72px);font-weight:800;letter-spacing:-.03em;line-height:1.0;margin:0 0 22px">Stand up your storefront<br>on a 30-minute call.</h2>
+        <p data-reveal style="font-size:20px;color:#b8b8bf;font-weight:500;line-height:1.5;max-width:640px;margin:0 0 44px">Book a demo and we’ll build your menu, your branding and your QR codes live while we talk. By the end of it you can scan and order from your first table.</p>
+        <div data-reveal style="display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap">
+          <a href="Book%20a%20Demo.dc.html" style="display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);font-size:18px;font-weight:700;text-decoration:none;padding:18px 34px;border-radius:100px;transition:transform .25s,box-shadow .25s" style-hover="transform:translateY(-2px);box-shadow:0 18px 40px -16px rgba(255,255,255,.3)">Book a free demo <span style="color:var(--acc)">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="padding:56px 32px;background:#0a0a0c;color:#8a8a90">
+    <div style="max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+        <img src="assets/dinelabs-logo.svg" alt="Dinelabs" style="height:22px;display:block;filter:brightness(0) invert(1)">
+        <span style="font-size:13px;font-weight:600">Digital ordering for hospitality</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:28px;font-size:14px;font-weight:600">
+        <a href="#how" style="color:#8a8a90;text-decoration:none" style-hover="color:#fff">How it works</a>
+        <a href="#pricing" style="color:#8a8a90;text-decoration:none" style-hover="color:#fff">Pricing</a>
+        <a href="Book%20a%20Demo.dc.html" style="color:#8a8a90;text-decoration:none" style-hover="color:#fff">Book a free demo</a>
+        <span style="color:#55555c">© 2026 Dinelabs</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ VIDEO MODAL ============ -->
+  <sc-if value="{{ videoOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeVideo }}" role="dialog" aria-modal="true" style="position:fixed;inset:0;z-index:90;background:rgba(10,10,12,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:center;padding:40px;animation:fadeIn .25s ease-out">
+      <button onClick="{{ closeVideo }}" aria-label="Close video" style="position:absolute;top:24px;right:24px;width:46px;height:46px;border:none;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .25s,transform .25s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)" style-hover="background:rgba(255,255,255,.22);transform:rotate(90deg)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+      </button>
+      <div onClick="{{ stopBubble }}" style="position:relative;width:100%;max-width:1080px;aspect-ratio:16/9;border-radius:20px;background:#0a0a0c;overflow:hidden;box-shadow:0 60px 140px -20px rgba(0,0,0,.6);animation:modalIn .4s cubic-bezier(.2,.7,.2,1)">
+        <div style="position:absolute;inset:0;background:radial-gradient(140% 90% at 50% 20%,#1c1c22,#0a0a0c 70%)"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#9a9aa1;text-align:center;padding:32px">
+          <div style="width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="36" height="36" fill="#fff" style="margin-left:3px"><path d="M8 5v14l11-7z"/></svg></div>
+          <div style="font-size:20px;color:#fff;font-weight:700;letter-spacing:-.01em">Video placeholder</div>
+          <div style="font-size:15px;font-weight:500;max-width:380px;line-height:1.45">Drop the Dinelabs explainer video here. Press Esc or click outside to close.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { pairIndex: 0, videoOpen: false, menuOpen: false, calcOrders: 150, calcPct: 30, faqOpen: [false, false, false, false, false, false], lang: 'en', langMenuOpen: false };
+
+  LANGS = [
+    { code: 'en', flag: '🇬🇧', name: 'English' },
+    { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+    { code: 'ka', flag: '🇬🇪', name: 'ქართული' },
+    { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+    { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+  ];
+  toggleFaq = (i) => this.setState(s => { const a = s.faqOpen.slice(); a[i] = !a[i]; return { faqOpen: a }; });
+
+  faqVals() {
+    const out = {};
+    for (let i = 0; i < 6; i++) {
+      const open = !!this.state.faqOpen[i];
+      out['toggleFaq' + i] = () => this.toggleFaq(i);
+      out['faq' + i + 'Open'] = open ? 'true' : 'false';
+      out['faq' + i + 'IconStyle'] = {
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: '32px', height: '32px', borderRadius: '50%',
+        background: open ? '#fff' : 'var(--paper)',
+        color: 'var(--ink)',
+        transition: 'transform .3s cubic-bezier(.2,.7,.2,1),background .25s,color .25s',
+        transform: open ? 'rotate(180deg)' : 'rotate(0)',
+        flex: 'none',
+      };
+      out['faq' + i + 'BodyStyle'] = {
+        display: 'grid',
+        gridTemplateRows: open ? '1fr' : '0fr',
+        transition: 'grid-template-rows .35s cubic-bezier(.2,.7,.2,1)',
+        overflow: 'hidden',
+      };
+    }
+    return out;
+  }
+  rootRef = (el) => { this.root = el; };
+
+  /* ---------- Full-site i18n ---------- */
+  toggleLangMenu = () => this.setState(s => ({ langMenuOpen: !s.langMenuOpen }));
+
+  pickLang = (e) => {
+    const code = e.currentTarget.getAttribute('data-lang');
+    this.setState({ langMenuOpen: false });
+    if (this.state.menuOpen) this.closeMenu();
+    this._setLang(code);
+  };
+
+  _setLang = (code) => {
+    if (code === this._lang) return;
+    this._lang = code;
+    try { localStorage.setItem('dl_lang', code); } catch (e) {}
+    this.setState({ lang: code });
+    this._applyLang(code);
+  };
+
+  _i18nNode = (node, lang) => {
+    const dict = window.DL_I18N || {};
+    const val = node.nodeValue;
+    if (!val) return;
+    let en = node._i18nEn;
+    if (en === undefined) {
+      if (!val.trim() || !dict[val.trim()]) return; // not a translatable string
+      en = val; node._i18nEn = val;
+    }
+    const entry = dict[en.trim()];
+    if (!entry) return;
+    let target;
+    if (lang === 'en' || !entry[lang]) {
+      target = en;
+    } else {
+      const lead = (en.match(/^\s+/) || [''])[0];
+      const trail = (en.match(/\s+$/) || [''])[0];
+      target = lead + entry[lang] + trail;
+    }
+    if (node.nodeValue !== target) node.nodeValue = target;
+  };
+
+  _walkI18n = (root, lang) => {
+    const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    const nodes = [];
+    let n;
+    while ((n = tw.nextNode())) nodes.push(n);
+    nodes.forEach(node => this._i18nNode(node, lang));
+  };
+
+  _observe = () => {
+    if (this._i18nObs && this.root) {
+      this._i18nObs.observe(this.root, { subtree: true, childList: true, characterData: true });
+    }
+  };
+
+  _applyLang = (lang) => {
+    const root = this.root;
+    if (!root) return;
+    if (this._i18nObs) this._i18nObs.disconnect();
+    this._walkI18n(root, lang);
+    root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    if (this._i18nObs) { this._i18nObs.takeRecords(); this._observe(); }
+  };
+
+  _initI18n = () => {
+    const root = this.root;
+    if (!root) return;
+    let saved = 'en';
+    try { saved = localStorage.getItem('dl_lang') || 'en'; } catch (e) {}
+    this._lang = saved;
+    if (saved !== this.state.lang) this.setState({ lang: saved });
+    this._applyLang(saved);
+
+    if ('MutationObserver' in window) {
+      this._i18nObs = new MutationObserver((muts) => {
+        const lang = this._lang || 'en';
+        if (lang === 'en') return; // English is the source; nothing to re-apply
+        this._i18nObs.disconnect();
+        for (const m of muts) {
+          if (m.type === 'characterData') {
+            this._i18nNode(m.target, lang);
+          } else if (m.type === 'childList') {
+            m.addedNodes.forEach(node => {
+              if (node.nodeType === 3) this._i18nNode(node, lang);
+              else if (node.nodeType === 1) this._walkI18n(node, lang);
+            });
+          }
+        }
+        this._i18nObs.takeRecords();
+        this._observe();
+      });
+      this._observe();
+    }
+
+    this._onDocClick = (e) => {
+      if (!this.state.langMenuOpen) return;
+      if (e.target.closest && e.target.closest('[data-langwrap]')) return;
+      this.setState({ langMenuOpen: false });
+    };
+    document.addEventListener('click', this._onDocClick);
+  };
+
+  langVals() {
+    const lang = this.state.lang || 'en';
+    const cur = this.LANGS.find(l => l.code === lang) || this.LANGS[0];
+    const liStyle = (code) => ({
+      display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+      padding: '10px 13px', border: 'none', cursor: 'pointer', textAlign: 'left',
+      font: 'inherit', fontSize: '14px', fontWeight: '600',
+      background: code === lang ? 'var(--paper)' : 'transparent',
+      color: 'var(--ink)', borderRadius: '10px',
+    });
+    const mPill = (code) => ({
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+      height: '40px', lineHeight: '1', boxSizing: 'border-box', flex: 'none',
+      padding: '0 14px', borderRadius: '100px', cursor: 'pointer', font: 'inherit',
+      fontSize: '14px', fontWeight: '600',
+      border: '1px solid ' + (code === lang ? 'var(--ink)' : 'var(--line2)'),
+      background: code === lang ? 'var(--ink)' : '#fff',
+      color: code === lang ? '#fff' : 'var(--ink)',
+    });
+    const out = {
+      langLabel: cur.name,
+      langFlag: cur.flag,
+      langMenuOpen: this.state.langMenuOpen,
+      toggleLangMenu: this.toggleLangMenu,
+      pickLang: this.pickLang,
+      langMenuStyle: {
+        position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: '0',
+        minWidth: '184px', background: '#fff', border: '1px solid var(--line)',
+        borderRadius: '14px', boxShadow: '0 18px 44px -18px rgba(17,17,20,.4)',
+        padding: '6px', zIndex: '60',
+        display: this.state.langMenuOpen ? 'block' : 'none',
+      },
+    };
+    this.LANGS.forEach(l => {
+      const C = l.code.toUpperCase();
+      out['li' + C] = liStyle(l.code);
+      out['mp' + C] = mPill(l.code);
+    });
+    return out;
+  }
+
+  setLang = (i) => {
+    if (i === this.state.pairIndex) return;
+    // user picked — reset the auto-cycle so it doesn't switch again immediately
+    if (this._cycleT) {
+      clearInterval(this._cycleT);
+      this._cycleT = setInterval(() => {
+        this.setState(s => ({ pairIndex: (s.pairIndex + 1) % this.PAIRS.length }));
+      }, 4800);
+    }
+    this.setState({ pairIndex: i });
+    if (this._cycleT) {
+      clearInterval(this._cycleT);
+      this._cycleT = setInterval(() => {
+        this.setState(s => ({ pairIndex: (s.pairIndex + 1) % this.PAIRS.length }));
+      }, 4800);
+    }
+  };
+
+  setCalcOrders = (e) => {
+    const n = parseInt(e && e.target && e.target.value, 10);
+    if (!isNaN(n)) this.setState({ calcOrders: n });
+  };
+  pickPct = (p) => () => this.setState({ calcPct: p });
+
+  toggleMenu = () => {
+    const open = !this.state.menuOpen;
+    document.body.style.overflow = open ? 'hidden' : '';
+    this.setState({ menuOpen: open });
+  };
+  closeMenu = () => {
+    if (!this.state.menuOpen) return;
+    document.body.style.overflow = '';
+    this.setState({ menuOpen: false });
+  };
+
+  PAIRS = [
+    {
+      src: { name: 'Deutsch', flag: '🇩🇪', lines: [
+        { qty: '1×', t: 'Lamm-Kofta' },
+        { qty: '',   t: 'Safranreis' },
+        { qty: '',   t: 'Minzlimonade' },
+      ], note: 'Ohne Zwiebeln, durchgebraten' },
+      tgt: { name: 'English', flag: '🇬🇧', lines: [
+        { qty: '1×', t: 'Lamb kofta' },
+        { qty: '',   t: 'Saffron rice' },
+        { qty: '',   t: 'Mint lemonade' },
+      ], note: 'No onions, well done' },
+    },
+    {
+      src: { name: 'ქართული', flag: '🇬🇪', lines: [
+        { qty: '1×', t: 'ცხვრის ქოფთა' },
+        { qty: '',   t: 'ზაფრანის ბრინჯი' },
+        { qty: '',   t: 'პიტნის ლიმონათი' },
+      ], note: 'ხახვის გარეშე, კარგად მოხარშული' },
+      tgt: { name: 'English', flag: '🇬🇧', lines: [
+        { qty: '1×', t: 'Lamb kofta' },
+        { qty: '',   t: 'Saffron rice' },
+        { qty: '',   t: 'Mint lemonade' },
+      ], note: 'No onions, well done' },
+    },
+    {
+      src: { name: 'العربية', flag: '🇱🇧', lines: [
+        { qty: '1×', t: 'كفتة لحم الضأن' },
+        { qty: '',   t: 'أرز بالزعفران' },
+        { qty: '',   t: 'ليمونادة بالنعناع' },
+      ], note: 'بدون بصل، مشوية جيدًا' },
+      tgt: { name: 'English', flag: '🇬🇧', lines: [
+        { qty: '1×', t: 'Lamb kofta' },
+        { qty: '',   t: 'Saffron rice' },
+        { qty: '',   t: 'Mint lemonade' },
+      ], note: 'No onions, well done' },
+    },
+    {
+      src: { name: 'Русский', flag: '🇷🇺', lines: [
+        { qty: '1×', t: 'Кофта из ягнёнка' },
+        { qty: '',   t: 'Рис с шафраном' },
+        { qty: '',   t: 'Мятный лимонад' },
+      ], note: 'Без лука, хорошо прожаренное' },
+      tgt: { name: 'English', flag: '🇬🇧', lines: [
+        { qty: '1×', t: 'Lamb kofta' },
+        { qty: '',   t: 'Saffron rice' },
+        { qty: '',   t: 'Mint lemonade' },
+      ], note: 'No onions, well done' },
+    },
+  ];
+
+  openVideo = () => {
+    document.body.style.overflow = 'hidden';
+    this.setState({ videoOpen: true });
+  };
+  closeVideo = () => {
+    document.body.style.overflow = '';
+    this.setState({ videoOpen: false });
+  };
+  stopBubble = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+
+  applyTheme() {
+    const root = this.root;
+    if (!root) return;
+    const editorial = false;
+    (this._headings || []).forEach(h => {
+      if (editorial) {
+        h.style.fontFamily = "'Instrument Serif', Georgia, serif";
+        h.style.fontWeight = '400';
+        h.style.letterSpacing = '-.01em';
+      } else if (h._orig != null) {
+        h.setAttribute('style', h._orig);
+      }
+    });
+    // looping motion accents
+    const loops = !this._reduce;
+    const toast = root.querySelector('[data-toast]');
+    if (toast) toast.style.display = loops ? '' : 'none';
+    const dot = root.querySelector('[data-livedot]');
+    if (dot) dot.style.animation = loops ? 'livePulse 2s infinite' : 'none';
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState && prevState.pairIndex !== this.state.pairIndex && !this._reduce && this.root) {
+      ['[data-src-body]', '[data-tgt-body]'].forEach(sel => {
+        const body = this.root.querySelector(sel);
+        if (!body) return;
+        const rows = body.querySelectorAll('[data-rrow]');
+        rows.forEach((r, i) => {
+          r.style.animation = 'none';
+          void r.offsetWidth;
+          r.style.animation = 'rowIn .5s cubic-bezier(.2,.7,.2,1) both';
+          r.style.animationDelay = (i * 70) + 'ms';
+        });
+      });
+    }
+  }
+
+  componentDidMount() {
+    const root = this.root;
+    if (!root) return;
+
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this._reduce = reduce;
+    const lively = true;
+
+    // cache original heading styles for a reversible typeface swap
+    this._headings = Array.from(root.querySelectorAll('h1, h2, h3'));
+    this._headings.forEach(h => { if (h._orig == null) h._orig = h.getAttribute('style') || ''; });
+
+    this.applyTheme();
+
+    // ---- light smooth scrolling + smooth page transitions ----
+    const host = root.closest('.sc-host') || root;
+    const navH = 78;
+    const findScroller = () => {
+      let el = root.parentElement;
+      while (el && el !== document.documentElement) {
+        const oy = getComputedStyle(el).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 4) return el;
+        el = el.parentElement;
+      }
+      return document.scrollingElement || document.documentElement;
+    };
+    const smoothTo = (target) => {
+      const sc = findScroller();
+      const useWin = sc === document.scrollingElement || sc === document.documentElement || sc === document.body;
+      const tr = target.getBoundingClientRect();
+      const behavior = reduce ? 'auto' : 'smooth';
+      if (useWin) {
+        window.scrollTo({ top: window.scrollY + tr.top - navH, behavior });
+      } else {
+        const sr = sc.getBoundingClientRect();
+        sc.scrollTo({ top: sc.scrollTop + (tr.top - sr.top) - navH, behavior });
+      }
+    };
+    this._navClick = (ev) => {
+      const a = ev.target.closest && ev.target.closest('a[href]');
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (href.charAt(0) === '#' && href.length > 1) {
+        const t = root.querySelector(href) || document.getElementById(href.slice(1));
+        if (t) {
+          ev.preventDefault();
+          smoothTo(t);
+          if (history && history.replaceState) try { history.replaceState(null, '', href); } catch (e) {}
+        }
+        return;
+      }
+      if (/\.dc\.html(\?|#|$)/i.test(href) && a.target !== '_blank') {
+        ev.preventDefault();
+        if (reduce) { window.location.href = href; return; }
+        host.style.transition = 'opacity .32s ease';
+        host.style.opacity = '0';
+        setTimeout(() => { window.location.href = href; }, 300);
+      }
+    };
+    root.addEventListener('click', this._navClick);
+    if (!reduce) {
+      host.style.opacity = '0';
+      requestAnimationFrame(() => {
+        host.style.transition = 'opacity .55s ease';
+        host.style.opacity = '1';
+      });
+    }
+
+    // draw decorative QR codes
+    root.querySelectorAll('[data-qr]').forEach(el => this.drawQR(el));
+
+    // scroll reveals (stagger + direction)
+    const animate = !reduce;
+    const dist = lively ? 40 : 26;
+    const dur = lively ? 0.85 : 0.75;
+    const step = lively ? 120 : 90;
+    const items = root.querySelectorAll('[data-reveal]');
+    if (!animate || !('IntersectionObserver' in window)) {
+      items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
+    } else {
+      const groups = new Map();
+      items.forEach(el => {
+        const p = el.parentElement;
+        if (!groups.has(p)) groups.set(p, []);
+        groups.get(p).push(el);
+        const dir = el.getAttribute('data-reveal-from') || 'up';
+        let tf = 'translateY(' + dist + 'px)';
+        if (dir === 'left') tf = 'translateX(-' + (dist + 14) + 'px)';
+        else if (dir === 'right') tf = 'translateX(' + (dist + 14) + 'px)';
+        else if (dir === 'scale') tf = 'scale(.93)';
+        el.style.opacity = '0';
+        el.style.transform = tf;
+        el.style.transition = 'opacity ' + dur + 's cubic-bezier(.2,.7,.2,1), transform ' + dur + 's cubic-bezier(.2,.7,.2,1)';
+        el.style.willChange = 'opacity, transform';
+      });
+      groups.forEach((arr, parent) => {
+        const ovr = parseInt((parent && parent.getAttribute) ? parent.getAttribute('data-reveal-stagger') : '', 10);
+        const s = ovr > 0 ? ovr : step;
+        arr.forEach((el, i) => { el._sd = Math.min(i, 6) * s; });
+      });
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.style.transitionDelay = (e.target._sd || 0) + 'ms';
+            e.target.style.opacity = '1';
+            e.target.style.transform = 'none';
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.2, rootMargin: '0px 0px -22% 0px' });
+      items.forEach(el => io.observe(el));
+      this._safety = setTimeout(() => {
+        items.forEach(el => { if (el.style.opacity === '0') { el.style.opacity = '1'; el.style.transform = 'none'; } });
+      }, 4500);
+    }
+
+    // count-up stats
+    const counters = root.querySelectorAll('[data-count]');
+    if (counters.length && animate && 'IntersectionObserver' in window) {
+      const cio = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting && e.target._counted !== 1) {
+            e.target._counted = 1;
+            this.countUp(e.target, lively ? 1100 : 850);
+            cio.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(el => cio.observe(el));
+    }
+
+    // live-orders ticker (always bound; visibility controlled by applyTheme)
+    const toast = root.querySelector('[data-toast]');
+    if (toast) {
+      const ICONS = {
+        dinein: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 9v13M20 2c-1.6 0-2.6 1.8-2.6 4.5S18.4 11 20 11M17.4 11v11"/></svg>',
+        delivery: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 18h7.5M3 6h4l2.6 9M15 8h2.6l2.9 5v3h-2.5"/></svg>',
+        pickup: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+      };
+      const orders = [
+        { id: '#1278', meta: 'Table 12 · just now', price: '$50.20', type: 'dinein' },
+        { id: '#1279', meta: 'Delivery · 2.1 km', price: '$18.90', type: 'delivery' },
+        { id: '#1280', meta: 'Pick-up · just now', price: '$24.00', type: 'pickup' },
+        { id: '#1281', meta: 'Table 9 · just now', price: '$46.10', type: 'dinein' },
+      ];
+      let i = 0;
+      const apply = () => {
+        const o = orders[i % orders.length];
+        const a = toast.querySelector('[data-toast-id]');
+        const b = toast.querySelector('[data-toast-meta]');
+        const c = toast.querySelector('[data-toast-price]');
+        const ic = toast.querySelector('[data-toast-icon]');
+        if (a) a.textContent = 'New order ' + o.id;
+        if (b) b.textContent = o.meta;
+        if (c) c.textContent = o.price;
+        if (ic) ic.innerHTML = ICONS[o.type] || ICONS.dinein;
+        i++;
+      };
+      apply();
+      toast.style.animation = 'toastUp 5.2s ease-in-out 0.8s infinite';
+      toast.addEventListener('animationiteration', apply);
+    }
+
+    // scroll progress + active-section nav
+    const navLinks = {};
+    root.querySelectorAll('[data-navlink]').forEach(a => { navLinks[a.getAttribute('href')] = a; });
+    if (Object.keys(navLinks).length && 'IntersectionObserver' in window) {
+      const sio = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const id = '#' + e.target.id;
+            Object.keys(navLinks).forEach(k => { navLinks[k].style.color = 'var(--soft)'; navLinks[k].style.fontWeight = '600'; });
+            if (navLinks[id]) { navLinks[id].style.color = 'var(--ink)'; navLinks[id].style.fontWeight = '700'; }
+          }
+        });
+      }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+      ['how', 'revenue', 'manager', 'pricing'].forEach(id => { const s = root.querySelector('#' + id); if (s) sio.observe(s); });
+    }
+
+    // sticky nav background on scroll + progress bar
+    const nav = root.querySelector('[data-nav]');
+    const bar = root.querySelector('[data-progress]');
+    if (nav || bar) {
+      this._onScroll = () => {
+        const y = window.scrollY || document.documentElement.scrollTop || 0;
+        if (bar) {
+          const h = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+          bar.style.transform = 'scaleX(' + Math.max(0, Math.min(1, y / h)) + ')';
+        }
+        if (!nav) return;
+        nav.style.background = 'rgba(255,255,255,.85)';
+        nav.style.backdropFilter = 'saturate(180%) blur(14px)';
+        nav.style.webkitBackdropFilter = 'saturate(180%) blur(14px)';
+        nav.style.borderBottomColor = 'var(--line)';
+        nav.style.boxShadow = y > 12 ? '0 6px 24px -18px rgba(17,17,20,.4)' : 'none';
+      };
+      window.addEventListener('scroll', this._onScroll, { passive: true });
+      this._onScroll();
+    }
+
+    // Esc closes the video modal or the mobile menu
+    this._onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (this.state.videoOpen) this.closeVideo();
+      if (this.state.menuOpen) this.closeMenu();
+    };
+    window.addEventListener('keydown', this._onKey);
+
+    // Keep the mobile menu pinned just below the (variable-height) header
+    this._syncNavH = () => {
+      try {
+        const nav = this.root && this.root.querySelector('[data-nav]');
+        if (nav) this.root.style.setProperty('--navh', nav.offsetHeight + 'px');
+      } catch (e) {}
+    };
+    this._syncNavH();
+    requestAnimationFrame(this._syncNavH);
+
+    // Close the mobile menu when resizing up to desktop
+    this._onResize = () => { this._syncNavH(); if (window.innerWidth > 860 && this.state.menuOpen) this.closeMenu(); };
+    window.addEventListener('resize', this._onResize);
+
+    // Auto-cycle translation pairs every ~4.8s (skipped under reduced motion)
+    if (!reduce) {
+      this._cycleT = setInterval(() => {
+        this.setState(s => ({ pairIndex: (s.pairIndex + 1) % this.PAIRS.length }));
+      }, 4800);
+    }
+
+    // Full-site translation: restore saved language, keep it applied across re-renders
+    this._initI18n();
+  }
+
+  componentWillUnmount() {
+    if (this._i18nObs) this._i18nObs.disconnect();
+    if (this._navClick && this.root) this.root.removeEventListener('click', this._navClick);
+    if (this._onDocClick) document.removeEventListener('click', this._onDocClick);
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+    if (this._onKey) window.removeEventListener('keydown', this._onKey);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._safety) clearTimeout(this._safety);
+    if (this._cycleT) clearInterval(this._cycleT);
+    document.body.style.overflow = '';
+  }
+
+  countUp(el, dur) {
+    const m = el.textContent.trim().match(/^(\D*)(\d+)(.*)$/);
+    if (!m) return;
+    const prefix = m[1], target = parseInt(m[2], 10), suffix = m[3];
+    const t0 = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = prefix + Math.round(eased * target) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  drawQR(el) {
+    const dark = el.dataset.dark === '1';
+    const fg = dark ? '#ffffff' : '#111114';
+    const N = 25;
+    const svgns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgns, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + N + ' ' + N);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.display = 'block';
+    let seed = (parseInt(el.dataset.seed, 10) || 1) * 1972739 + 20260101;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const isFinder = (x, y) => {
+      const inBox = (ox, oy) => x >= ox && x < ox + 7 && y >= oy && y < oy + 7;
+      return inBox(0, 0) || inBox(N - 7, 0) || inBox(0, N - 7);
+    };
+    const cells = [];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (isFinder(x, y)) continue;
+      if (rnd() > 0.52) cells.push([x, y]);
+    }
+    cells.forEach(([x, y], i) => {
+      const r = document.createElementNS(svgns, 'rect');
+      r.setAttribute('x', x + 0.08); r.setAttribute('y', y + 0.08);
+      r.setAttribute('width', 0.84); r.setAttribute('height', 0.84);
+      r.setAttribute('rx', 0.18); r.setAttribute('fill', fg);
+      r.style.transformOrigin = 'center';
+      r.style.animation = 'qrpop .5s cubic-bezier(.2,.8,.2,1) both';
+      r.style.animationDelay = (i * 0.004) + 's';
+      svg.appendChild(r);
+    });
+    const finder = (ox, oy) => {
+      const outer = document.createElementNS(svgns, 'rect');
+      outer.setAttribute('x', ox); outer.setAttribute('y', oy);
+      outer.setAttribute('width', 7); outer.setAttribute('height', 7);
+      outer.setAttribute('rx', 1.6); outer.setAttribute('fill', fg); svg.appendChild(outer);
+      const inner = document.createElementNS(svgns, 'rect');
+      inner.setAttribute('x', ox + 1); inner.setAttribute('y', oy + 1);
+      inner.setAttribute('width', 5); inner.setAttribute('height', 5);
+      inner.setAttribute('rx', 1.1); inner.setAttribute('fill', dark ? '#111114' : '#fff'); svg.appendChild(inner);
+      const dot = document.createElementNS(svgns, 'rect');
+      dot.setAttribute('x', ox + 2); dot.setAttribute('y', oy + 2);
+      dot.setAttribute('width', 3); dot.setAttribute('height', 3);
+      dot.setAttribute('rx', 0.7); dot.setAttribute('fill', fg); svg.appendChild(dot);
+    };
+    finder(0, 0); finder(N - 7, 0); finder(0, N - 7);
+    el.innerHTML = '';
+    el.appendChild(svg);
+  }
+
+  renderVals() {
+    const idx = this.state.pairIndex;
+    const N = this.PAIRS.length;
+    const pair = this.PAIRS[idx] || this.PAIRS[0];
+    const menuOpen = this.state.menuOpen;
+
+    // ---- Translation language track ----
+    const langButtons = this.PAIRS.map((p, i) => {
+      const active = i === idx;
+      return {
+        flag: p.src.flag,
+        name: p.src.name,
+        pick: () => this.setLang(i),
+        buttonStyle: {
+          position: 'relative', zIndex: 1, flex: 1, minWidth: 0,
+          padding: '11px 6px', background: 'transparent', border: 'none',
+          cursor: 'pointer', fontSize: '13.5px', fontWeight: 600,
+          color: active ? '#0a0a0c' : 'rgba(255,255,255,.72)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          gap: '7px', transition: 'color .3s', fontFamily: 'inherit',
+          whiteSpace: 'nowrap',
+        },
+      };
+    });
+    const langIndicatorStyle = {
+      position: 'absolute', top: '6px', bottom: '6px',
+      left: `calc(6px + ${idx} * (100% - 12px) / ${N})`,
+      width: `calc((100% - 12px) / ${N})`,
+      background: '#fff', borderRadius: '100px',
+      transition: 'left .42s cubic-bezier(.2,.7,.2,1)',
+      boxShadow: '0 4px 16px -6px rgba(0,0,0,.4)',
+      zIndex: 0,
+    };
+
+    // ---- Calculator ----
+    const orders = this.state.calcOrders;
+    const pct = this.state.calcPct;
+    const dailySave = orders * 25 * (pct / 100);
+    const monthlySave = dailySave * 30;
+    const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
+    const chipBase = {
+      flex: 1, padding: '12px 14px', borderRadius: '100px',
+      border: '1px solid var(--line2)', background: '#fff', color: 'var(--ink)',
+      cursor: 'pointer', fontSize: '15px', fontWeight: 700,
+      fontFamily: 'inherit',
+      transition: 'background .25s,color .25s,border-color .25s,transform .25s',
+    };
+    const chipActive = { ...chipBase, background: 'var(--ink)', color: '#fff', borderColor: 'var(--ink)' };
+    const sliderPct = ((orders - 20) / (500 - 20)) * 100;
+
+    const bar = {
+      position: 'absolute', width: '23px', height: '2px', borderRadius: '2px',
+      background: 'var(--ink)', transition: 'transform .32s cubic-bezier(.2,.7,.2,1)',
+    };
+    return {
+      rootRef: this.rootRef,
+      videoOpen: this.state.videoOpen,
+      openVideo: this.openVideo,
+      closeVideo: this.closeVideo,
+      stopBubble: this.stopBubble,
+      menuOpen,
+      toggleMenu: this.toggleMenu,
+      closeMenu: this.closeMenu,
+      ...this.faqVals(),
+      ...this.langVals(),
+      barTopStyle: { ...bar, transform: menuOpen ? 'rotate(45deg)' : 'translateY(-4px)' },
+      barBotStyle: { ...bar, transform: menuOpen ? 'rotate(-45deg)' : 'translateY(4px)' },
+      mobileMenuStyle: {
+        position: 'fixed', top: 'var(--navh, 64px)', left: 0, right: 0, zIndex: 49,
+        background: '#fff', borderBottom: '1px solid var(--line)',
+        boxShadow: '0 26px 44px -26px rgba(17,17,20,.28)',
+        transition: 'opacity .32s cubic-bezier(.2,.7,.2,1),transform .32s cubic-bezier(.2,.7,.2,1),visibility .32s',
+        opacity: menuOpen ? 1 : 0,
+        visibility: menuOpen ? 'visible' : 'hidden',
+        transform: menuOpen ? 'translateY(0)' : 'translateY(-12px)',
+        pointerEvents: menuOpen ? 'auto' : 'none',
+      },
+      srcLangName: pair.src.name,
+      srcFlag: pair.src.flag,
+      srcLines: pair.src.lines,
+      srcNote: pair.src.note,
+      tgtLangName: pair.tgt.name,
+      tgtFlag: pair.tgt.flag,
+      tgtLines: pair.tgt.lines,
+      tgtNote: pair.tgt.note,
+      langButtons,
+      langIndicatorStyle,
+      // Calculator
+      calcOrders: orders,
+      calcPct: pct,
+      calcDaily: fmt(dailySave),
+      calcMonthly: fmt(monthlySave),
+      calcBreakdown: `${orders} orders × $25 × ${pct}% commission`,
+      sliderFillPct: sliderPct.toFixed(1) + '%',
+      setCalcOrders: this.setCalcOrders,
+      pickPct25: this.pickPct(25),
+      pickPct30: this.pickPct(30),
+      pickPct35: this.pickPct(35),
+      pct25Style: pct === 25 ? chipActive : chipBase,
+      pct30Style: pct === 30 ? chipActive : chipBase,
+      pct35Style: pct === 35 ? chipActive : chipBase,
+    };
+  }
+}
+</script>
+</body>
+</html>

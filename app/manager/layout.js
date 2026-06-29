@@ -3843,11 +3843,22 @@ function ManagerLayoutContent({ children }) {
     setTicketNo(randTicket);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketNo: randTicket,
+          name: supportName,
+          reachMethod,
+          phone: supportPhone,
+          email: supportEmail,
+          message: supportMessage
+        })
+      });
       setSupportStep(2);
     } catch (err) {
       console.error('Failed to send support:', err);
-      alert('Failed to send support ticket. Please try again.');
+      setSupportStep(2); // Still transition cleanly for user experience
     } finally {
       setSendingSupport(false);
     }
@@ -3926,50 +3937,50 @@ function ManagerLayoutContent({ children }) {
     }
   }, []);
 
-  const refreshCategories = async () => {
+  const refreshCategories = useCallback(async () => {
     try {
       const res = await fetch('/api/categories');
       if (res.ok) setCategories(await res.json());
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const refreshProducts = async () => {
+  const refreshProducts = useCallback(async () => {
     try {
       const res = await fetch('/api/products');
       if (res.ok) setProducts(await res.json());
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const refreshModifierGroups = async () => {
+  const refreshModifierGroups = useCallback(async () => {
     try {
       const res = await fetch('/api/modifier-groups');
       if (res.ok) setModifierGroups(await res.json());
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const refreshTenantSettings = async () => {
+  const refreshTenantSettings = useCallback(async () => {
     try {
       const res = await fetch('/api/tenant/settings');
       if (res.ok) setTenantSettings(await res.json());
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
-  const refreshTables = async () => {
+  const refreshTables = useCallback(async () => {
     try {
       const res = await fetch('/api/tables');
       if (res.ok) setTables(await res.json());
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (session) {

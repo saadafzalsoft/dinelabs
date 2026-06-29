@@ -942,35 +942,9 @@ export default function OrderConfirmationPage() {
                   <i className="fa-solid fa-map-pin"></i> {table.location} {dict[lang].section} · <i className="fa-solid fa-chair"></i> {table.chairs} {dict[lang].chairs}
                 </span>
               )}
-            </div>
-
-            {/* Waiter QR Code */}
-            <div style={{ 
-              backgroundColor: '#ffffff', 
-              border: '1px solid var(--border-light)', 
-              borderRadius: '16px', 
-              padding: '12px', 
-              display: 'inline-block', 
-              marginBottom: '16px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-            }}>
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                  `${getOrigin()}/manager/live-orders?orderNo=${order.orderNo}`
-                )}`}
-                alt="Waiter QR Ticket"
-                style={{ width: '180px', height: '180px', display: 'block' }}
-              />
-            </div>
-
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '700', lineHeight: 1.4, padding: '0 12px' }}>
-              <i className="fa-solid fa-mobile-screen-button"></i> {dict[lang].guideHeader}<br />
-              <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>
-                {dict[lang].mobileGuide.replace('{orderNo}', order.orderNo)}
-              </span>
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
         <div style={{ backgroundColor: '#fffbeb', borderLeft: '4px solid #f59e0b', padding: '16px', borderRadius: '0 12px 12px 0', textAlign: 'left', marginBottom: '24px', fontSize: '0.85rem', color: '#b45309', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <i className="fa-solid fa-circle-info" style={{ color: '#d97706', fontSize: '1.1rem' }}></i> {dict[lang].noCancelInfo}

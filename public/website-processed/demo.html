@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="icon" type="image/svg+xml" href="/assets/dinelabs-logo.svg">
+<link rel="alternate icon" type="image/png" href="/assets/dinelabs-logo.png">
+<title>Book a Demo — Dinelabs</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/svg+xml" href="/assets/dinelabs-logo.svg">
+<link rel="alternate icon" type="image/png" href="/assets/dinelabs-logo.png">
+<title>Book a Demo — Dinelabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#0a0a0c}
+  ::selection{background:rgba(255,255,255,.25);color:#0a0a0c}
+  input::placeholder{color:rgba(255,255,255,.3)}
+  input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,textarea:-webkit-autofill,textarea:-webkit-autofill:hover,textarea:-webkit-autofill:focus{-webkit-text-fill-color:#ffffff !important;-webkit-box-shadow:0 0 0px 1000px #18181b inset !important;box-shadow:0 0 0px 1000px #18181b inset !important;transition:background-color 50000s ease-in-out 0s !important;caret-color:#ffffff !important;}
+  @keyframes bdUp{from{opacity:1;transform:none}to{opacity:1;transform:none}}
+  @keyframes bdGlow{0%,100%{opacity:.85}50%{opacity:1}}
+  @keyframes bdPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  @keyframes bdPulse{0%{box-shadow:0 0 0 0 rgba(31,138,91,.5)}70%{box-shadow:0 0 0 7px rgba(31,138,91,0)}100%{box-shadow:0 0 0 0 rgba(31,138,91,0)}}
+  @media (prefers-reduced-motion: reduce){.bd-dot{animation:none!important}}
+  .bd-rise{opacity:1}
+  @media (min-width:941px){
+    .bd-title{grid-column:1;grid-row:1}
+    .bd-expect{grid-column:1;grid-row:2;align-self:start}
+    .bd-card{grid-column:2;grid-row:1 / span 2;align-self:start}
+  }
+  @media (max-width:940px){
+    .bd-grid{grid-template-columns:1fr!important;row-gap:28px!important}
+    .bd-2col{grid-template-columns:1fr!important}
+    .bd-title{order:1}
+    .bd-card{order:2}
+    .bd-expect{order:3}
+  }
+  @media (max-width:600px){
+    .bd-head{padding:18px 18px!important;flex-wrap:wrap!important;row-gap:14px!important}
+    .bd-head>div{margin-left:auto}
+    .bd-head a{white-space:nowrap}
+    .bd-back{display:none!important}
+    .bd-head button{white-space:nowrap}
+    .bd-head img{height:20px!important}
+    .bd-grid{padding:30px 18px 56px!important;row-gap:22px!important}
+    .bd-title p{margin-bottom:20px!important}
+    .bd-card{padding:24px 18px!important;border-radius:18px!important}
+    .bd-title h1{font-size:32px!important}
+  }
+  @media (prefers-reduced-motion: reduce){.bd-rise{animation:none}}
+</style>
+<script src="/translations.js"></script>
+</helmet>
+
+<div ref="{{ rootRef }}" style="min-height:100vh;position:relative;overflow:hidden;background:#0a0a0c;color:#fff;font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased">
+
+  <!-- ambient techy backdrop -->
+  <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:54px 54px;-webkit-mask-image:radial-gradient(120% 80% at 50% 0%,#000 35%,transparent 78%);mask-image:radial-gradient(120% 80% at 50% 0%,#000 35%,transparent 78%);pointer-events:none"></div>
+  <div aria-hidden="true" style="position:absolute;top:-220px;right:-140px;width:680px;height:680px;border-radius:50%;background:radial-gradient(circle,rgba(31,138,91,.22),transparent 62%);filter:blur(12px);animation:bdGlow 7s ease-in-out infinite;pointer-events:none"></div>
+  <div aria-hidden="true" style="position:absolute;top:120px;left:-200px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.07),transparent 60%);filter:blur(8px);pointer-events:none"></div>
+
+  <!-- top bar -->
+  <header class="bd-head" style="position:relative;z-index:3;max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 32px">
+    <a href="/" aria-label="Back to Dinelabs site" style="display:inline-flex;align-items:center"><img src="/assets/dinelabs-logo.svg" alt="Dinelabs" style="height:22px;display:block;filter:brightness(0) invert(1)"></a>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div data-langwrap style="position:relative">
+        <button onClick="{{ toggleLangMenu }}" aria-haspopup="true" aria-expanded="{{ langMenuOpen }}" aria-label="Change language" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 14px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;transition:border-color .2s,background .2s" style-hover="border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><path d="M3.6 9h16.8M3.6 15h16.8"></path><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>
+          <span>{{ langLabel }}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+        </button>
+        <div data-langmenu style="{{ langMenuStyle }}">
+          <button onClick="{{ pickLang }}" data-lang="en" style="{{ liEN }}"><span style="font-size:18px;line-height:1">🇬🇧</span> English</button>
+          <button onClick="{{ pickLang }}" data-lang="de" style="{{ liDE }}"><span style="font-size:18px;line-height:1">🇩🇪</span> Deutsch</button>
+          <button onClick="{{ pickLang }}" data-lang="ka" style="{{ liKA }}"><span style="font-size:18px;line-height:1">🇬🇪</span> ქართული</button>
+          <button onClick="{{ pickLang }}" data-lang="ar" style="{{ liAR }}"><span style="font-size:18px;line-height:1">🇸🇦</span> العربية</button>
+          <button onClick="{{ pickLang }}" data-lang="ru" style="{{ liRU }}"><span style="font-size:18px;line-height:1">🇷🇺</span> Русский</button>
+        </div>
+      </div>
+      <a href="/" class="bd-back" style="display:inline-flex;align-items:center;gap:9px;color:rgba(255,255,255,.62);font-size:14px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:9px 17px;transition:color .2s,border-color .2s,background .2s" style-hover="color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.04)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+        Back to site
+      </a>
+    </div>
+  </header>
+
+  <!-- main -->
+  <main class="bd-grid" style="position:relative;z-index:2;max-width:1320px;margin:0 auto;padding:48px 32px 92px;display:grid;grid-template-columns:1.04fr 1fr;column-gap:80px;row-gap:0;align-items:start">
+
+    <!-- LEFT — title (mobile: 1st) -->
+    <div class="bd-rise bd-title" style="padding-top:8px">
+      <div style="display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;color:#d9d9de;margin-bottom:26px">
+        <span class="bd-dot" style="width:7px;height:7px;border-radius:50%;background:#1f8a5b;animation:bdPulse 2s infinite"></span> BOOK A DEMO
+      </div>
+      <h1 style="font-size:clamp(34px,4.4vw,52px);font-weight:800;letter-spacing:-.032em;line-height:1.04;margin:0 0 18px">See Dinelabs live in 15 minutes.</h1>
+      <p style="font-size:18px;line-height:1.55;color:#a9a9b0;font-weight:500;max-width:460px;margin:0 0 44px">A focused, no-slides walkthrough on real data — QR ordering, in-kitchen translation and the manager portal, tailored to your venue.</p>
+    </div>
+
+    <!-- LEFT — what to expect (mobile: last, below form) -->
+    <div class="bd-rise bd-expect">
+      <div style="font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(255,255,255,.42);margin-bottom:22px">WHAT TO EXPECT</div>
+      <div style="display:flex;flex-direction:column;gap:0;position:relative">
+
+        <div style="display:flex;gap:18px;padding-bottom:26px;position:relative">
+          <div style="display:flex;flex-direction:column;align-items:center;flex:none">
+            <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#fff;flex:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+            <div style="width:1px;flex:1;background:linear-gradient(rgba(255,255,255,.16),transparent);margin-top:6px"></div>
+          </div>
+          <div style="padding-top:2px">
+            <div style="font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;margin-bottom:5px">0–5 MIN</div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px">Your setup</div>
+            <div style="font-size:14.5px;line-height:1.5;color:#9a9aa1;font-weight:500;max-width:360px">A quick look at your venue, channels and the tools you use today.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:18px;padding-bottom:26px;position:relative">
+          <div style="display:flex;flex-direction:column;align-items:center;flex:none">
+            <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#fff;flex:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg></div>
+            <div style="width:1px;flex:1;background:linear-gradient(rgba(255,255,255,.16),transparent);margin-top:6px"></div>
+          </div>
+          <div style="padding-top:2px">
+            <div style="font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;margin-bottom:5px">5–25 MIN</div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px">Live walkthrough</div>
+            <div style="font-size:14.5px;line-height:1.5;color:#9a9aa1;font-weight:500;max-width:360px">QR ordering, in-kitchen translation and the manager portal — on real data.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:18px;padding-bottom:26px;position:relative">
+          <div style="display:flex;flex-direction:column;align-items:center;flex:none">
+            <div style="width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#fff;flex:none"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2M9 11a8 8 0 0 1 9-6 8 8 0 0 1-6 9l-3 1-1-1z"/><circle cx="14" cy="10" r="1.4"/></svg></div>
+          </div>
+          <div style="padding-top:2px">
+            <div style="font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;color:#fff;margin-bottom:5px">25–30 MIN</div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px">Pricing &amp; go-live</div>
+            <div style="font-size:14.5px;line-height:1.5;color:#9a9aa1;font-weight:500;max-width:360px">Flat pricing, migration help, and how fast you can launch.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#c4c4ca;border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:7px 13px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1f8a5b" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 30 minutes</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#c4c4ca;border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:7px 13px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1f8a5b" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> No commitment</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#c4c4ca;border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:7px 13px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#1f8a5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg> 1:1 with a specialist</span>
+      </div>
+    </div>
+
+    <!-- RIGHT — form card -->
+    <div class="bd-rise bd-card" style="position:relative;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:34px 32px;box-shadow:0 40px 90px -50px rgba(0,0,0,.9);backdrop-filter:blur(8px)">
+
+      <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:34px 6px 18px">
+          <div style="width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;animation:bdPop .5s cubic-bezier(.2,.8,.2,1) both">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h2 style="font-size:25px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px">You're all set<span>{{ nameSuffix }}</span></h2>
+          <p style="font-size:15.5px;line-height:1.55;color:#a9a9b0;font-weight:500;max-width:340px;margin:0 auto 26px">We'll email you within one business day to lock in your demo. Keep an eye on your inbox.</p>
+          <button type="button" onClick="{{ reset }}" style="cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:14px;font-weight:700;padding:12px 22px;border-radius:11px;transition:background .2s">Book another demo</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px">Request your demo</h2>
+          <p style="font-size:14px;color:#9a9aa1;font-weight:500;margin:0 0 26px">Takes about a minute. No card required.</p>
+
+          <form onSubmit="{{ onSubmit }}" style="display:flex;flex-direction:column;gap:18px">
+
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">Full name</label>
+              <input name="name" type="text" required="required" placeholder="Enter your full name" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:13px 15px;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s" style-focus="border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)">
+            </div>
+
+            <div class="bd-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+              <div>
+                <label style="display:block;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">Work email</label>
+                <input name="email" type="email" required="required" placeholder="Enter your work email" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:13px 15px;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s" style-focus="border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">Phone</label>
+                <input name="phone" type="tel" placeholder="Enter your phone number" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:13px 15px;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s" style-focus="border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)">
+              </div>
+            </div>
+
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">Store name</label>
+              <input name="business" type="text" required="required" placeholder="Enter your store name" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:13px 15px;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s" style-focus="border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)">
+            </div>
+
+            <div>
+              <label style="display:block;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px">City / country</label>
+              <input name="location" type="text" placeholder="Enter your city and country" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.13);border-radius:11px;padding:13px 15px;font-size:15px;color:#fff;outline:none;transition:border-color .2s,background .2s" style-focus="border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)">
+            </div>
+
+            <button type="submit" style="margin-top:6px;cursor:pointer;width:100%;background:#fff;color:#0a0a0c;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:9px;transition:transform .2s,box-shadow .2s" style-hover="transform:translateY(-2px);box-shadow:0 18px 38px -16px rgba(255,255,255,.35)" style-active="transform:scale(.99)">
+              Request demo <span data-arrow style="display:inline-block;transition:transform .25s">→</span>
+            </button>
+
+            <div style="display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;color:rgba(255,255,255,.4);font-weight:500;margin-top:2px">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Your details stay private — we never share them.
+            </div>
+          </form>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { submitted: false, name: '', lang: 'en', langMenuOpen: false };
+  LANGS = [
+    { code: 'en', flag: '🇬🇧', name: 'English' },
+    { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
+    { code: 'ka', flag: '🇬🇪', name: 'ქართული' },
+    { code: 'ar', flag: '🇸🇦', name: 'العربية' },
+    { code: 'ru', flag: '🇷🇺', name: 'Русский' },
+  ];
+  rootRef = (el) => { this.root = el; };
+
+  /* ---------- i18n ---------- */
+  toggleLangMenu = () => this.setState(s => ({ langMenuOpen: !s.langMenuOpen }));
+  pickLang = (e) => {
+    const code = e.currentTarget.getAttribute('data-lang');
+    this.setState({ langMenuOpen: false });
+    this._setLang(code);
+  };
+  _setLang = (code) => {
+    if (code === this._lang) return;
+    this._lang = code;
+    try { localStorage.setItem('dl_lang', code); } catch (e) {}
+    this.setState({ lang: code });
+    this._applyLang(code);
+  };
+  _i18nNode = (node, lang) => {
+    const dict = window.DL_I18N || {};
+    const val = node.nodeValue;
+    if (!val) return;
+    let en = node._i18nEn;
+    if (en === undefined) {
+      if (!val.trim() || !dict[val.trim()]) return;
+      en = val; node._i18nEn = val;
+    }
+    const entry = dict[en.trim()];
+    if (!entry) return;
+    let target;
+    if (lang === 'en' || !entry[lang]) { target = en; }
+    else {
+      const lead = (en.match(/^\s+/) || [''])[0];
+      const trail = (en.match(/\s+$/) || [''])[0];
+      target = lead + entry[lang] + trail;
+    }
+    if (node.nodeValue !== target) node.nodeValue = target;
+  };
+  _walkI18n = (root, lang) => {
+    const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    const nodes = []; let n;
+    while ((n = tw.nextNode())) nodes.push(n);
+    nodes.forEach(node => this._i18nNode(node, lang));
+  };
+  _i18nPlaceholders = (scope, lang) => {
+    const dict = window.DL_I18N || {};
+    const els = (scope.querySelectorAll ? scope.querySelectorAll('[placeholder]') : []);
+    els.forEach(el => {
+      let en = el._i18nPh;
+      if (en === undefined) { en = el.getAttribute('placeholder') || ''; el._i18nPh = en; }
+      const entry = dict[en.trim()];
+      const target = (lang === 'en' || !entry || !entry[lang]) ? en : entry[lang];
+      if (el.getAttribute('placeholder') !== target) el.setAttribute('placeholder', target);
+    });
+  };
+  _observe = () => {
+    if (this._i18nObs && this.root) {
+      this._i18nObs.observe(this.root, { subtree: true, childList: true, characterData: true });
+    }
+  };
+  _applyLang = (lang) => {
+    const root = this.root;
+    if (!root) return;
+    if (this._i18nObs) this._i18nObs.disconnect();
+    this._walkI18n(root, lang);
+    this._i18nPlaceholders(root, lang);
+    root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    if (this._i18nObs) { this._i18nObs.takeRecords(); this._observe(); }
+  };
+  _initI18n = () => {
+    const root = this.root;
+    if (!root) return;
+    let saved = 'en';
+    try { saved = localStorage.getItem('dl_lang') || 'en'; } catch (e) {}
+    this._lang = saved;
+    if (saved !== this.state.lang) this.setState({ lang: saved });
+    this._applyLang(saved);
+    if ('MutationObserver' in window) {
+      this._i18nObs = new MutationObserver((muts) => {
+        const lang = this._lang || 'en';
+        if (lang === 'en') return;
+        this._i18nObs.disconnect();
+        for (const m of muts) {
+          if (m.type === 'characterData') { this._i18nNode(m.target, lang); }
+          else if (m.type === 'childList') {
+            m.addedNodes.forEach(node => {
+              if (node.nodeType === 3) this._i18nNode(node, lang);
+              else if (node.nodeType === 1) { this._walkI18n(node, lang); this._i18nPlaceholders(node, lang); }
+            });
+          }
+        }
+        this._i18nObs.takeRecords();
+        this._observe();
+      });
+      this._observe();
+    }
+    this._onDocClick = (e) => {
+      if (!this.state.langMenuOpen) return;
+      if (e.target.closest && e.target.closest('[data-langwrap]')) return;
+      this.setState({ langMenuOpen: false });
+    };
+    document.addEventListener('click', this._onDocClick);
+  };
+  langVals() {
+    const lang = this.state.lang || 'en';
+    const cur = this.LANGS.find(l => l.code === lang) || this.LANGS[0];
+    const liStyle = (code) => ({
+      display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+      padding: '10px 13px', border: 'none', cursor: 'pointer', textAlign: 'left',
+      font: 'inherit', fontSize: '14px', fontWeight: '600',
+      background: code === lang ? 'rgba(255,255,255,.08)' : 'transparent',
+      color: '#fff', borderRadius: '10px',
+    });
+    const out = {
+      langLabel: cur.name,
+      langMenuOpen: this.state.langMenuOpen,
+      toggleLangMenu: this.toggleLangMenu,
+      pickLang: this.pickLang,
+      langMenuStyle: {
+        position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: '0',
+        minWidth: '180px', background: '#141417', border: '1px solid rgba(255,255,255,.12)',
+        borderRadius: '14px', boxShadow: '0 18px 44px -18px rgba(0,0,0,.6)',
+        padding: '6px', zIndex: '60',
+        display: this.state.langMenuOpen ? 'block' : 'none',
+      },
+    };
+    this.LANGS.forEach(l => { out['li' + l.code.toUpperCase()] = liStyle(l.code); });
+    return out;
+  }
+
+  componentDidMount() {
+    const root = this.root;
+    if (!root) return;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const host = root.closest('.sc-host') || root;
+    this._navClick = (ev) => {
+      const a = ev.target.closest && ev.target.closest('a[href]');
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (/\.dc\.html(\?|#|$)/i.test(href) && a.target !== '_blank') {
+        ev.preventDefault();
+        if (reduce) { window.location.href = href; return; }
+        host.style.transition = 'opacity .32s ease';
+        host.style.opacity = '0';
+        setTimeout(() => { window.location.href = href; }, 300);
+      }
+    };
+    root.addEventListener('click', this._navClick);
+    this._initI18n();
+    if (!reduce) {
+      host.style.opacity = '0';
+      requestAnimationFrame(() => {
+        host.style.transition = 'opacity .55s ease';
+        host.style.opacity = '1';
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.root && this._navClick) this.root.removeEventListener('click', this._navClick);
+    if (this._i18nObs) this._i18nObs.disconnect();
+    if (this._onDocClick) document.removeEventListener('click', this._onDocClick);
+  }
+
+  renderVals() {
+    return {
+      ...this.langVals(),
+      rootRef: this.rootRef,
+      submitted: this.state.submitted,
+      notSubmitted: !this.state.submitted,
+      nameSuffix: this.state.name ? (', ' + this.state.name) : '',
+      reset: () => this.setState({ submitted: false }),
+      onSubmit: (e) => {
+        e.preventDefault();
+        let nm = '', em = '', ph = '', biz = '', loc = '';
+        try {
+          const form = e.target;
+          nm = (form.querySelector('[name=name]') || {}).value || '';
+          em = (form.querySelector('[name=email]') || {}).value || '';
+          ph = (form.querySelector('[name=phone]') || {}).value || '';
+          biz = (form.querySelector('[name=business]') || {}).value || '';
+          loc = (form.querySelector('[name=location]') || {}).value || '';
+        } catch (_) {}
+        try {
+          fetch('/api/support', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ticketNo: 'DEMO-' + Math.floor(1000 + Math.random() * 9000),
+              name: nm,
+              reachMethod: 'email',
+              phone: ph,
+              email: em,
+              message: 'BOOK A DEMO REQUEST. Store: ' + biz + '. Location: ' + loc
+            })
+          });
+        } catch (_) {}
+        this.setState({ submitted: true, name: nm.trim().split(' ')[0] });
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

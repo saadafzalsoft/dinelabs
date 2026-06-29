@@ -51,7 +51,7 @@ function AddonsPageContent() {
 
   useEffect(() => {
     refreshModifierGroups();
-  }, [refreshModifierGroups]);
+  }, []);
 
   const fetchModifierGroups = () => {
     refreshModifierGroups();
@@ -393,8 +393,10 @@ function AddonsPageContent() {
                     style={{ height: '36px', fontSize: '0.8rem', flex: 2 }}
                   />
                   {groupType !== 'removals' && (
-                    <div className="input-affix" style={{ flex: 1 }}>
-                      <span className="pfx" style={{ fontSize: '12px' }}>{currencySymbol}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', width: '135px', flexShrink: 0, border: '1px solid var(--border-light)', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+                      <span style={{ fontSize: '12px', padding: '0 8px', color: 'var(--text-muted)', backgroundColor: '#f9fafb', height: '36px', display: 'flex', alignItems: 'center', borderRight: '1px solid var(--border-light)', fontWeight: '600' }}>
+                        {currencySymbol}
+                      </span>
                       <input 
                         className="input" 
                         value={opt.price}
@@ -402,7 +404,7 @@ function AddonsPageContent() {
                         placeholder="0.00"
                         type="number"
                         step="0.01"
-                        style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                        style={{ height: '36px', fontSize: '0.85rem', border: 'none', borderRadius: 0, padding: '0 8px', width: '100%' }}
                       />
                     </div>
                   )}

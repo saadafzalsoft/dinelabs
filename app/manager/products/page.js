@@ -31,7 +31,8 @@ import {
   Ruler,
   MinusCircle,
   Info,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ChevronDown
 } from 'lucide-react';
 import { useManager } from '../layout';
 import SearchSelect from '../../components/SearchSelect';
@@ -93,6 +94,10 @@ function ProductsPageContent() {
   // Selection / Bulk state
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
+  const [bulkCatIds, setBulkCatIds] = useState([]);
+  const [bulkModIds, setBulkModIds] = useState([]);
+  const [isBulkCatOpen, setIsBulkCatOpen] = useState(false);
+  const [isBulkModOpen, setIsBulkModOpen] = useState(false);
 
   // Drawers Open State
   const [isProductOpen, setIsProductOpen] = useState(false);
@@ -219,12 +224,13 @@ function ProductsPageContent() {
 
   // Selection / Bulk handlers
   const handleSelectAll = () => {
-    const filteredIds = getFilteredProducts().map(p => p._id);
-    const allSelected = filteredIds.every(id => selectedIds.includes(id));
+    const list = getFilteredProducts();
+    const allSelected = list.length > 0 && list.every(p => selectedIds.includes(p._id));
     if (allSelected) {
-      setSelectedIds(prev => prev.filter(id => !filteredIds.includes(id)));
+      setSelectedIds(selectedIds.filter(id => !list.some(p => p._id === id)));
     } else {
-      setSelectedIds(prev => [...new Set([...prev, ...filteredIds])]);
+      const newIds = new Set([...selectedIds, ...list.map(p => p._id)]);
+      setSelectedIds(Array.from(newIds));
     }
   };
 
@@ -237,34 +243,27 @@ function ProductsPageContent() {
   };
 
   const handleImageUploadClick = () => {
-    // Hidden file input trigger for catalog image uploading
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
-      if (file.size > 3 * 1024 * 1024) {
-        alert(t('Image file size is too large. Please select an image under 3MB.'));
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        const uploadRes = await fetch('/api/upload', {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData
         });
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          setProdImage(uploadData.url);
-          triggerToast(t('Image uploaded successfully!'), 'image');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) {
+            setProdImage(data.url);
+            triggerToast(t('Image uploaded!'));
+          }
         } else {
-          const uploadData = await uploadRes.json();
-          alert(t('Upload failed: ') + (uploadData.error || t('Unknown error')));
+          alert(t('Image upload failed'));
         }
       } catch (err) {
         console.error(err);
@@ -274,72 +273,11 @@ function ProductsPageContent() {
     input.click();
   };
 
-  // Bulk actions
   const handleBulkApply = async () => {
-    if (selectedIds.length === 0 || !bulkAction) return;
+    if (selectedIds.length === 0) return;
 
     try {
-      let payload = {
-        isBulkAction: true,
-        productIds: selectedIds
-      };
-
-      if (bulkAction === 'stock-in') {
-        payload.isAvailable = true;
-      } else if (bulkAction === 'stock-out') {
-        payload.isAvailable = false;
-      } else if (bulkAction.startsWith('set-category:')) {
-        const catId = bulkAction.split(':')[1];
-        const promises = selectedIds.map(pId => {
-          return fetch('/api/products', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: pId, categories: [catId] })
-          });
-        });
-        await Promise.all(promises);
-
-        setProducts(products.map(p => {
-          if (selectedIds.includes(p._id)) {
-            return { ...p, categories: [catId] };
-          }
-          return p;
-        }));
-
-        setSelectedIds([]);
-        setBulkAction('');
-        triggerToast(t('Updated categories for selected products'));
-        return;
-      } else if (bulkAction.startsWith('add-modifier:')) {
-        const mgId = bulkAction.split(':')[1];
-        const promises = selectedIds.map(pId => {
-          const product = products.find(p => p._id === pId);
-          if (!product) return Promise.resolve();
-          const currentGroups = product.modifierGroups || [];
-          if (currentGroups.includes(mgId)) return Promise.resolve();
-          return fetch('/api/products', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: pId, modifierGroups: [...currentGroups, mgId] })
-          });
-        });
-        await Promise.all(promises);
-
-        setProducts(products.map(p => {
-          if (selectedIds.includes(p._id)) {
-            const currentGroups = p.modifierGroups || [];
-            if (!currentGroups.includes(mgId)) {
-              return { ...p, modifierGroups: [...currentGroups, mgId] };
-            }
-          }
-          return p;
-        }));
-
-        setSelectedIds([]);
-        setBulkAction('');
-        triggerToast(t('Added modifier group to selected products'));
-        return;
-      } else if (bulkAction === 'delete') {
+      if (bulkAction === 'delete') {
         const delRes = await fetch('/api/products', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
@@ -349,10 +287,14 @@ function ProductsPageContent() {
           setProducts(products.filter(p => !selectedIds.includes(p._id)));
           setSelectedIds([]);
           setBulkAction('');
+          setBulkCatIds([]);
+          setBulkModIds([]);
           triggerToast(t('Deleted selected products'));
         }
         return;
-      } else if (bulkAction === 'add-to-offers' || bulkAction === 'remove-from-offers') {
+      }
+
+      if (bulkAction === 'add-to-offers' || bulkAction === 'remove-from-offers') {
         const offersCat = categories.find(c => {
           const enName = c.name?.en?.toLowerCase() || '';
           return enName.includes('offers') || enName.includes('promotion') || c.isPinned;
@@ -401,33 +343,78 @@ function ProductsPageContent() {
 
         setSelectedIds([]);
         setBulkAction('');
-        triggerToast(isAdding ? t('Products added to Offers & Promotions') : t('Products removed from Offers & Promotions'));
+        triggerToast(t('Updated offers & promotions'));
         return;
       }
 
-      const res = await fetch('/api/products', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const promises = selectedIds.map(pId => {
+        const product = products.find(p => p._id === pId);
+        if (!product) return Promise.resolve();
+
+        let updated = false;
+        const currentCats = [...(product.categories || [])];
+        bulkCatIds.forEach(cId => {
+          if (!currentCats.includes(cId)) {
+            currentCats.push(cId);
+            updated = true;
+          }
+        });
+
+        const currentMods = [...(product.modifierGroups || [])];
+        bulkModIds.forEach(mId => {
+          if (!currentMods.includes(mId)) {
+            currentMods.push(mId);
+            updated = true;
+          }
+        });
+
+        let isAvailable = product.isAvailable;
+        if (bulkAction === 'stock-in') { isAvailable = true; updated = true; }
+        if (bulkAction === 'stock-out') { isAvailable = false; updated = true; }
+
+        if (!updated) return Promise.resolve();
+
+        return fetch('/api/products', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: pId,
+            categories: currentCats,
+            modifierGroups: currentMods,
+            isAvailable
+          })
+        });
       });
 
-      if (res.ok) {
-        setProducts(products.map(p => {
-          if (selectedIds.includes(p._id)) {
-            const updated = { ...p };
-            if (payload.isAvailable !== undefined) updated.isAvailable = payload.isAvailable;
-            return updated;
-          }
-          return p;
-        }));
-        setSelectedIds([]);
-        setBulkAction('');
-        triggerToast(t('Updated {count} items').replace('{count}', selectedIds.length));
-      } else {
-        alert(t('Failed performing bulk action'));
-      }
+      await Promise.all(promises);
+
+      setProducts(products.map(p => {
+        if (selectedIds.includes(p._id)) {
+          const currentCats = [...(p.categories || [])];
+          bulkCatIds.forEach(cId => { if (!currentCats.includes(cId)) currentCats.push(cId); });
+          const currentMods = [...(p.modifierGroups || [])];
+          bulkModIds.forEach(mId => { if (!currentMods.includes(mId)) currentMods.push(mId); });
+
+          return {
+            ...p,
+            categories: currentCats,
+            modifierGroups: currentMods,
+            isAvailable: bulkAction === 'stock-in' ? true : bulkAction === 'stock-out' ? false : p.isAvailable
+          };
+        }
+        return p;
+      }));
+
+      setSelectedIds([]);
+      setBulkAction('');
+      setBulkCatIds([]);
+      setBulkModIds([]);
+      setIsBulkCatOpen(false);
+      setIsBulkModOpen(false);
+      triggerToast(t('Applied updates to selected products'));
     } catch (e) {
       console.error(e);
+      alert(t('Error updating products'));
     }
   };
 
@@ -879,7 +866,7 @@ function ProductsPageContent() {
 
   // Bulk Upload File Handler
   const handleBulkFileTemplate = () => {
-    const csv = 'name,category,price,short description,modifiers\nMargherita,Classic Pizzas,12.50,"Classic margherita pizza with fresh basil, mozzarella, and tomato sauce",Crust;Toppings\nCaesar Salad,Sides & Appetizers,8.00,"Crispy romaine lettuce, parmesan cheese, and caesar dressing",Dressing\n';
+    const csv = 'name,category,price,short description,image url\nMargherita,Classic Pizzas,12.50,"Classic margherita pizza with fresh basil, mozzarella, and tomato sauce",https://images.unsplash.com/photo-1604382354936-07c5d9983bd3\nCaesar Salad,Sides & Appetizers,8.00,"Crispy romaine lettuce, parmesan cheese, and caesar dressing",https://images.unsplash.com/photo-1512621776951-a57141f2eefd\n';
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -969,15 +956,14 @@ function ProductsPageContent() {
           if (match) matchedCatIds.push(match._id);
         }
 
-        // Parse modifiers column if it exists
-        let matchedModifierGroups = [];
-        if (row.modifiers) {
-          const modNames = row.modifiers.split(';').map(m => m.trim().toLowerCase());
-          modNames.forEach(name => {
-            const match = modifierGroups.find(mg => mg.name.en.toLowerCase() === name);
-            if (match) matchedModifierGroups.push(match._id);
-          });
-        }
+        // Map image URL variants
+        const imageUrlText = (
+          row['image url'] || 
+          row['image_url'] || 
+          row['image'] || 
+          row['imageurl'] || 
+          ''
+        ).trim();
 
         // Map short description or other description variants
         const descriptionText = (
@@ -997,8 +983,8 @@ function ProductsPageContent() {
             price: parseFloat(row.price) || 0,
             description: descriptionText,
             categories: matchedCatIds,
-            imageUrl: '',
-            modifierGroups: matchedModifierGroups,
+            imageUrl: imageUrlText,
+            modifierGroups: [],
             isAvailable: true
           })
         });
@@ -1302,51 +1288,81 @@ function ProductsPageContent() {
                     value={['stock-in', 'stock-out', 'add-to-offers', 'remove-from-offers', 'delete'].includes(bulkAction) ? bulkAction : ''}
                     onChange={setBulkAction}
                     options={[
-                      { value: '', label: t('Bulk action…') },
+                      { value: '', label: t('Bulk status / action…') },
                       { value: 'stock-in', label: t('Mark in stock') },
                       { value: 'stock-out', label: t('Mark out of stock') },
-                      { value: 'add-to-offers', label: t('Add to Offers & Promotions') },
-                      { value: 'remove-from-offers', label: t('Remove from Offers & Promotions') },
                       { value: 'delete', label: t('Delete selected') }
                     ]}
-                    placeholder={t('Bulk action…')}
-                    style={{ width: '200px' }}
+                    placeholder={t('Bulk status / action…')}
+                    style={{ width: '190px' }}
                   />
 
-                  {/* Dropdown 2: Category Assignment */}
-                  <SearchSelect
-                    value={bulkAction.startsWith('set-category:') ? bulkAction : ''}
-                    onChange={setBulkAction}
-                    options={[
-                      { value: '', label: t('Assign Category') },
-                      ...categories.map(c => ({
-                        value: `set-category:${c._id}`,
-                        label: c.name[lang] || c.name.en
-                      }))
-                    ]}
-                    placeholder={t('Assign Category')}
-                    style={{ width: '180px' }}
-                  />
+                  {/* Multi-Select Category Dropdown */}
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      style={{ height: '36px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ffffff' }}
+                      onClick={() => { setIsBulkCatOpen(!isBulkCatOpen); setIsBulkModOpen(false); }}
+                    >
+                      <span>{bulkCatIds.length > 0 ? `${t('Categories')} (${bulkCatIds.length})` : t('Assign Categories')}</span>
+                      <ChevronDown style={{ width: '14px', height: '14px' }} />
+                    </button>
+                    {isBulkCatOpen && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', width: '220px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', padding: '8px', zIndex: 100, maxHeight: '200px', overflowY: 'auto' }}>
+                        {categories.map(c => (
+                          <label key={c._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', cursor: 'pointer', fontSize: '0.82rem', color: '#111827', borderRadius: '6px', fontWeight: '500', userSelect: 'none' }}>
+                            <input 
+                              type="checkbox"
+                              checked={bulkCatIds.includes(c._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setBulkCatIds([...bulkCatIds, c._id]);
+                                else setBulkCatIds(bulkCatIds.filter(id => id !== c._id));
+                              }}
+                              style={{ width: '15px', height: '15px', accentColor: 'var(--brand-red, #dc2626)', cursor: 'pointer' }}
+                            />
+                            <span style={{ color: '#111827' }}>{c.name[lang] || c.name.en}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Dropdown 3: Add-ons / Modifiers Assignment */}
-                  <SearchSelect
-                    value={bulkAction.startsWith('add-modifier:') ? bulkAction : ''}
-                    onChange={setBulkAction}
-                    options={[
-                      { value: '', label: t('Assign Add-ons') },
-                      ...modifierGroups.map(mg => ({
-                        value: `add-modifier:${mg._id}`,
-                        label: `${mg.name[lang] || mg.name.en} (${t(mg.type === 'variations' ? 'Sizes' : mg.type === 'addons' ? 'Add-on' : 'Removal')})`
-                      }))
-                    ]}
-                    placeholder={t('Assign Add-ons')}
-                    style={{ width: '220px' }}
-                  />
+                  {/* Multi-Select Addons Dropdown */}
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      style={{ height: '36px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#ffffff' }}
+                      onClick={() => { setIsBulkModOpen(!isBulkModOpen); setIsBulkCatOpen(false); }}
+                    >
+                      <span>{bulkModIds.length > 0 ? `${t('Add-ons')} (${bulkModIds.length})` : t('Assign Add-ons')}</span>
+                      <ChevronDown style={{ width: '14px', height: '14px' }} />
+                    </button>
+                    {isBulkModOpen && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', width: '240px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', padding: '8px', zIndex: 100, maxHeight: '200px', overflowY: 'auto' }}>
+                        {modifierGroups.map(mg => (
+                          <label key={mg._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', cursor: 'pointer', fontSize: '0.82rem', color: '#111827', borderRadius: '6px', fontWeight: '500', userSelect: 'none' }}>
+                            <input 
+                              type="checkbox"
+                              checked={bulkModIds.includes(mg._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setBulkModIds([...bulkModIds, mg._id]);
+                                else setBulkModIds(bulkModIds.filter(id => id !== mg._id));
+                              }}
+                              style={{ width: '15px', height: '15px', accentColor: 'var(--brand-red, #dc2626)', cursor: 'pointer' }}
+                            />
+                            <span style={{ color: '#111827' }}>{mg.name[lang] || mg.name.en} <small style={{ color: '#6b7280', fontWeight: 'normal' }}>({t(mg.type === 'variations' ? 'Sizes' : mg.type === 'addons' ? 'Add-on' : 'Removal')})</small></span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   <button 
                     className="btn btn-primary btn-sm"
                     onClick={handleBulkApply}
-                    disabled={!bulkAction}
+                    disabled={!bulkAction && bulkCatIds.length === 0 && bulkModIds.length === 0}
                   >
                     {t('Apply')}
                   </button>
@@ -1846,10 +1862,10 @@ function ProductsPageContent() {
           <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
             <label className="label">{t('Step 1')} &middot; {t('Download the template')}</label>
             <p className="opt" style={{ margin: '0 0 4px' }}>
-              {t('Download a template CSV sheet structured with: name, category, price, short description, modifiers.')}
+              {t('Download a template CSV sheet structured with: name, category, price, short description, image url, modifiers.')}
             </p>
             <p className="opt" style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              💡 <b>{t('Note on Modifiers:')}</b> {t('You can assign global modifier groups to imported items by listing their exact names in the modifiers column, separated by semicolons (e.g., Choose Size;Premium Addons;Removals).')}
+              💡 <b>{t('Note on Modifiers & Image URL:')}</b> {t('You can assign global modifier groups to imported items by listing their exact names in the modifiers column, separated by semicolons (e.g., Choose Size;Premium Addons;Removals). Direct image URLs can also be provided in the image url column.')}
             </p>
             <button 
               className="btn btn-outline btn-sm"
