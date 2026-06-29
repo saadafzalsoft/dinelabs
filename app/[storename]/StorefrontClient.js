@@ -94,21 +94,25 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       setTableNo(currentTable);
       localStorage.setItem(`dinelabs_table_${tenant.slug}`, currentTable);
     } else {
-      setTableNo('');
-      localStorage.removeItem(`dinelabs_table_${tenant.slug}`);
+      const savedTable = localStorage.getItem(`dinelabs_table_${tenant.slug}`);
+      if (savedTable) {
+        currentTable = savedTable;
+        setTableNo(savedTable);
+      } else {
+        setTableNo('');
+      }
     }
 
     // Set mode from local storage or pick default
     const savedMode = localStorage.getItem(`dinelabs_mode_${tenant.slug}`);
-    if (savedMode) {
-      setMode(savedMode);
+    if (currentTable) {
+      setMode(savedMode && ['dine-in', 'pickup', 'delivery'].includes(savedMode) ? savedMode : 'dine-in');
     } else {
-      if (currentTable) {
-        setMode('dine-in');
+      // If no QR code scanned, dine-in is disabled! Pick pickup or delivery.
+      if (savedMode && savedMode !== 'dine-in') {
+        setMode(savedMode);
       } else {
-        // Pick first enabled mode
-        if (tenant.enabledModes.dineIn) setMode('dine-in');
-        else if (tenant.enabledModes.pickup) setMode('pickup');
+        if (tenant.enabledModes.pickup) setMode('pickup');
         else if (tenant.enabledModes.delivery) setMode('delivery');
       }
     }
@@ -1230,7 +1234,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
           {/* Fulfillment toggles */}
           {tenant.status === 'active' && (
             <div className="delivery-toggle-wrapper">
-              {tenant.enabledModes.dineIn && (
+              {tenant.enabledModes.dineIn && Boolean(tableNo || tableParam) && (
                 <div
                   onClick={() => handleModeChange('dine-in')}
                   className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}

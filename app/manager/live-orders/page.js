@@ -746,7 +746,9 @@ function LiveOrdersPageContent() {
                       <div className="od-row">
                         <Info className="ic" />
                         <span style={{ wordBreak: 'break-word' }}>
-                          {autoTranslations[selectedOrder.customer?.address] || selectedOrder.customer?.address || t('N/A')}
+                          {selectedOrder.type === 'dine-in' 
+                            ? `${t('Table')} ${selectedOrder.customer?.tableNo || t('N/A')}`
+                            : (autoTranslations[selectedOrder.customer?.address] || selectedOrder.customer?.address || getFulfillmentInfo(selectedOrder).value)}
                         </span>
                       </div>
                       {getFulfillmentInfo(selectedOrder).extra && (

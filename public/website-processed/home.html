@@ -196,7 +196,8 @@
         </div>
       </div>
       <div data-reveal data-reveal-from="right" data-r="herovisual" style="position:relative;aspect-ratio:16/9;width:100%">
-        <button onClick="{{ openVideo }}" aria-label="Play Dinelabs explainer video" style="position:absolute;inset:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;padding:0;cursor:pointer;background:linear-gradient(135deg,#1a1a1f 0%,#2a2a32 55%,#3a2820 100%);box-shadow:0 40px 80px -36px rgba(17,17,20,.5),0 12px 28px -14px rgba(17,17,20,.18)" style-hover="transform:translateY(-2px)">
+        <button onClick="{{ openVideo }}" aria-label="Play Dinelabs explainer video" style="position:absolute;inset:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;padding:0;cursor:pointer;background:#000;box-shadow:0 40px 80px -36px rgba(17,17,20,.5),0 12px 28px -14px rgba(17,17,20,.18)" style-hover="transform:translateY(-2px)">
+          <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.65" src="{{ videoUrl }}"></video>
           <div aria-hidden="true" style="position:absolute;inset:0;background-image:radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 55%),radial-gradient(circle at 82% 78%, rgba(255,255,255,.06), transparent 60%);pointer-events:none"></div>
           <div aria-hidden="true" style="position:absolute;inset:0;background-image:linear-gradient(to right, rgba(255,255,255,.04) 1px, transparent 1px),linear-gradient(to bottom, rgba(255,255,255,.04) 1px, transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(60% 60% at 50% 50%, #000, transparent 75%);mask-image:radial-gradient(60% 60% at 50% 50%, #000, transparent 75%);pointer-events:none"></div>
           <div style="position:absolute;top:18px;left:18px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:100px;padding:7px 13px;font-size:11.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#fff"><span style="width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb, var(--acc) 25%, transparent)"></span> Watch · 1:42</div>
@@ -729,13 +730,8 @@
       <button onClick="{{ closeVideo }}" aria-label="Close video" style="position:absolute;top:24px;right:24px;width:46px;height:46px;border:none;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .25s,transform .25s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)" style-hover="background:rgba(255,255,255,.22);transform:rotate(90deg)">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>
       </button>
-      <div onClick="{{ stopBubble }}" style="position:relative;width:100%;max-width:1080px;aspect-ratio:16/9;border-radius:20px;background:#0a0a0c;overflow:hidden;box-shadow:0 60px 140px -20px rgba(0,0,0,.6);animation:modalIn .4s cubic-bezier(.2,.7,.2,1)">
-        <div style="position:absolute;inset:0;background:radial-gradient(140% 90% at 50% 20%,#1c1c22,#0a0a0c 70%)"></div>
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#9a9aa1;text-align:center;padding:32px">
-          <div style="width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="36" height="36" fill="#fff" style="margin-left:3px"><path d="M8 5v14l11-7z"/></svg></div>
-          <div style="font-size:20px;color:#fff;font-weight:700;letter-spacing:-.01em">Video placeholder</div>
-          <div style="font-size:15px;font-weight:500;max-width:380px;line-height:1.45">Drop the Dinelabs explainer video here. Press Esc or click outside to close.</div>
-        </div>
+      <div className="video-modal-box" onClick="{{ stopBubble }}" style="position:relative;width:100%;max-width:1080px;aspect-ratio:16/9;border-radius:20px;background:#000;overflow:hidden;box-shadow:0 60px 140px -20px rgba(0,0,0,.6);animation:modalIn .4s cubic-bezier(.2,.7,.2,1)">
+        <video controls="controls" autoplay="autoplay" playsinline="playsinline" style="width:100%;height:100%;object-fit:contain;background:#000;outline:none" src="{{ videoUrl }}"></video>
       </div>
     </div>
   </sc-if>
@@ -1015,6 +1011,10 @@ class Component extends DCLogic {
   };
   closeVideo = () => {
     document.body.style.overflow = '';
+    try {
+      const vs = document.querySelectorAll('.video-modal-box video');
+      vs.forEach(v => { v.pause(); v.currentTime = 0; });
+    } catch (_) {}
     this.setState({ videoOpen: false });
   };
   stopBubble = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
@@ -1421,6 +1421,7 @@ class Component extends DCLogic {
     };
     return {
       rootRef: this.rootRef,
+      videoUrl: this.state.lang === 'ka' ? 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20GE%20Fixed.mp4' : 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20English.mp4',
       videoOpen: this.state.videoOpen,
       openVideo: this.openVideo,
       closeVideo: this.closeVideo,

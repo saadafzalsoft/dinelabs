@@ -144,15 +144,22 @@ export default function CheckoutPage() {
         setTableNo(currentTable);
         localStorage.setItem(`dinelabs_table_${storename}`, currentTable);
       } else {
-        setTableNo('');
-        localStorage.removeItem(`dinelabs_table_${storename}`);
+        const savedTable = localStorage.getItem(`dinelabs_table_${storename}`);
+        if (savedTable) {
+          currentTable = savedTable;
+          setTableNo(savedTable);
+        }
       }
 
-      const savedMode = localStorage.getItem(`dinelabs_mode_${storename}`) || 'dine-in';
-      if (currentTable && savedMode === 'dine-in') {
-        setMode('dine-in');
+      const savedMode = localStorage.getItem(`dinelabs_mode_${storename}`);
+      if (currentTable) {
+        setMode(savedMode && ['dine-in', 'pickup', 'delivery'].includes(savedMode) ? savedMode : 'dine-in');
       } else {
-        setMode(savedMode);
+        if (savedMode && savedMode !== 'dine-in') {
+          setMode(savedMode);
+        } else {
+          setMode('pickup');
+        }
       }
 
       setLoading(false);
@@ -491,7 +498,7 @@ export default function CheckoutPage() {
                     <div className="toggle-desc">{tenant.waitTimes?.pickup || 15} {d.mins || 'mins'}</div>
                   </div>
                 )}
-                {tenant.enabledModes?.dineIn && (
+                {tenant.enabledModes?.dineIn && Boolean(tableNo || tableParam) && (
                   <div 
                     onClick={() => handleModeChange('dine-in')}
                     className={`toggle-option ${mode === 'dine-in' ? 'active' : ''}`}

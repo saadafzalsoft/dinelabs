@@ -4062,7 +4062,7 @@ function ManagerLayoutContent({ children }) {
         refreshOrders();
         refreshViews();
       }
-    }, 45000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
