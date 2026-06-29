@@ -1862,10 +1862,10 @@ function ProductsPageContent() {
           <div className="field" style={{ opacity: importing ? 0.5 : 1, pointerEvents: importing ? 'none' : 'auto' }}>
             <label className="label">{t('Step 1')} &middot; {t('Download the template')}</label>
             <p className="opt" style={{ margin: '0 0 4px' }}>
-              {t('Download a template CSV sheet structured with: name, category, price, short description, image url, modifiers.')}
+              {t('Download a template CSV sheet structured with: name, category, price, short description, image url.')}
             </p>
             <p className="opt" style={{ margin: '0 0 10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              💡 <b>{t('Note on Modifiers & Image URL:')}</b> {t('You can assign global modifier groups to imported items by listing their exact names in the modifiers column, separated by semicolons (e.g., Choose Size;Premium Addons;Removals). Direct image URLs can also be provided in the image url column.')}
+              💡 <b>{t('Note on Image URL:')}</b> {t('Direct image URLs can be provided in the image url column.')}
             </p>
             <button 
               className="btn btn-outline btn-sm"
