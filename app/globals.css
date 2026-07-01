@@ -122,7 +122,8 @@ body {
 
 .left-panel {
   padding: 32px 40px;
-  overflow-y: auto;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .right-panel {
@@ -400,6 +401,14 @@ body {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 32px;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 90;
+  background-color: #ffffff;
+  padding: 14px 40px;
+  margin-left: -40px;
+  margin-right: -40px;
+  border-bottom: 1px solid var(--line-2, #e5e7eb);
 }
 
 .categories-pills-list {
@@ -1403,6 +1412,12 @@ body {
 
   .left-panel {
     padding: 24px 20px;
+  }
+
+  .categories-row-wrapper {
+    padding: 14px 20px;
+    margin-left: -20px;
+    margin-right: -20px;
   }
 
   .products-grid {
