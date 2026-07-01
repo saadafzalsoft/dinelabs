@@ -131,10 +131,20 @@ export async function POST(request) {
       }
       return processed;
     };
-    if (tenant && tenant.tier === 1) {
-      const count = await db.collection('products').countDocuments({ tenantId: tenantId.toString() });
-      if (count >= 15) {
-        return NextResponse.json({ error: 'Product limit reached. Tier 1 is limited to 15 products. Upgrade to Tier 2 for unlimited capacity.' }, { status: 403 });
+    if (tenant) {
+      const tierObj = await db.collection('tiers').findOne({
+        $or: [
+          { _id: 't' + tenant.tier },
+          { _id: tenant.tier },
+          { lv: parseInt(tenant.tier) },
+          { lv: tenant.tier }
+        ]
+      });
+      if (tierObj && tierObj.caps && tierObj.caps.maxProducts !== undefined && tierObj.caps.maxProducts > 0) {
+        const count = await db.collection('products').countDocuments({ tenantId: tenantId.toString() });
+        if (count >= tierObj.caps.maxProducts) {
+          return NextResponse.json({ error: `Product limit reached. Your tier is limited to ${tierObj.caps.maxProducts} products. Please upgrade your tier for more capacity.` }, { status: 403 });
+        }
       }
     }
 

@@ -26,8 +26,8 @@ const newAutofillCss = 'input:-webkit-autofill,input:-webkit-autofill:hover,inpu
 homeHtml = homeHtml.replace(oldAutofillCss, newAutofillCss);
 demoHtml = demoHtml.replace(oldAutofillCss, newAutofillCss);
 
-// Add videoUrl property to renderVals in homeHtml
-const videoUrlExpr = "videoUrl: this.state.lang === 'ka' ? 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20GE%20Fixed.mp4' : 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20English.mp4',";
+// Add videoUrl and videoThumbnail property to renderVals in homeHtml
+const videoUrlExpr = "videoUrl: this.state.lang === 'de' ? 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20GE%20Fixed.mp4' : 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/Dinelabs%20-%20Video%20English.mp4',\n      videoThumbnail: this.state.lang === 'de' ? 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/image%20(1).png' : 'https://pub-9d959c9510754a61931824831d10774c.r2.dev/image.png',";
 homeHtml = homeHtml.replace('rootRef: this.rootRef,', 'rootRef: this.rootRef,\n      ' + videoUrlExpr);
 
 // Update openVideo / closeVideo implementation to stop playback on close
@@ -53,7 +53,7 @@ const oldHeroVisual = `<div data-reveal data-reveal-from="right" data-r="herovis
 
 const newHeroVisual = `<div data-reveal data-reveal-from="right" data-r="herovisual" style="position:relative;aspect-ratio:16/9;width:100%">
         <button onClick="{{ openVideo }}" aria-label="Play Dinelabs explainer video" style="position:absolute;inset:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;padding:0;cursor:pointer;background:#000;box-shadow:0 40px 80px -36px rgba(17,17,20,.5),0 12px 28px -14px rgba(17,17,20,.18)" style-hover="transform:translateY(-2px)">
-          <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.65" src="{{ videoUrl }}"></video>`;
+          <img src="{{ videoThumbnail }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt="Dinelabs explainer video thumbnail" />`;
 
 homeHtml = homeHtml.replace(oldHeroVisual, newHeroVisual);
 
@@ -66,7 +66,7 @@ const oldModalContent = `<div style="position:absolute;inset:0;background:radial
         </div>`;
 
 const newModalContainer = `<div className="video-modal-box" onClick="{{ stopBubble }}" style="position:relative;width:100%;max-width:1080px;aspect-ratio:16/9;border-radius:20px;background:#000;overflow:hidden;box-shadow:0 60px 140px -20px rgba(0,0,0,.6);animation:modalIn .4s cubic-bezier(.2,.7,.2,1)">
-        <video controls="controls" autoplay="autoplay" playsinline="playsinline" style="width:100%;height:100%;object-fit:contain;background:#000;outline:none" src="{{ videoUrl }}"></video>
+        <video controls="controls" autoplay="autoplay" playsinline="playsinline" poster="{{ videoThumbnail }}" style="width:100%;height:100%;object-fit:contain;background:#000;outline:none" src="{{ videoUrl }}"></video>
       </div>`;
 
 homeHtml = homeHtml.replace('<div onClick="{{ stopBubble }}" style="position:relative;width:100%;max-width:1080px;aspect-ratio:16/9;border-radius:20px;background:#0a0a0c;overflow:hidden;box-shadow:0 60px 140px -20px rgba(0,0,0,.6);animation:modalIn .4s cubic-bezier(.2,.7,.2,1)">\n        ' + oldModalContent + '\n      </div>', newModalContainer);

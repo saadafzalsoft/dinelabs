@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, ShieldCheck, LifeBuoy, Layers, Plus, Trash2, ChevronRight, X, Check, Star, RefreshCw, Minus, SlidersHorizontal, Bell, UtensilsCrossed, Languages } from 'lucide-react';
+import { Menu, ShieldCheck, LifeBuoy, Layers, Plus, Trash2, ChevronRight, X, Check, Star, RefreshCw, Minus, SlidersHorizontal, Bell, UtensilsCrossed, Languages, Grid } from 'lucide-react';
 import '../../manager/manager.css';
 import '../super.css';
 import SuperSidebar from '../SuperSidebar';
@@ -47,6 +47,8 @@ export default function SuperTiersPage() {
   const [ePriceAnnual, setEPriceAnnual] = useState(290);
   const [eProducts, setEProducts] = useState(30);
   const [eUnlimited, setEUnlimited] = useState(false);
+  const [eTables, setETables] = useState(10);
+  const [eTablesUnlimited, setETablesUnlimited] = useState(false);
   const [eTrans, setETrans] = useState(1);
   const [eLangs, setELangs] = useState(['en']);
   const [eModes, setEModes] = useState({ delivery: false, pickup: true, dinein: false });
@@ -82,6 +84,8 @@ export default function SuperTiersPage() {
       setEPriceAnnual(tier.priceAnnual);
       setEProducts(tier.caps?.maxProducts || 0);
       setEUnlimited(tier.caps?.maxProducts === 0);
+      setETables(tier.caps?.maxTables || 0);
+      setETablesUnlimited(tier.caps?.maxTables === 0 || tier.caps?.maxTables === undefined);
       setETrans(tier.caps?.maxTranslations || 1);
       setELangs(tier.caps?.langs || ['en']);
       setEModes({
@@ -102,6 +106,8 @@ export default function SuperTiersPage() {
       setEPriceAnnual(990);
       setEProducts(50);
       setEUnlimited(false);
+      setETables(10);
+      setETablesUnlimited(false);
       setETrans(1);
       setELangs(['en']);
       setEModes({ delivery: false, pickup: true, dinein: false });
@@ -141,6 +147,7 @@ export default function SuperTiersPage() {
       lv: selectedTier ? selectedTier.lv : Math.min(3, tiers.length + 1),
       caps: {
         maxProducts: eUnlimited ? 0 : (parseInt(eProducts) || 0),
+        maxTables: eTablesUnlimited ? 0 : (parseInt(eTables) || 0),
         maxTranslations: Math.min(parseInt(eTrans) || 1, eLangs.length),
         langs: eLangs,
         modes: {
@@ -304,6 +311,10 @@ export default function SuperTiersPage() {
                           <span>{t.caps?.maxProducts === 0 ? 'Unlimited' : `${t.caps?.maxProducts} products`}</span>
                         </span>
                         <span className="tlimit">
+                          <Grid className="ic" style={{ width: '13px', height: '13px' }} />
+                          <span>{t.caps?.maxTables === 0 || t.caps?.maxTables === undefined ? 'Unlimited' : `${t.caps?.maxTables} tables`}</span>
+                        </span>
+                        <span className="tlimit">
                           <Languages className="ic" style={{ width: '13px', height: '13px' }} />
                           <span>{t.caps?.maxTranslations} language{t.caps?.maxTranslations > 1 ? 's' : ''}</span>
                         </span>
@@ -434,6 +445,32 @@ export default function SuperTiersPage() {
                         style={{ height: '36px' }}
                       >
                         <span className="chk"><Check className="ic" style={{ opacity: eUnlimited ? 1 : 0 }} /></span>
+                        <span>Unlimited</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tables Limit */}
+                  <div className="limit-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--line-2)' }}>
+                    <div className="lr-main" style={{ flex: 1 }}>
+                      <div className="lr-name" style={{ fontWeight: 'bold', fontSize: '13.5px' }}>Tables layout limit</div>
+                      <div className="lr-sub" style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Max physical tables allowed in restaurant</div>
+                    </div>
+                    <div className="lr-ctrl" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="num-stepper" style={{ display: 'flex', border: '1px solid var(--line-2)', borderRadius: '8px', overflow: 'hidden' }}>
+                        <button type="button" onClick={() => !eTablesUnlimited && setETables(Math.max(0, eTables - 5))} style={{ padding: '8px 12px', background: '#fff', border: 'none' }} disabled={eTablesUnlimited}><Minus style={{ width: '14px', height: '14px' }} /></button>
+                        <input type="number" value={eTables} onChange={(e) => setETables(parseInt(e.target.value) || 0)} disabled={eTablesUnlimited} style={{ width: '50px', textAlign: 'center', border: 'none', outline: 'none' }} />
+                        <button type="button" onClick={() => !eTablesUnlimited && setETables(eTables + 5)} style={{ padding: '8px 12px', background: '#fff', border: 'none' }} disabled={eTablesUnlimited}><Plus style={{ width: '14px', height: '14px' }} /></button>
+                      </div>
+                      <div 
+                        className={`sel-chip ${eTablesUnlimited ? 'on' : ''}`}
+                        onClick={() => {
+                          setETablesUnlimited(!eTablesUnlimited);
+                          if (!eTablesUnlimited) setETables(0);
+                        }}
+                        style={{ height: '36px' }}
+                      >
+                        <span className="chk"><Check className="ic" style={{ opacity: eTablesUnlimited ? 1 : 0 }} /></span>
                         <span>Unlimited</span>
                       </div>
                     </div>

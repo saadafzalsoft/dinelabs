@@ -77,7 +77,7 @@ function CategoriesPageContent() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            categories: updated.map(c => ({ id: c._id, order: c.order }))
+            reorderedIds: updated.map(c => c._id)
           })
         });
         if (res.ok) {

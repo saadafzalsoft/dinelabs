@@ -106,6 +106,32 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Table code already exists' }, { status: 400 });
     }
 
+    // Check count for Tier limits (Table limit checking)
+    const queryId = tenantId.toString();
+    let tenant = await db.collection('tenants').findOne({ _id: queryId });
+    if (!tenant) {
+      try {
+        tenant = await db.collection('tenants').findOne({ _id: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+
+    if (tenant) {
+      const tierObj = await db.collection('tiers').findOne({
+        $or: [
+          { _id: 't' + tenant.tier },
+          { _id: tenant.tier },
+          { lv: parseInt(tenant.tier) },
+          { lv: tenant.tier }
+        ]
+      });
+      if (tierObj && tierObj.caps && tierObj.caps.maxTables !== undefined && tierObj.caps.maxTables > 0) {
+        const count = await db.collection('tables').countDocuments({ tenantId: tenantId.toString() });
+        if (count >= tierObj.caps.maxTables) {
+          return NextResponse.json({ error: `Table limit reached. Your tier is limited to ${tierObj.caps.maxTables} tables. Please upgrade your tier for more capacity.` }, { status: 403 });
+        }
+      }
+    }
+
     const newTable = {
       _id: new ObjectId().toString(),
       tenantId: tenantId.toString(),

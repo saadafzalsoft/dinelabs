@@ -500,7 +500,7 @@ export default function OrderConfirmationPage() {
     document.title = 'Order Status Tracker - DineLabs';
   }, []);
 
-  // Poll order state every 5 seconds
+  // Poll order state every 10 seconds
   useEffect(() => {
     if (!id) return;
 
@@ -525,7 +525,7 @@ export default function OrderConfirmationPage() {
     };
 
     fetchOrder();
-    const interval = setInterval(fetchOrder, 30000);
+    const interval = setInterval(fetchOrder, 10000);
 
     return () => clearInterval(interval);
   }, [id]);

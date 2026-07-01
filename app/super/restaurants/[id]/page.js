@@ -43,7 +43,8 @@ import {
   Bike,
   ShoppingBag,
   Utensils,
-  UtensilsCrossed
+  UtensilsCrossed,
+  LayoutGrid
 } from 'lucide-react';
 
 import { WORLD_LANGUAGES, WORLD_COUNTRIES, WORLD_CURRENCIES } from '../../../../lib/constants';
@@ -558,11 +559,13 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { maxProducts: 30, maxTranslations: 1 } };
-  const caps = activeTierObj.caps || { maxProducts: 30, maxTranslations: 1 };
+  const activeTierObj = tiers.find(t => t._id === 't' + tier) || tiers.find(t => t.id === 't' + tier) || tiers[0] || { caps: { maxProducts: 30, maxTables: 10, maxTranslations: 1 } };
+  const caps = activeTierObj.caps || { maxProducts: 30, maxTables: 10, maxTranslations: 1 };
   const isSuspended = status === 'suspended';
   const prodLimit = caps.maxProducts === 0 ? null : caps.maxProducts;
   const prodPct = prodLimit ? Math.min(100, Math.round((tenant?.productsCount || 0) / prodLimit * 100)) : Math.min(100, (tenant?.productsCount || 0) / 300 * 100);
+  const tableLimit = caps.maxTables === 0 || caps.maxTables === undefined ? null : caps.maxTables;
+  const tablePct = tableLimit ? Math.min(100, Math.round((tenant?.tablesCount || 0) / tableLimit * 100)) : Math.min(100, (tenant?.tablesCount || 0) / 50 * 100);
 
   return (
     <div className="layout">
@@ -788,6 +791,23 @@ export default function RestaurantDetailPage() {
                     <div className="limit-meter">
                       <div className="lm-bar">
                         <span style={{ width: `${prodPct}%`, background: prodPct >= 90 ? 'var(--neg)' : 'var(--accent)' }}></span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="info-row" style={{ marginTop: '12px' }}>
+                    <span className="info-k">
+                      <LayoutGrid className="ic" style={{ width: '15px', height: '15px' }} />
+                      Tables
+                    </span>
+                    <span className="info-v">
+                      {tenant?.tablesCount || 0} <span className="mut3" style={{ fontWeight: '600' }}>/ {tableLimit ? tableLimit : 'Unlimited'}</span>
+                    </span>
+                  </div>
+                  {tableLimit && (
+                    <div className="limit-meter">
+                      <div className="lm-bar">
+                        <span style={{ width: `${tablePct}%`, background: tablePct >= 90 ? 'var(--neg)' : 'var(--accent)' }}></span>
                       </div>
                     </div>
                   )}

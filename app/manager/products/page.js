@@ -70,6 +70,14 @@ function ProductsPageContent() {
   };
   const currencySymbol = currencySymbols[currency] || (currency + ' ');
 
+  const getPrefixPadding = (symbol, isSmall = false) => {
+    const len = symbol ? symbol.length : 1;
+    if (isSmall) {
+      return `${Math.max(20, 10 + len * 8)}px`;
+    }
+    return `${Math.max(28, 12 + len * 11)}px`;
+  };
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [modifierGroups, setModifierGroups] = useState([]);
@@ -1575,6 +1583,7 @@ function ProductsPageContent() {
                 placeholder="0.00" 
                 type="number"
                 step="0.01"
+                style={{ paddingLeft: getPrefixPadding(currencySymbol) }}
               />
             </div>
           </div>
@@ -1595,6 +1604,7 @@ function ProductsPageContent() {
                 placeholder={t('0.00 (leave empty for no discount)')} 
                 type="number"
                 step="0.01"
+                style={{ paddingLeft: getPrefixPadding(currencySymbol) }}
               />
             </div>
           </div>
@@ -1724,7 +1734,7 @@ function ProductsPageContent() {
                       placeholder="0.00"
                       type="number"
                       step="0.01"
-                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: getPrefixPadding(currencySymbol, true) }}
                     />
                   </div>
                   <button 
@@ -1776,7 +1786,7 @@ function ProductsPageContent() {
                       placeholder="0.00"
                       type="number"
                       step="0.01"
-                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: '20px' }}
+                      style={{ height: '36px', fontSize: '0.8rem', paddingLeft: getPrefixPadding(currencySymbol, true) }}
                     />
                   </div>
                   <button 

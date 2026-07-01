@@ -78,12 +78,21 @@ export async function GET(request, { params }) {
       } catch (e) {}
     }
 
+    // Get tables count
+    let tablesCount = await db.collection('tables').countDocuments({ tenantId: queryId });
+    if (tablesCount === 0) {
+      try {
+        tablesCount = await db.collection('tables').countDocuments({ tenantId: new ObjectId(queryId) });
+      } catch (e) {}
+    }
+
     tenant.ordersToday = ordersToday;
     tenant.revenueThisWeek = revenueThisWeek;
     tenant.lastOrderTime = lastOrderTime;
     tenant.lastMin = lastMin;
     tenant.err = err;
     tenant.productsCount = productsCount;
+    tenant.tablesCount = tablesCount;
 
     return NextResponse.json({ tenant });
   } catch (error) {

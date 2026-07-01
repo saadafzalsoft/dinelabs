@@ -562,6 +562,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     return a.order - b.order;
   });
 
+  const visibleCategories = sortedCategories.filter(c => !c.isPinned);
+
   // Opening the tripartite customisation modal
   const openCustomizer = (product) => {
     if (tenant.status !== 'active') return; // Suspended is browse-only
@@ -1013,7 +1015,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               >
                 {dict[lang].all}
               </button>
-              {sortedCategories.map(cat => (
+              {visibleCategories.map(cat => (
                 <button
                   key={cat._id}
                   onClick={() => {
@@ -1127,7 +1129,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 </div>
               );
 
-              const categoriesToDisplay = sortedCategories;
+              const categoriesToDisplay = visibleCategories;
 
               const categorizedProductIds = new Set();
               const categoryBlocks = categoriesToDisplay.map(cat => {
@@ -1363,7 +1365,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       </div>
 
       {/* Sticky Bottom View Cart Floating Bar on Mobile */}
-      {tenant.status === 'active' && !isClosed && (
+      {tenant.status === 'active' && !isClosed && cart.length > 0 && (
         <button
           type="button"
           onClick={() => setIsMobileCartOpen(true)}
@@ -2023,6 +2025,7 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                 onClick={() => {
                   setActiveCategory('all');
                   setIsFilterPopupOpen(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 style={{
                   display: 'flex',
@@ -2035,19 +2038,26 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                   fontWeight: activeCategory === 'all' ? '700' : '500',
                   fontSize: '14px',
                   cursor: 'pointer',
-                  textAlign: 'left'
+                  textAlign: 'left',
+                  color: 'var(--text-main)'
                 }}
               >
                 <span>{dict[lang].all}</span>
                 {activeCategory === 'all' && <Check style={{ width: '16px', height: '16px' }} />}
               </button>
 
-              {sortedCategories.map(cat => (
+              {visibleCategories.map(cat => (
                 <button
                   key={cat._id}
                   onClick={() => {
                     setActiveCategory(cat._id);
                     setIsFilterPopupOpen(false);
+                    const el = document.getElementById(`cat-section-${cat._id}`);
+                    if (el) {
+                      const yOffset = -120;
+                      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                      window.scrollTo({ top: y, behavior: 'smooth' });
+                    }
                   }}
                   style={{
                     display: 'flex',
@@ -2060,7 +2070,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
                     fontWeight: activeCategory === cat._id ? '700' : '500',
                     fontSize: '14px',
                     cursor: 'pointer',
-                    textAlign: 'left'
+                    textAlign: 'left',
+                    color: 'var(--text-main)'
                   }}
                 >
                   <span>{t(cat.name)}</span>
