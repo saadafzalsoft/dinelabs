@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { WORLD_LANGUAGES } from '../../lib/constants';
+import { checkIfStoreOpen } from '../../lib/timezone';
 import {
   Menu,
   X,
@@ -527,25 +528,8 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
     }
   });
 
-  // Check if store is open
-  const checkIfStoreOpen = (openingHours) => {
-    if (!openingHours || !Array.isArray(openingHours)) return true;
-
-    const now = new Date();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const currentDay = days[now.getDay()];
-
-    const hoursToday = openingHours.find(h => h.day === currentDay);
-    if (!hoursToday || !hoursToday.isOpen) return false;
-
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
-    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-
-    return currentTimeStr >= hoursToday.open && currentTimeStr <= hoursToday.close;
-  };
-
-  const isClosed = !checkIfStoreOpen(tenant.openingHours);
+  // Check if store is open in store's local timezone
+  const isClosed = !checkIfStoreOpen(tenant.openingHours, tenant.country);
 
   // Filter products based on search query
   const filteredProducts = initialProducts.filter(product => {

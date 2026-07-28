@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useManager } from '../layout';
+import { getCountryTimezone } from '../../../lib/timezone';
 import {
   Clock,
   Save,
@@ -187,7 +188,7 @@ function OpeningHoursPageContent() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '16px 22px', backgroundColor: '#f9fafb', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px', borderTop: '1px solid var(--line)', fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: '600' }}>
             <Globe className="ic" style={{ width: '15px', height: '15px', color: 'var(--text-muted)' }} />
-            <span>{t('All times are configured in your local store timezone')}</span>
+            <span>{t('All times are configured in your local store timezone')} ({tenantSettings?.country || 'Lebanon'} — {getCountryTimezone(tenantSettings?.country)})</span>
           </div>
 
         </div>

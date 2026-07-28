@@ -5,6 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import SearchSelect from '../../components/SearchSelect';
+import { checkIfStoreOpen } from '../../../lib/timezone';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -208,25 +209,8 @@ export default function CheckoutPage() {
     }
   }, [mode, tableNo, tablesList]);
 
-  // Check if store is open
-  const checkIfStoreOpen = (openingHours) => {
-    if (!openingHours || !Array.isArray(openingHours)) return true;
-    
-    const now = new Date();
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const currentDay = days[now.getDay()];
-    
-    const hoursToday = openingHours.find(h => h.day === currentDay);
-    if (!hoursToday || !hoursToday.isOpen) return false;
-
-    const currentHour = now.getHours();
-    const currentMin = now.getMinutes();
-    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-
-    return currentTimeStr >= hoursToday.open && currentTimeStr <= hoursToday.close;
-  };
-
-  const isClosed = tenant ? !checkIfStoreOpen(tenant.openingHours) : false;
+  // Check if store is open in store's local timezone
+  const isClosed = tenant ? !checkIfStoreOpen(tenant.openingHours, tenant.country) : false;
 
   // Dynamic price formatter using comma decimal separator: LBP XX,XX or $XX,XX
   const formatPrice = (amount) => {

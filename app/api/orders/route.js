@@ -3,26 +3,7 @@ import { getDb } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { sendOrderNotifications } from '@/lib/notifications';
-
-// Helper to determine if a store is currently open
-function isStoreOpen(openingHours) {
-  if (!openingHours || !Array.isArray(openingHours)) return true;
-  
-  const now = new Date();
-  // Get time in the local timezone (using Lebanon/Beirut local time zone matching user's locale region +03:00)
-  // To keep it simple and robust, use current system day/time
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const currentDay = days[now.getDay()];
-  
-  const hoursToday = openingHours.find(h => h.day === currentDay);
-  if (!hoursToday || !hoursToday.isOpen) return false;
-
-  const currentHour = now.getHours();
-  const currentMin = now.getMinutes();
-  const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-
-  return currentTimeStr >= hoursToday.open && currentTimeStr <= hoursToday.close;
-}
+import { checkIfStoreOpen } from '@/lib/timezone';
 
 export async function POST(request) {
   try {
@@ -50,8 +31,8 @@ export async function POST(request) {
       return NextResponse.json({ error: `Ordering via ${type} is not enabled for this restaurant.` }, { status: 403 });
     }
 
-    // 3. Operating hours checks
-    if (!isStoreOpen(tenant.openingHours)) {
+    // 3. Operating hours checks (evaluated in tenant local timezone)
+    if (!checkIfStoreOpen(tenant.openingHours, tenant.country)) {
       return NextResponse.json({ error: 'This restaurant is currently closed. Ordering is disabled.' }, { status: 403 });
     }
 
