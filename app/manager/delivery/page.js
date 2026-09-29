@@ -11,7 +11,8 @@ import {
   Trash2,
   Plus,
   PauseCircle,
-  Map
+  Map,
+  Lock
 } from 'lucide-react';
 import '../manager.css';
 import { useManager } from '../layout';
@@ -48,6 +49,8 @@ function DeliveryPageContent() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastIcon, setToastIcon] = useState('check');
 
+  const isDeliveryAllowed = Boolean(tenantSettings?.tierCaps?.modes ? tenantSettings.tierCaps.modes.delivery : true);
+
   const triggerToast = (msg, icon = 'check') => {
     setToastMessage(msg);
     setToastIcon(icon);
@@ -59,7 +62,8 @@ function DeliveryPageContent() {
   useEffect(() => {
     if (tenantSettings) {
       setSettings(tenantSettings);
-      setDeliveryEnabled(tenantSettings.enabledModes?.delivery ?? true);
+      const allowed = Boolean(tenantSettings.tierCaps?.modes ? tenantSettings.tierCaps.modes.delivery : true);
+      setDeliveryEnabled(allowed ? (tenantSettings.enabledModes?.delivery ?? true) : false);
       setDeliveryWait(tenantSettings.waitTimes?.delivery ?? 30);
       setDeliveryFee(tenantSettings.deliveryFee ?? 2.50);
       setMinOrderValue(tenantSettings.minOrderValue ?? 12.00);
@@ -75,6 +79,10 @@ function DeliveryPageContent() {
 
   const handleSaveSettings = async () => {
     if (saving) return;
+    if (!isDeliveryAllowed && deliveryEnabled) {
+      triggerToast(t('This is the Free version. Delivery is disabled on your tier.'), 'lock');
+      return;
+    }
     setSaving(true);
 
     try {
@@ -85,7 +93,7 @@ function DeliveryPageContent() {
 
       const nextEnabledModes = {
         ...(currentData.enabledModes || { dineIn: true, pickup: true }),
-        delivery: deliveryEnabled
+        delivery: isDeliveryAllowed ? deliveryEnabled : false
       };
 
       const res = await fetch('/api/tenant/settings', {
@@ -277,33 +285,65 @@ function DeliveryPageContent() {
       </div>
 
       <section data-screen-label="Delivery settings">
+        {!isDeliveryAllowed && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '14px 18px',
+            background: '#fffbe6',
+            border: '1px solid #ffe58f',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            color: '#874d00',
+            fontSize: '13.5px'
+          }}>
+            <Lock className="ic" style={{ width: '18px', height: '18px', flexShrink: 0, color: '#faad14' }} />
+            <div style={{ flex: 1 }}>
+              <strong>{t('This is the Free version (Tier 0).')}</strong>{' '}
+              <span>{t('Delivery is disabled on your current tier. Only modes active in Tier 0 can be turned on. Upgrade in Super Admin to unlock delivery.')}</span>
+            </div>
+          </div>
+        )}
+
         <div className="card">
           
           {/* Status Header */}
-          <div className={`svc-status ${deliveryEnabled ? 'on' : ''}`} style={{ borderBottom: '1px solid var(--line)' }}>
+          <div className={`svc-status ${isDeliveryAllowed && deliveryEnabled ? 'on' : ''}`} style={{ borderBottom: '1px solid var(--line)' }}>
             <div className="svc-ic">
               <Bike className="ic" />
             </div>
             <div>
               <div className="svc-h">
                 <span>{t('Accepting delivery orders')}</span>
-                <span className={`svc-pill ${deliveryEnabled ? 'live' : 'paused'}`}>
+                <span className={`svc-pill ${isDeliveryAllowed && deliveryEnabled ? 'live' : 'paused'}`}>
                   <span className="dot"></span>
-                  <span>{deliveryEnabled ? t('Live on storefront') : t('Paused')}</span>
+                  <span>{!isDeliveryAllowed ? t('Disabled on Free version') : deliveryEnabled ? t('Live on storefront') : t('Paused')}</span>
                 </span>
               </div>
               <div className="svc-sub">
-                {deliveryEnabled 
+                {!isDeliveryAllowed 
+                  ? t('Delivery is disabled on your current tier. You can only toggle modes active in Tier 0.')
+                  : deliveryEnabled 
                   ? t('Customers can order delivery now. Fee and ETA are pulled from the rules below.')
                   : t('When off, the delivery option is hidden from the storefront and existing baskets switch to pick-up.')}
               </div>
             </div>
-            <div className="svc-act">
-              <label className="switch">
+            <div className="svc-act" onClick={() => {
+              if (!isDeliveryAllowed) {
+                triggerToast(t('This is the Free version. Delivery is disabled on your tier.'), 'lock');
+              }
+            }}>
+              <label className="switch" style={{ cursor: isDeliveryAllowed ? 'pointer' : 'not-allowed', opacity: isDeliveryAllowed ? 1 : 0.6 }}>
                 <input 
                   type="checkbox"
-                  checked={deliveryEnabled}
+                  checked={isDeliveryAllowed && deliveryEnabled}
+                  disabled={!isDeliveryAllowed}
                   onChange={(e) => {
+                    if (!isDeliveryAllowed) {
+                      triggerToast(t('This is the Free version. Delivery is disabled on your tier.'), 'lock');
+                      return;
+                    }
                     const nextVal = e.target.checked;
                     setDeliveryEnabled(nextVal);
                     triggerToast(t('Delivery {state}').replace('{state}', nextVal ? t('enabled') : t('paused')), nextVal ? 'bike' : 'pause-circle');

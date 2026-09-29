@@ -16,7 +16,8 @@ import {
   Printer,
   Download,
   Check,
-  Save
+  Save,
+  Lock
 } from 'lucide-react';
 
 const generateQRDataUrl = async (data, logoUrl, storeName, qrStyle = 'fluid') => {
@@ -327,12 +328,15 @@ function DineInPageContent() {
   const dragCtxRef = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
 
+  const isDineInAllowed = Boolean(tenantSettings?.tierCaps?.modes ? tenantSettings.tierCaps.modes.dinein : true);
+
   const loading = contextLoading;
 
   useEffect(() => {
     if (tenantSettings) {
       setSettings(tenantSettings);
-      setDineInEnabled(tenantSettings.enabledModes?.dineIn ?? true);
+      const allowed = Boolean(tenantSettings.tierCaps?.modes ? tenantSettings.tierCaps.modes.dinein : true);
+      setDineInEnabled(allowed ? (tenantSettings.enabledModes?.dineIn ?? true) : false);
     }
   }, [tenantSettings]);
 
@@ -352,6 +356,10 @@ function DineInPageContent() {
 
   const handleSaveStatus = async () => {
     if (saving) return;
+    if (!isDineInAllowed && dineInEnabled) {
+      triggerToast(t('This is the Free version. Dine-in is disabled on your tier.'));
+      return;
+    }
     setSaving(true);
 
     try {
@@ -361,7 +369,7 @@ function DineInPageContent() {
 
       const nextEnabledModes = {
         ...(currentData.enabledModes || { delivery: true, pickup: true }),
-        dineIn: dineInEnabled
+        dineIn: isDineInAllowed ? dineInEnabled : false
       };
 
       const res = await fetch('/api/tenant/settings', {
@@ -667,33 +675,69 @@ function DineInPageContent() {
         
         {/* Status card */}
         <section data-screen-label="Dine-in status">
+          {!isDineInAllowed && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '14px 18px',
+              background: '#fffbe6',
+              border: '1px solid #ffe58f',
+              borderRadius: '12px',
+              marginBottom: '16px',
+              color: '#874d00',
+              fontSize: '13.5px'
+            }}>
+              <Lock className="ic" style={{ width: '18px', height: '18px', flexShrink: 0, color: '#faad14' }} />
+              <div style={{ flex: 1 }}>
+                <strong>{t('This is the Free version (Tier 0).')}</strong>{' '}
+                <span>{t('Dine-in tableside ordering is disabled on your current tier. You can only toggle modes active in Tier 0. Upgrade in Super Admin to unlock.')}</span>
+              </div>
+            </div>
+          )}
+
           <div className="card">
-            <div className={`svc-status ${dineInEnabled ? 'on' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px' }}>
+            <div className={`svc-status ${isDineInAllowed && dineInEnabled ? 'on' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div className="svc-ic" style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: dineInEnabled ? 'var(--brand-red-light)' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: dineInEnabled ? 'var(--brand-red)' : '#9ca3af' }}>
+                <div className="svc-ic" style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: isDineInAllowed && dineInEnabled ? 'var(--brand-red-light)' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDineInAllowed && dineInEnabled ? 'var(--brand-red)' : '#9ca3af' }}>
                   <Armchair className="ic" style={{ width: '24px', height: '24px' }} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontWeight: '800', fontSize: '1.1rem' }}>{t('Accepting dine-in orders')}</span>
-                    <span className={`pill ${dineInEnabled ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px', fontSize: '10px', fontWeight: 'bold' }}>
-                      {dineInEnabled ? t('Active') : t('Disabled')}
+                    <span className={`pill ${isDineInAllowed && dineInEnabled ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px', fontSize: '10px', fontWeight: 'bold' }}>
+                      {!isDineInAllowed ? t('Disabled on Free version') : dineInEnabled ? t('Active') : t('Disabled')}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    {t('Guests scan the QR code on their table to browse the menu and order from their seat.')}
+                    {!isDineInAllowed 
+                      ? t('Dine-in is disabled on your current tier. Only modes active in Tier 0 can be toggled.')
+                      : t('Guests scan the QR code on their table to browse the menu and order from their seat.')}
                   </div>
                 </div>
               </div>
               
-              <label className="switch">
-                <input 
-                  type="checkbox"
-                  checked={dineInEnabled}
-                  onChange={() => setDineInEnabled(!dineInEnabled)}
-                />
-                <span className="track"></span>
-              </label>
+              <div onClick={() => {
+                if (!isDineInAllowed) {
+                  triggerToast(t('This is the Free version. Dine-in is disabled on your tier.'));
+                }
+              }}>
+                <label className="switch" style={{ cursor: isDineInAllowed ? 'pointer' : 'not-allowed', opacity: isDineInAllowed ? 1 : 0.6 }}>
+                  <input 
+                    type="checkbox"
+                    checked={isDineInAllowed && dineInEnabled}
+                    disabled={!isDineInAllowed}
+                    onChange={() => {
+                      if (!isDineInAllowed) {
+                        triggerToast(t('This is the Free version. Dine-in is disabled on your tier.'));
+                        return;
+                      }
+                      setDineInEnabled(!dineInEnabled);
+                    }}
+                  />
+                  <span className="track"></span>
+                </label>
+              </div>
             </div>
           </div>
         </section>

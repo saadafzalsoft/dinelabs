@@ -8,7 +8,8 @@ import {
   Check,
   Save,
   MapPin,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Lock
 } from 'lucide-react';
 
 function PickupPageContent() {
@@ -24,12 +25,15 @@ function PickupPageContent() {
   const [address, setAddress] = useState('');
   const [googleMapsLink, setGoogleMapsLink] = useState('');
 
+  const isPickupAllowed = Boolean(tenantSettings?.tierCaps?.modes ? tenantSettings.tierCaps.modes.pickup : true);
+
   const loading = contextLoading;
 
   useEffect(() => {
     if (tenantSettings) {
       setSettings(tenantSettings);
-      setPickupEnabled(tenantSettings.enabledModes?.pickup ?? true);
+      const allowed = Boolean(tenantSettings.tierCaps?.modes ? tenantSettings.tierCaps.modes.pickup : true);
+      setPickupEnabled(allowed ? (tenantSettings.enabledModes?.pickup ?? true) : false);
       setPickupWait(tenantSettings.waitTimes?.pickup ?? 20);
       setAddress(tenantSettings.address ?? '');
       setGoogleMapsLink(tenantSettings.googleMapsLink ?? '');
@@ -46,6 +50,10 @@ function PickupPageContent() {
 
   const handleSaveSettings = async () => {
     if (saving) return;
+    if (!isPickupAllowed && pickupEnabled) {
+      triggerToast(t('This is the Free version. Pick-up is disabled on your tier.'));
+      return;
+    }
     setSaving(true);
 
     try {
@@ -56,7 +64,7 @@ function PickupPageContent() {
 
       const nextEnabledModes = {
         ...(currentData.enabledModes || { dineIn: true, delivery: true }),
-        pickup: pickupEnabled
+        pickup: isPickupAllowed ? pickupEnabled : false
       };
 
       const res = await fetch('/api/tenant/settings', {
@@ -126,35 +134,71 @@ function PickupPageContent() {
       </div>
 
       <section>
+        {!isPickupAllowed && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '14px 18px',
+            background: '#fffbe6',
+            border: '1px solid #ffe58f',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            color: '#874d00',
+            fontSize: '13.5px'
+          }}>
+            <Lock className="ic" style={{ width: '18px', height: '18px', flexShrink: 0, color: '#faad14' }} />
+            <div style={{ flex: 1 }}>
+              <strong>{t('This is the Free version (Tier 0).')}</strong>{' '}
+              <span>{t('Pick-up is disabled on your current tier. Only modes active in Tier 0 can be turned on. Upgrade in Super Admin to unlock.')}</span>
+            </div>
+          </div>
+        )}
+
         <div className="card">
           
           {/* Status Header */}
-          <div className={`svc-status ${pickupEnabled ? 'on' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', borderBottom: '1px solid var(--line)' }}>
+          <div className={`svc-status ${isPickupAllowed && pickupEnabled ? 'on' : ''}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', borderBottom: '1px solid var(--line)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div className="svc-ic" style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: pickupEnabled ? 'var(--brand-red-light)' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: pickupEnabled ? 'var(--brand-red)' : '#9ca3af' }}>
+              <div className="svc-ic" style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: isPickupAllowed && pickupEnabled ? 'var(--brand-red-light)' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isPickupAllowed && pickupEnabled ? 'var(--brand-red)' : '#9ca3af' }}>
                 <ShoppingBag className="ic" style={{ width: '24px', height: '24px' }} />
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontWeight: '800', fontSize: '1.1rem' }}>{t('Accepting pick-up orders')}</span>
-                  <span className={`pill ${pickupEnabled ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px', fontSize: '10px', fontWeight: 'bold' }}>
-                    {pickupEnabled ? t('Active') : t('Disabled')}
+                  <span className={`pill ${isPickupAllowed && pickupEnabled ? 'pill-pos' : 'pill-soft'}`} style={{ height: '22px', fontSize: '10px', fontWeight: 'bold' }}>
+                    {!isPickupAllowed ? t('Disabled on Free version') : pickupEnabled ? t('Active') : t('Disabled')}
                   </span>
                 </div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  {t('When off, the pick-up option is hidden from the storefront.')}
+                  {!isPickupAllowed 
+                    ? t('Pick-up is disabled on your current tier. Only modes active in Tier 0 can be toggled.')
+                    : t('When off, the pick-up option is hidden from the storefront.')}
                 </div>
               </div>
             </div>
             
-            <label className="switch">
-              <input 
-                type="checkbox"
-                checked={pickupEnabled}
-                onChange={() => setPickupEnabled(!pickupEnabled)}
-              />
-              <span className="track"></span>
-            </label>
+            <div onClick={() => {
+              if (!isPickupAllowed) {
+                triggerToast(t('This is the Free version. Pick-up is disabled on your tier.'));
+              }
+            }}>
+              <label className="switch" style={{ cursor: isPickupAllowed ? 'pointer' : 'not-allowed', opacity: isPickupAllowed ? 1 : 0.6 }}>
+                <input 
+                  type="checkbox"
+                  checked={isPickupAllowed && pickupEnabled}
+                  disabled={!isPickupAllowed}
+                  onChange={() => {
+                    if (!isPickupAllowed) {
+                      triggerToast(t('This is the Free version. Pick-up is disabled on your tier.'));
+                      return;
+                    }
+                    setPickupEnabled(!pickupEnabled);
+                  }}
+                />
+                <span className="track"></span>
+              </label>
+            </div>
           </div>
 
           {/* Timing Section */}

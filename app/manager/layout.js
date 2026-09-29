@@ -3789,7 +3789,8 @@ import {
   ChevronDown,
   Check,
   ChevronsUpDown,
-  Store
+  Store,
+  Lock
 } from 'lucide-react';
 
 function ManagerLayoutContent({ children }) {
@@ -4032,13 +4033,13 @@ function ManagerLayoutContent({ children }) {
   // Guard routing on pathname changes
   useEffect(() => {
     if (loading) return;
-    const isLoginRoute = pathname === '/manager';
+    const isAuthRoute = pathname === '/manager' || pathname.startsWith('/manager/signup');
     if (session) {
-      if (isLoginRoute) {
+      if (isAuthRoute) {
         router.push(session.role === 'superadmin' ? '/super/dashboard' : '/manager/dashboard');
       }
     } else {
-      if (!isLoginRoute) {
+      if (!isAuthRoute) {
         router.push('/manager');
       }
     }
@@ -4211,9 +4212,9 @@ function ManagerLayoutContent({ children }) {
     );
   }
 
-  // If not logged in, render login page only if on the login path
+  // If not logged in, render login or signup page
   if (!session) {
-    if (pathname === '/manager') {
+    if (pathname === '/manager' || pathname.startsWith('/manager/signup')) {
       return <>{children}</>;
     }
     return null;
@@ -4489,6 +4490,13 @@ function ManagerLayoutContent({ children }) {
                     <span>{t(item.name)}</span>
                     {item.badgeKey === 'newOrders' && pendingOrdersCount > 0 && (
                       <span className="badge">{pendingOrdersCount}</span>
+                    )}
+                    {((item.id === 'delivery' && tenantSettings?.tierCaps?.modes && !tenantSettings.tierCaps.modes.delivery) ||
+                      (item.id === 'dinein' && tenantSettings?.tierCaps?.modes && !tenantSettings.tierCaps.modes.dinein) ||
+                      (item.id === 'pickup' && tenantSettings?.tierCaps?.modes && !tenantSettings.tierCaps.modes.pickup)) && (
+                      <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '10px', fontWeight: 600, color: 'var(--ink-3)', opacity: 0.7 }} title={t('Disabled on Free version')}>
+                        <Lock style={{ width: '11px', height: '11px' }} />
+                      </span>
                     )}
                   </Link>
                 );

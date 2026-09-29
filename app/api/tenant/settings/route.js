@@ -59,7 +59,41 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
 
-    const response = NextResponse.json(tenant);
+    // Lookup tenant's tier configuration to provide mode/channel capabilities
+    let tier = null;
+    if (tenant.tier) {
+      tier = await db.collection('tiers').findOne({
+        $or: [
+          { _id: tenant.tier.toString() },
+          { lv: Number(tenant.tier) },
+          { name: tenant.tier }
+        ]
+      });
+    }
+    if (!tier) {
+      tier = await db.collection('tiers').findOne({
+        $or: [{ _id: 't0' }, { lv: 0 }, { tag: 'Free' }]
+      });
+    }
+
+    const tierCaps = tier?.caps || {
+      modes: { delivery: 0, pickup: 1, dinein: 0 },
+      channels: { email: 1, telegram: 0 }
+    };
+    const isFreeTier = !tier || tier._id === 't0' || tier.lv === 0 || tier.tag?.toLowerCase() === 'free' || tenant.tier === 't0' || tenant.tier === 0;
+
+    const responseData = {
+      ...tenant,
+      tierCaps,
+      tierInfo: {
+        id: tier?._id || 't0',
+        name: tier?.name || 'Tier 0',
+        tag: tier?.tag || 'Free',
+        isFree: isFreeTier
+      }
+    };
+
+    const response = NextResponse.json(responseData);
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
@@ -82,9 +116,6 @@ export async function PUT(request) {
 
     const db = await getDb();
 
-    // Check count for Tier restrictions
-    // E.g., Tier 1 might be limited to a single location (which they are) and specific ordering modes toggled by Super Admin.
-    // Pro (Tier 2/3) can modify custom wait times and currencies.
     const queryId = tenantId.toString();
     let tenant = await db.collection('tenants').findOne({ _id: queryId });
     if (!tenant) {
@@ -95,6 +126,27 @@ export async function PUT(request) {
     if (!tenant) {
       return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
     }
+
+    // Lookup tier caps
+    let tier = null;
+    if (tenant.tier) {
+      tier = await db.collection('tiers').findOne({
+        $or: [
+          { _id: tenant.tier.toString() },
+          { lv: Number(tenant.tier) },
+          { name: tenant.tier }
+        ]
+      });
+    }
+    if (!tier) {
+      tier = await db.collection('tiers').findOne({
+        $or: [{ _id: 't0' }, { lv: 0 }, { tag: 'Free' }]
+      });
+    }
+    const tierCaps = tier?.caps || {
+      modes: { delivery: 0, pickup: 1, dinein: 0 },
+      channels: { email: 1, telegram: 0 }
+    };
 
     const updateObj = {};
     if (name !== undefined) updateObj.name = name;
@@ -107,7 +159,6 @@ export async function PUT(request) {
     if (address !== undefined) updateObj.address = address;
     if (body.googleMapsLink !== undefined) updateObj.googleMapsLink = body.googleMapsLink;
     if (body.minOrderValue !== undefined) updateObj.minOrderValue = parseFloat(body.minOrderValue);
-    if (notifications !== undefined) updateObj.notifications = notifications;
     if (deliveryFee !== undefined) updateObj.deliveryFee = parseFloat(deliveryFee);
     if (body.deliveryMode !== undefined) updateObj.deliveryMode = body.deliveryMode;
     if (body.deliveryZones !== undefined) {
@@ -119,7 +170,6 @@ export async function PUT(request) {
     if (body.tiktok !== undefined) updateObj.tiktok = body.tiktok;
     if (body.whatsappNumber !== undefined) {
       updateObj.whatsappNumber = body.whatsappNumber;
-      // Sync into notifications object for storefront link compatibility
       if (!updateObj.notifications) {
         updateObj.notifications = { ...(tenant.notifications || {}), whatsappNumber: body.whatsappNumber };
       } else {
@@ -133,11 +183,50 @@ export async function PUT(request) {
     if (body.x !== undefined) updateObj.x = body.x;
     if (body.youtube !== undefined) updateObj.youtube = body.youtube;
     
-    // Only update enabledModes if user is NOT on Tier 1, since Tier 1 modes are locked by Super Admin
+    // Validate ordering modes against tier caps
     if (enabledModes !== undefined) {
-      if (tenant.tier > 1) {
-        updateObj.enabledModes = enabledModes;
+      if (enabledModes.delivery && !tierCaps.modes?.delivery) {
+        return NextResponse.json({
+          error: 'Delivery is disabled on the Free tier. Upgrade in Super Admin to unlock delivery.'
+        }, { status: 403 });
       }
+      if (enabledModes.dineIn && !tierCaps.modes?.dinein) {
+        return NextResponse.json({
+          error: 'Dine-in is disabled on the Free tier. Upgrade in Super Admin to unlock dine-in.'
+        }, { status: 403 });
+      }
+      if (enabledModes.pickup && !tierCaps.modes?.pickup) {
+        return NextResponse.json({
+          error: 'Pick-up is disabled on the Free tier. Upgrade in Super Admin to unlock pick-up.'
+        }, { status: 403 });
+      }
+
+      updateObj.enabledModes = {
+        pickup: tierCaps.modes?.pickup ? Boolean(enabledModes.pickup) : false,
+        delivery: tierCaps.modes?.delivery ? Boolean(enabledModes.delivery) : false,
+        dineIn: tierCaps.modes?.dinein ? Boolean(enabledModes.dineIn) : false
+      };
+    }
+
+    // Validate notification channels against tier caps
+    if (notifications !== undefined) {
+      if (notifications.telegramEnabled && !tierCaps.channels?.telegram) {
+        return NextResponse.json({
+          error: 'Telegram notifications are disabled on the Free tier. Upgrade in Super Admin to unlock.'
+        }, { status: 403 });
+      }
+      if (notifications.emailEnabled && !tierCaps.channels?.email) {
+        return NextResponse.json({
+          error: 'Email notifications are disabled on the Free tier. Upgrade in Super Admin to unlock.'
+        }, { status: 403 });
+      }
+
+      updateObj.notifications = {
+        ...(tenant.notifications || {}),
+        ...notifications,
+        emailEnabled: tierCaps.channels?.email ? Boolean(notifications.emailEnabled) : false,
+        telegramEnabled: tierCaps.channels?.telegram ? Boolean(notifications.telegramEnabled) : false
+      };
     }
 
     const updateResult = await db.collection('tenants').updateOne(

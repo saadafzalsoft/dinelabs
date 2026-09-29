@@ -9,6 +9,9 @@ async function checkSuperAdmin(request) {
 }
 
 const TIERS_SEED = [
+  { _id: 't0', name: 'Tier 0', tag: 'Free', price: 0, priceAnnual: 0, lv: 0,
+    caps: { maxProducts: 10, maxTables: 3, maxTranslations: 1, langs: ['en', 'ar', 'ka', 'ru'],
+            modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, telegram: 0 } } },
   { _id: 't1', name: 'Tier 1', tag: 'Starter', price: 29, priceAnnual: 290, lv: 1,
     caps: { maxProducts: 30, maxTables: 6, maxTranslations: 1, langs: ['en', 'ar', 'ka', 'ru'],
             modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, telegram: 0 } } },
@@ -35,16 +38,35 @@ export async function GET(request) {
       tiers = await db.collection('tiers').find({}).toArray();
     }
 
-    // Restore language pools and maxTables on existing seeded tiers
+    // Ensure existing seeded tiers have valid caps objects without overwriting super admin modifications
     for (const t of TIERS_SEED) {
-      await db.collection('tiers').updateOne(
-        { _id: t._id },
-        { $set: { 'caps.langs': t.caps.langs, 'caps.maxTables': t.caps.maxTables } }
-      );
+      const match = tiers.find(x => x._id === t._id);
+      if (match && (!match.caps?.langs || match.caps?.langs.length === 0)) {
+        await db.collection('tiers').updateOne(
+          { _id: t._id },
+          { $set: { 'caps.langs': t.caps.langs, 'caps.maxTables': t.caps.maxTables } }
+        );
+      }
     }
 
     // Refresh tiers array to reflect DB updates
     tiers = await db.collection('tiers').find({}).toArray();
+
+    // Deduplicate tiers by _id to guarantee no duplicate cards
+    const uniqueMap = new Map();
+    for (const t of tiers) {
+      if (t._id && !uniqueMap.has(t._id)) {
+        uniqueMap.set(t._id, t);
+      }
+    }
+    const deduplicatedTiers = Array.from(uniqueMap.values());
+    if (deduplicatedTiers.length < tiers.length) {
+      await db.collection('tiers').deleteMany({});
+      await db.collection('tiers').insertMany(deduplicatedTiers);
+      tiers = deduplicatedTiers;
+    } else {
+      tiers = deduplicatedTiers;
+    }
 
     return NextResponse.json({ tiers });
   } catch (error) {

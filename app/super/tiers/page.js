@@ -54,6 +54,8 @@ export default function SuperTiersPage() {
   const [eModes, setEModes] = useState({ delivery: false, pickup: true, dinein: false });
   const [eChannels, setEChannels] = useState({ email: true, telegram: false });
 
+  const uniqueTiers = Array.from(new Map((tiers || []).map(t => [t._id, t])).values());
+
   const getClientCount = (tierId) => {
     return tenants.filter(c => {
       // support matching string 't1', 't2' or numeric 1, 2 etc.
@@ -275,7 +277,7 @@ export default function SuperTiersPage() {
                 <span>Subscription tiers</span>
               </div>
               <span className="card-note">
-                {tiers.length} tier{tiers.length === 1 ? '' : 's'} total
+                {uniqueTiers.length} tier{uniqueTiers.length === 1 ? '' : 's'} total
               </span>
             </div>
 
@@ -287,9 +289,9 @@ export default function SuperTiersPage() {
               </div>
             ) : (
               <div id="tierList">
-                {tiers.map(t => {
+                {uniqueTiers.map(t => {
                   const numStores = getClientCount(t._id);
-                  const isFallbackOnly = tiers.length <= 1;
+                  const isFallbackOnly = uniqueTiers.length <= 1;
 
                   return (
                     <div key={t._id} className="tier-row" onClick={() => openEditor(t)}>

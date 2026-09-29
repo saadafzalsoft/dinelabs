@@ -46,8 +46,19 @@ function NotificationsPageContent() {
     setTimeout(() => el.remove(), 2500);
   };
 
+  const isEmailTierAllowed = Boolean(tenantSettings?.tierCaps?.channels ? tenantSettings.tierCaps.channels.email : true);
+  const isTelegramTierAllowed = Boolean(tenantSettings?.tierCaps?.channels ? tenantSettings.tierCaps.channels.telegram : false);
+
   const handleSaveSettings = async () => {
     if (saving) return;
+    if (telegramEnabled && !isTelegramTierAllowed) {
+      triggerToast(t('This is the Free version. Telegram alerts are disabled on your tier.'));
+      return;
+    }
+    if (emailEnabled && !isEmailTierAllowed) {
+      triggerToast(t('This is the Free version. Email alerts are disabled on your tier.'));
+      return;
+    }
     setSaving(true);
 
     try {
@@ -61,9 +72,9 @@ function NotificationsPageContent() {
         body: JSON.stringify({
           ...currentData,
           notifications: {
-            emailEnabled,
+            emailEnabled: isEmailTierAllowed ? emailEnabled : false,
             emailRecipient,
-            telegramEnabled,
+            telegramEnabled: isTelegramTierAllowed ? telegramEnabled : false,
             telegramChatId
           }
         })
@@ -101,8 +112,8 @@ function NotificationsPageContent() {
     );
   }
 
-  const isEmailAssigned = settings?.assignedNotifications?.email !== false;
-  const isTelegramAssigned = !!settings?.assignedNotifications?.telegram;
+  const isEmailAssigned = isEmailTierAllowed && (settings?.assignedNotifications?.email !== false);
+  const isTelegramAssigned = isTelegramTierAllowed;
 
   return (
     <div className="fade-in">
@@ -124,6 +135,27 @@ function NotificationsPageContent() {
       </div>
 
       <section>
+        {(!isTelegramTierAllowed || !isEmailTierAllowed) && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '14px 18px',
+            background: '#fffbe6',
+            border: '1px solid #ffe58f',
+            borderRadius: '12px',
+            marginBottom: '16px',
+            color: '#874d00',
+            fontSize: '13.5px'
+          }}>
+            <Lock className="ic" style={{ width: '18px', height: '18px', flexShrink: 0, color: '#faad14' }} />
+            <div style={{ flex: 1 }}>
+              <strong>{t('This is the Free version (Tier 0).')}</strong>{' '}
+              <span>{t('Only notification channels activated in Tier 0 can be configured. Upgrade in Super Admin to unlock additional channels.')}</span>
+            </div>
+          </div>
+        )}
+
         <div className="card">
           <div className="card-head" style={{ borderBottom: '1px solid var(--line)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Bell className="ic" style={{ color: 'var(--text-muted)' }} />
@@ -284,7 +316,11 @@ function NotificationsPageContent() {
                 )}
               </div>
               
-              <div style={{ display: 'flex', alignItems: 'center', paddingOriginal: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', paddingOriginal: '6px' }} onClick={() => {
+                if (!isTelegramAssigned) {
+                  triggerToast(t('This is the Free version. Telegram alerts are disabled on your tier.'));
+                }
+              }}>
                 {isTelegramAssigned ? (
                   <label className="switch">
                     <input 
@@ -295,7 +331,7 @@ function NotificationsPageContent() {
                     <span className="track"></span>
                   </label>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('Locked')}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', cursor: 'not-allowed' }}>{t('Locked (Free Tier)')}</span>
                 )}
               </div>
             </div>
