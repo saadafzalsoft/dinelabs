@@ -6,6 +6,7 @@ import { ObjectId } from 'mongodb';
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
+    console.log('LOGIN ATTEMPT:', { email, passwordLength: password ? password.length : 0 });
 
     if (!email || !password) {
       return NextResponse.json(
