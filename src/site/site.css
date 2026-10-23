@@ -1,0 +1,41 @@
+/* Global site styles (from the Claude Design template) */
+
+html,body{margin:0;background:#fff;color:#0c0a09;-webkit-font-smoothing:antialiased}
+[data-dl-root] a:not(.dl-btn){color:#0c0a09;text-decoration:underline;text-underline-offset:3px}
+[data-dl-root] a:not(.dl-btn):hover{color:#4e4e4e}
+input[type=range]{accent-color:#0c0a09}
+[data-dl-root][lang=ar], [data-dl-root][lang=ar] *:not([data-no-ar]):not([data-no-ar] *):not([data-ar-skip="1"]):not([data-ar-skip="1"] *){font-family:'Almarai',sans-serif !important; letter-spacing:0 !important; text-transform:none !important}
+[data-dl-root][lang=ar] :is(h1,h2,h3,[style*="--dl-display"]):not([data-no-ar] *):not([data-ar-skip="1"] *), [data-dl-root][lang=ar] :is(h1,h2,h3,[style*="--dl-display"]):not([data-no-ar] *):not([data-ar-skip="1"] *) *{font-family:'Noto Kufi Arabic','Almarai',sans-serif !important; line-height:1.35 !important}
+@keyframes dlRing{0%{transform:scale(.16);opacity:0}12%{opacity:.7}100%{transform:scale(1);opacity:0}}
+@keyframes dlWave{0%{transform:scale(.16);opacity:1}100%{transform:scale(1.1);opacity:0}}
+@keyframes dlCtaPulse{0%,100%{box-shadow:0 0 14px 2px rgba(167,229,211,.3)}50%{box-shadow:0 0 20px 5px rgba(167,229,211,.42)}}
+@media (prefers-reduced-motion: reduce){[data-cta-pulse]{animation:none !important}}
+
+@keyframes dlInA{from{filter:blur(10px);opacity:.3}to{filter:blur(0);opacity:1}}@keyframes dlInB{from{filter:blur(10px);opacity:.3}to{filter:blur(0);opacity:1}}@keyframes dlInC{from{filter:blur(10px);opacity:.3}to{filter:blur(0);opacity:1}}@keyframes dlFly{0%{transform:translate(var(--x0),var(--y0)) scale(1);opacity:1}75%{opacity:1}100%{transform:translate(var(--x1),var(--y1)) scale(.28);opacity:0}}
+
+/* Navigation buttons render as links (crawlable); this keeps them looking exactly like buttons */
+a.dl-btn{display:inline-block;box-sizing:border-box;align-items:flex-start;text-align:center;font:13.3333px Arial,sans-serif;font:-webkit-small-control;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;text-indent:0;text-shadow:none;color:#000;background-color:#efefef;border:2px outset #000;padding:1px 6px;cursor:default;text-decoration:none}
+
+/* Hover and press styles */
+.dlh0:hover{opacity:0.65 !important}
+.dlh1:hover{filter:brightness(0.95) !important}
+.dlh2:hover{background:#f0efed !important}
+.dlh3:hover{transform:translateY(-2px) !important;box-shadow:0 0 0 4px rgba(167,229,211,0.6), 0 16px 30px -12px rgba(12,10,9,0.55) !important}
+.dlh4:active{transform:translateY(0) scale(0.98) !important}
+.dlh5:hover{background:#e7e5e4 !important}
+.dlh6:hover{background:#f5f5f5 !important;transform:translateX(3px) !important}
+.dlh7:hover{transform:scale(1.015) !important;color:#fff !important}
+.dlh8:hover{transform:scale(1.015) !important}
+.dlh9:hover{transform:translateY(-2px) !important;box-shadow:0 18px 36px -12px rgba(12,10,9,0.35) !important;color:#0c0a09 !important}
+.dlha:hover{color:#0c0a09 !important}
+.dlhb:hover{transform:translateY(-2px) !important;box-shadow:0 0 0 4px rgba(167,229,211,0.6), 0 16px 30px -12px rgba(12,10,9,0.55) !important;color:#fff !important}
+.dlhc:hover{border-color:#0c0a09 !important}
+.dlhd:hover{background:#292524 !important}
+.dlhe:active{transform:scale(0.95) !important}
+.dlhf:hover{background:#fff !important}
+.dlhg:hover{transform:translateY(-2px) !important;box-shadow:0 0 0 4px rgba(167,229,211,0.45), 0 16px 34px -10px rgba(167,229,211,0.55) !important}
+.dlhh:hover{text-decoration:underline !important}
+.dlhi:hover{background:rgba(12,10,9,0.05) !important}
+.dlhj:hover{transform:translateY(-3px) !important;box-shadow:0 20px 40px -24px rgba(12,10,9,0.3) !important}
+.dlhk:hover{background:#f0efed !important;color:#0c0a09 !important}
+

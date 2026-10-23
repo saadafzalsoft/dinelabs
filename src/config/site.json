@@ -1,0 +1,51 @@
+{
+  "_readme": "Fill in the empty links before launch. Empty values stay as #todo-<key> links on the site. Run `npm run build` after any change.",
+  "domain": "https://dinelabs.co",
+  "links": {
+    "signup": "https://dinelabs.co/manager/signup",
+    "login": "https://dinelabs.co/manager/",
+    "store": "https://dinelabs.co/mcdonalds",
+    "instagram": "https://www.instagram.com/dinelabs.co/",
+    "linkedin": "https://www.linkedin.com/company/dinelabs/",
+    "waitlist": "https://formsubmit.co/ajax/team@dinelabs.co",
+    "wa": "96171407202"
+  },
+  "organization": {
+    "name": "Dinelabs",
+    "email": "team@dinelabs.co",
+    "phone": "+96171407202",
+    "city": "Beirut",
+    "country": "LB",
+    "streetAddress": "BDD, Bechara El Khoury",
+    "foundingDate": "2026",
+    "founders": [
+      {
+        "name": "Hasan El Chami",
+        "url": "https://www.linkedin.com/in/hasanelchami/"
+      },
+      {
+        "name": "Abdallah Assaad",
+        "url": "https://www.linkedin.com/in/abdallah-assaad-300a75233/"
+      }
+    ]
+  },
+  "pricing": {
+    "currency": "USD",
+    "free": 0,
+    "premium": 37
+  },
+  "productSlugs": {
+    "storefront": "ordering-page",
+    "pickup": "pickup",
+    "dinein": "table-ordering",
+    "delivery": "delivery",
+    "addons": "add-ons",
+    "translation": "menu-translation",
+    "branding": "branding",
+    "branches": "multi-branch",
+    "analysis": "menu-analysis",
+    "app": "orders-app",
+    "loyalty": "loyalty-stamps",
+    "payments": "online-payments"
+  }
+}

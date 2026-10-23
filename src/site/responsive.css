@@ -1,0 +1,27 @@
+/*
+ * Screen-size rules. The design switches layout at these widths:
+ *   960px  phone/tablet vs desktop     1100px  manager sidebar
+ *   720px  legal pages sidebar         600px   pricing table vs cards
+ * Wrappers use display:contents, so they never affect layout themselves.
+ */
+.dl-only-desk, .dl-only-mob, .dl-w600-up, .dl-w600-down, .dl-w1100-up { display: contents; }
+
+:root {
+  --dl-search-r: 999px;
+  --dl-pill-r: 999px;
+  --dl-hero-stage-h: calc(min(360px, 78vw) * 2.049 + 40px);
+  --dl-toc-pos: sticky;
+}
+@media (max-width: 959.98px) {
+  .dl-only-desk { display: none; }
+  :root {
+    --dl-search-r: 26px;
+    --dl-pill-r: 20px;
+    --dl-hero-stage-h: calc(min(360px, 78vw) * 2.049 + 96px);
+  }
+}
+@media (min-width: 960px) { .dl-only-mob { display: none; } }
+@media (max-width: 1099.98px) { .dl-w1100-up { display: none; } }
+@media (max-width: 719.98px) { :root { --dl-toc-pos: static; } }
+@media (max-width: 599.98px) { .dl-w600-up { display: none; } }
+@media (min-width: 600px) { .dl-w600-down { display: none; } }

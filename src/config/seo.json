@@ -1,0 +1,83 @@
+{
+  "_readme": "Title and meta description for every page, in English and Arabic. Keep titles under ~60 characters and descriptions under ~155. Rebuild after editing.",
+  "home": {
+    "en": { "title": "Dinelabs | Commission-Free Online Ordering for Restaurants", "description": "Your own ordering page for pickup, delivery and table orders. 0% commission, ready in 3 minutes, nothing for guests to download. Start free." },
+    "ar": { "title": "Dinelabs | نظام طلبات أونلاين للمطاعم بدون عمولة", "description": "صفحة طلب باسم مطعمك للاستلام والتوصيل والطلب من الطاولة. بدون عمولة، جاهزة خلال 3 دقائق، وبدون تطبيق يحمّله العميل. ابدأ مجانًا." }
+  },
+  "features": {
+    "en": { "title": "Features: Ordering Page, QR Tables & Delivery | Dinelabs", "description": "Everything you need to sell direct: your own ordering page, pickup, QR table ordering, delivery, add-ons, menu translation, branding and multi-branch." },
+    "ar": { "title": "المزايا: صفحة طلب، طلب من الطاولة وتوصيل | Dinelabs", "description": "كل ما تحتاجه للبيع المباشر: صفحة طلب باسمك، الاستلام، الطلب من الطاولة عبر QR، التوصيل، الإضافات، ترجمة المنيو، هويتك التجارية وإدارة الفروع." }
+  },
+  "pricing": {
+    "en": { "title": "Pricing: Free Plan, Premium at $37/month | Dinelabs", "description": "Start free with pickup orders and 0% commission. Premium adds table ordering, delivery, add-ons and 100+ menu languages for $37 a month. 30 days free." },
+    "ar": { "title": "الأسعار: باقة مجانية، والمميزة بـ 37$ شهريًا | Dinelabs", "description": "ابدأ مجانًا بطلبات الاستلام وبدون عمولة. الباقة المميزة تضيف الطلب من الطاولة والتوصيل والإضافات وأكثر من 100 لغة بـ 37$ شهريًا، وأول 30 يومًا مجانًا." }
+  },
+  "about": {
+    "en": { "title": "About Dinelabs | Direct Ordering, Built in Beirut", "description": "We started Dinelabs because delivery apps take 25–30% of every order. Meet the founders building commission-free ordering for restaurants and cafés." },
+    "ar": { "title": "عن Dinelabs | منصة الطلب المباشر للمطاعم", "description": "بدأنا Dinelabs لأن تطبيقات التوصيل تأخذ نسبة كبيرة من كل طلب. تعرّف على المؤسسين ورؤيتنا لطلبات مباشرة بدون عمولة للمطاعم والمقاهي." }
+  },
+  "faq": {
+    "en": { "title": "FAQ: Online Ordering Without Commission | Dinelabs", "description": "Answers about setting up your Dinelabs ordering page, pickup, delivery and table orders, how guests pay, pricing and menu languages." },
+    "ar": { "title": "الأسئلة الشائعة عن الطلب أونلاين بدون عمولة | Dinelabs", "description": "إجابات عن إنشاء صفحة الطلب في Dinelabs، وطلبات الاستلام والتوصيل والطاولات، وطرق الدفع، والأسعار، ولغات المنيو." }
+  },
+  "privacy": {
+    "en": { "title": "Privacy Policy | Dinelabs", "description": "How Dinelabs collects, uses and protects information about restaurants, coffee shops and their guests." },
+    "ar": { "title": "سياسة الخصوصية | Dinelabs", "description": "كيف تجمع Dinelabs المعلومات وتستخدمها وتحميها." }
+  },
+  "terms": {
+    "en": { "title": "Terms & Conditions | Dinelabs", "description": "The terms for using the Dinelabs website, storefronts, QR ordering and owner portal." },
+    "ar": { "title": "الشروط والأحكام | Dinelabs", "description": "شروط استخدام موقع Dinelabs وصفحات الطلب والطلب عبر QR ولوحة التحكم." }
+  },
+  "404": {
+    "en": { "title": "Page not found | Dinelabs", "description": "This page doesn't exist. Go back to Dinelabs, commission-free online ordering for restaurants and coffee shops." },
+    "ar": { "title": "الصفحة غير موجودة | Dinelabs", "description": "هذه الصفحة غير موجودة. ارجع إلى Dinelabs، الطلب أونلاين بدون عمولة للمطاعم والمقاهي." }
+  },
+  "product:storefront": {
+    "en": { "title": "Online Ordering Page for Restaurants | Dinelabs", "description": "Your own ordering page. Guests open your link or scan a QR code, see your menu with photos and order in a few taps. No app, no commission." },
+    "ar": { "title": "صفحة طلب أونلاين باسم مطعمك | Dinelabs", "description": "يفتح العميل رابطك أو يمسح رمز QR، يشاهد المنيو بالصور، ويطلب بضغطات قليلة. بدون تطبيق، وبدون عمولة." }
+  },
+  "product:pickup": {
+    "en": { "title": "Pickup Ordering for Restaurants & Cafés | Dinelabs", "description": "Guests order ahead from your page and pick up when it's ready. No busy phone line, no wrong orders. Free plan, 0% commission." },
+    "ar": { "title": "طلبات الاستلام للمطاعم والمقاهي | Dinelabs", "description": "يطلب العميل مسبقًا من صفحتك ويستلم عندما يجهز طلبه. لا خط مشغول، ولا أخطاء في الطلبات. مجانًا وبدون عمولة." }
+  },
+  "product:dinein": {
+    "en": { "title": "QR Table Ordering for Restaurants | Dinelabs", "description": "A QR code on every table. Guests order on their own and every order arrives with the table number, so your waiters serve instead of taking orders." },
+    "ar": { "title": "الطلب من الطاولة عبر QR للمطاعم | Dinelabs", "description": "رمز QR على كل طاولة. يطلب العميل بنفسه ويصل كل طلب برقم الطاولة، فيتفرغ فريقك للخدمة بدل تسجيل الطلبات." }
+  },
+  "product:delivery": {
+    "en": { "title": "Commission-Free Delivery Ordering | Dinelabs", "description": "Guests order from your page and your own drivers deliver. No app in the middle and no 25–30% cut on every order." },
+    "ar": { "title": "طلبات توصيل بدون عمولة | Dinelabs", "description": "يطلب العميل من صفحتك ويوصّل مندوبك الطلب. لا تطبيق في المنتصف، ولا عمولة على كل طلب." }
+  },
+  "product:addons": {
+    "en": { "title": "Add-ons & Upsells for Online Orders | Dinelabs", "description": "Sizes, extras and “no onions” on any item. Dinelabs suggests the right extra at the right time, so every order is worth more." },
+    "ar": { "title": "الإضافات وزيادة قيمة الطلب | Dinelabs", "description": "أحجام وإضافات و«بدون بصل» على أي صنف. يقترح Dinelabs الإضافة المناسبة في الوقت المناسب، فتزيد قيمة كل طلب." }
+  },
+  "product:translation": {
+    "en": { "title": "Menu Translation in 100+ Languages | Dinelabs", "description": "Guests see your menu in 100+ languages. Every order, notes included, reaches your kitchen in the language your team reads." },
+    "ar": { "title": "ترجمة المنيو لأكثر من 100 لغة | Dinelabs", "description": "المنيو يظهر للعميل بأكثر من 100 لغة، وكل طلب مع ملاحظاته يصل لمطبخك باللغة التي يقرؤها فريقك." }
+  },
+  "product:branding": {
+    "en": { "title": "Branded Online Ordering for Restaurants | Dinelabs", "description": "Your logo, your colors, your photos. Guests see your restaurant on your ordering page, not ours and not your competitors." },
+    "ar": { "title": "هويتك التجارية في صفحة الطلب | Dinelabs", "description": "شعارك وألوانك وصورك. العميل يرى مطعمك في صفحة الطلب، لا اسمنا ولا المنافسين." }
+  },
+  "product:branches": {
+    "en": { "title": "Multi-Branch Restaurant Ordering | Dinelabs", "description": "See every branch and every order from one screen. Change a price or mark a dish sold out, and it updates in seconds." },
+    "ar": { "title": "إدارة كل الفروع من مكان واحد | Dinelabs", "description": "كل فرع وكل طلب من شاشة واحدة. غيّر سعرًا أو أوقف طبقًا نفد، ويتحدث خلال ثوانٍ." }
+  },
+  "product:analysis": {
+    "en": { "title": "Menu Price Analysis (Coming Soon) | Dinelabs", "description": "See how your menu and prices compare to places near you, and stop pricing by gut feeling. Join the waitlist." },
+    "ar": { "title": "تحليل أسعار المنيو (قريبًا) | Dinelabs", "description": "قارن المنيو وأسعارك بالمطاعم القريبة منك، وتوقّف عن التسعير بالتخمين. انضم لقائمة الانتظار." }
+  },
+  "product:app": {
+    "en": { "title": "Restaurant Orders App (Coming Soon) | Dinelabs", "description": "An iPhone and Android app to receive and manage your Dinelabs orders, wherever you are. Join the waitlist." },
+    "ar": { "title": "تطبيق الطلبات للمطاعم (قريبًا) | Dinelabs", "description": "تطبيق للآيفون والأندرويد لاستقبال طلبات Dinelabs وإدارتها أينما كنت. انضم لقائمة الانتظار." }
+  },
+  "product:loyalty": {
+    "en": { "title": "Digital Loyalty Stamps (Coming Soon) | Dinelabs", "description": "Digital stamps reward guests for ordering direct, so they come back to you, not the apps. Join the waitlist." },
+    "ar": { "title": "أختام الولاء الرقمية (قريبًا) | Dinelabs", "description": "أختام رقمية تكافئ العميل عندما يطلب منك مباشرة، فيعود إليك لا إلى التطبيقات. انضم لقائمة الانتظار." }
+  },
+  "product:payments": {
+    "en": { "title": "Online Payments for Delivery (Coming Soon) | Dinelabs", "description": "Guests pay online for delivery, so the money is in before the food leaves. No cash to count. Join the waitlist." },
+    "ar": { "title": "الدفع الإلكتروني للتوصيل (قريبًا) | Dinelabs", "description": "العميل يدفع إلكترونيًا لطلبات التوصيل، فيصلك المبلغ قبل أن يخرج الطلب. انضم لقائمة الانتظار." }
+  }
+}

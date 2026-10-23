@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/site/*": ["./src/site/*"],
+      "@/data/*": ["./src/data/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/i18n/*": ["./src/i18n/*"],
+      "@/lib/*": ["./src/lib/*", "./lib/*"],
+      "@/*": ["./*", "./src/*"]
     }
   }
 }
