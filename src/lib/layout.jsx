@@ -13,12 +13,8 @@ export const rootViewport = { themeColor: '#ffffff', width: 'device-width', init
 /** Language layout wrapper for website pages */
 export function RootLayout({ lang, children }) {
   return (
-    <>
-      <GTMHead />
-      <GTMBody />
-      <div className="dl-site-wrapper" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-        {children}
-      </div>
-    </>
+    <div className="dl-site-wrapper" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {children}
+    </div>
   );
 }
