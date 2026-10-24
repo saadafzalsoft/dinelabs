@@ -3,6 +3,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { GTMHead, GTMBody } from '@/components/GTM';
+
+const TIMEZONE_TO_COUNTRY = {
+  'Asia/Tbilisi': 'GE',
+  'Asia/Dubai': 'AE',
+  'Asia/Riyadh': 'SA',
+  'Asia/Kolkata': 'IN',
+  'Asia/Calcutta': 'IN',
+  'Asia/Tokyo': 'JP',
+  'Asia/Singapore': 'SG',
+  'Europe/London': 'GB',
+  'Europe/Berlin': 'DE',
+  'Europe/Paris': 'FR',
+  'Europe/Madrid': 'ES',
+  'Europe/Rome': 'IT',
+  'Europe/Amsterdam': 'NL',
+  'Europe/Warsaw': 'PL',
+  'Europe/Istanbul': 'TR',
+  'Europe/Kiev': 'UA',
+  'Europe/Kyiv': 'UA',
+  'America/New_York': 'US',
+  'America/Chicago': 'US',
+  'America/Denver': 'US',
+  'America/Los_Angeles': 'US',
+  'America/Toronto': 'CA',
+  'America/Vancouver': 'CA',
+  'America/Mexico_City': 'MX',
+  'America/Sao_Paulo': 'BR',
+  'Australia/Sydney': 'AU',
+  'Australia/Melbourne': 'AU',
+};
 
 const COUNTRIES = [
   ['GE', 'Georgia', 'GEL'], ['US', 'United States', 'USD'], ['GB', 'United Kingdom', 'GBP'], ['DE', 'Germany', 'EUR'], ['FR', 'France', 'EUR'],
@@ -52,6 +83,23 @@ export default function ManagerSignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Tracking state & refs
+  const hasTrackedStart = useRef(false);
+  const eventIdRef = useRef('');
+  if (!eventIdRef.current) {
+    eventIdRef.current = 'dl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  }
+  const createdDataRef = useRef(null);
+
+  const triggerSignUpStart = () => {
+    if (hasTrackedStart.current) return;
+    hasTrackedStart.current = true;
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: 'sign_up_start' });
+    }
+  };
+
   // Build Sequence states
   const [building, setBuilding] = useState(false);
   const [buildElapsed, setBuildElapsed] = useState(0);
@@ -60,6 +108,49 @@ export default function ManagerSignUpPage() {
   // Layout sizing
   const [windowHeight, setWindowHeight] = useState(900);
   const buildRafRef = useRef(null);
+
+  // Pre-fill store name from homepage hero and auto-detect country/currency
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      const prefill = sp.get('store') || sp.get('name') || '';
+      if (prefill) {
+        setStore(prefill);
+        setSlug(slugify(prefill));
+      }
+    }
+
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let detected = TIMEZONE_TO_COUNTRY[tz];
+      if (!detected && typeof navigator !== 'undefined') {
+        const lang = navigator.language || '';
+        const m = lang.match(/-([A-Z]{2})$/i);
+        if (m) detected = m[1].toUpperCase();
+      }
+
+      if (detected) {
+        const entry = COUNTRIES.find(c => c[0] === detected);
+        if (entry) {
+          setCountry(entry[0]);
+          setCurrency(entry[2]);
+        }
+      }
+
+      fetch('/api/geo')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.country) {
+            const entry = COUNTRIES.find(c => c[0] === data.country);
+            if (entry) {
+              setCountry(entry[0]);
+              setCurrency(entry[2]);
+            }
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
+  }, []);
 
   // Sync Tier 0 configuration from Super Admin
   useEffect(() => {
@@ -163,7 +254,8 @@ export default function ManagerSignUpPage() {
           slug,
           country,
           currency,
-          channels
+          channels,
+          eventId: eventIdRef.current,
         })
       });
 
@@ -171,6 +263,7 @@ export default function ManagerSignUpPage() {
       if (!res.ok) {
         throw new Error(data.error || 'Registration failed.');
       }
+      createdDataRef.current = data;
 
       try {
         localStorage.setItem('dlnew_account', JSON.stringify({
@@ -208,7 +301,22 @@ export default function ManagerSignUpPage() {
       setBuildElapsed(BUILD_MS);
       setBuildDone(true);
       setTimeout(() => {
-        window.location.href = '/manager/dashboard';
+        const doRedirect = () => {
+          window.location.href = '/manager/dashboard';
+        };
+
+        if (typeof window !== 'undefined') {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'sign_up',
+            restaurant_id: createdDataRef.current?.restaurantId || createdDataRef.current?.tenantId || finalSlug,
+            event_id: eventIdRef.current,
+            eventCallback: doRedirect,
+            eventTimeout: 2000
+          });
+        } else {
+          doRedirect();
+        }
       }, 1600);
     };
 
@@ -262,17 +370,19 @@ export default function ManagerSignUpPage() {
   const phoneHeight = Math.round(612 * phoneScale) + 'px';
 
   return (
-    <div style={{ height: '100vh', height: '100dvh', overflow: 'hidden', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
+    <div className="dl-auth-wrap" style={{ minHeight: '100vh', minHeight: '100dvh', height: '100vh', height: '100dvh', overflow: 'hidden', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
+      <GTMHead />
+      <GTMBody />
       
       {/* Left Column: Form Steps */}
-      <main style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', padding: 'clamp(16px, 3vh, 28px) 32px', overflowY: 'auto' }}>
+      <main className="dl-auth-main" style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', overflowY: 'auto' }}>
         
         {/* Mobile Header Logo */}
         <div style={{ display: 'none' }} className="mobile-only-logo">
-          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', margin: '0 auto 32px' }} />
+          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', margin: '0 auto 24px' }} />
         </div>
 
-        <form onSubmit={handleNext} noValidate style={{ margin: 'auto', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column' }}>
+        <form onSubmit={handleNext} onFocusCapture={triggerSignUpStart} onClickCapture={triggerSignUpStart} noValidate style={{ margin: 'auto', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column' }}>
           
           {/* Step Progress Bar */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: 'clamp(14px, 3vh, 24px)' }}>
@@ -622,7 +732,7 @@ export default function ManagerSignUpPage() {
           {step === 1 && (
             <>
               <p style={{ margin: '12px 0 0', fontSize: '13px', lineHeight: 1.5, color: '#6b6b6b' }}>
-                By creating an account you accept the Dinelabs <span style={{ textDecoration: 'underline' }}>Terms & Privacy Policy</span>.
+                By creating an account you accept the Dinelabs <Link href="/terms" target="_blank" style={{ color: '#0a0a0a', textDecoration: 'underline' }}>Terms</Link> &amp; <Link href="/privacy" target="_blank" style={{ color: '#0a0a0a', textDecoration: 'underline' }}>Privacy Policy</Link>.
               </p>
               <div style={{ height: '1px', background: '#ececec', margin: 'clamp(12px, 3vh, 24px) 0 clamp(10px, 2.2vh, 18px)' }} />
               <div style={{ fontSize: '14px', color: '#6b6b6b' }}>
@@ -860,7 +970,24 @@ export default function ManagerSignUpPage() {
         }
         @media (max-width: 860px) {
           aside { display: none !important; }
-          .mobile-only-logo { display: block !important; }
+          .mobile-only-logo { display: block !important; margin: 0 auto 20px !important; }
+          .dl-auth-wrap {
+            height: auto !important;
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .dl-auth-main {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            padding: 32px 20px 48px !important;
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            height: auto !important;
+            box-sizing: border-box !important;
+          }
         }
       `}</style>
     </div>

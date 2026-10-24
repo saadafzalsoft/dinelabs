@@ -2,6 +2,7 @@ import '@/site/fonts.css';
 import '@/site/site.css';
 import '@/site/responsive.css';
 import site from '@/config/site.json';
+import { GTMHead, GTMBody } from '@/components/GTM';
 
 export const rootMetadata = {
   metadataBase: new URL(site.domain),
@@ -12,8 +13,12 @@ export const rootViewport = { themeColor: '#ffffff', width: 'device-width', init
 /** Language layout wrapper for website pages */
 export function RootLayout({ lang, children }) {
   return (
-    <div className="dl-site-wrapper" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      {children}
-    </div>
+    <>
+      <GTMHead />
+      <GTMBody />
+      <div className="dl-site-wrapper" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        {children}
+      </div>
+    </>
   );
 }

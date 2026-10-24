@@ -388,40 +388,38 @@ export default function Footer({ v, AR }) {
                 <div style={{ fontSize: '13px', fontWeight: '600', color: '#0c0a09', marginBottom: '8px' }}>
                   {tr('Legal', AR)}
                 </div>
-                <Btn
-                  as="button"
-                  onClick={v['goTerms']}
+                <a
+                  href="/terms"
                   style={{
-                    background: 'none',
-                    border: '0',
+                    display: 'block',
                     padding: '4px 0',
                     textAlign: 'start',
                     fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
                     fontSize: '15px',
                     color: '#4e4e4e',
+                    textDecoration: 'none',
                     cursor: 'pointer',
                   }}
                   className="dlha"
                 >
                   {tr('Terms & Conditions', AR)}
-                </Btn>
-                <Btn
-                  as="button"
-                  onClick={v['goPrivacy']}
+                </a>
+                <a
+                  href="/privacy"
                   style={{
-                    background: 'none',
-                    border: '0',
+                    display: 'block',
                     padding: '4px 0',
                     textAlign: 'start',
                     fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
                     fontSize: '15px',
                     color: '#4e4e4e',
+                    textDecoration: 'none',
                     cursor: 'pointer',
                   }}
                   className="dlha"
                 >
                   {tr('Privacy Policy', AR)}
-                </Btn>
+                </a>
               </div>
               {'\n        '}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '0' }}>
@@ -467,7 +465,13 @@ export default function Footer({ v, AR }) {
             }}
           >
             {'\n      '}
-            <span>{tr('© 2026 Dinelabs · Beirut', AR)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span>{tr('© 2026 Dinelabs · Beirut', AR)}</span>
+              <span aria-hidden={'true'}>{'·'}</span>
+              <a href="/privacy" style={{ color: '#777169', textDecoration: 'none' }} className="dlha">{tr('Privacy Policy', AR)}</a>
+              <span aria-hidden={'true'}>{'·'}</span>
+              <a href="/terms" style={{ color: '#777169', textDecoration: 'none' }} className="dlha">{tr('Terms & Conditions', AR)}</a>
+            </div>
             {'\n      '}
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

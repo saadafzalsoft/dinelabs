@@ -54,9 +54,11 @@ export default class SiteApp extends React.Component {
   ];
   // TODO before launch: fill in from the "Inputs" table. Empty values link to #todo-<key>.
   CFG = {
-    signup: 'https://dinelabs.co/manager/signup',
-    login: 'https://dinelabs.co/manager/',
-    store: 'https://dinelabs.co/mcdonalds',
+    signup: '/manager/signup',
+    login: '/manager',
+    store: 'javascript:void(0)',
+    privacy: '/privacy',
+    terms: '/terms',
     instagram: 'https://www.instagram.com/dinelabs.co/',
     linkedin: 'https://www.linkedin.com/company/dinelabs/',
     waitlist: 'https://formsubmit.co/ajax/team@dinelabs.co',
@@ -1098,11 +1100,13 @@ export default class SiteApp extends React.Component {
           "Hi Dinelabs, I'd like to set up online ordering for my restaurant.",
           'مرحبًا Dinelabs، أريد إنشاء صفحة طلب لمطعمي.',
         );
-        const heroUrl = nm ? q(su, 'name=' + encodeURIComponent(nm)) : su;
+        const heroUrl = nm ? q(su, 'store=' + encodeURIComponent(nm)) : su;
         return {
           signupUrl: su,
           premiumUrl: q(su, 'plan=premium'),
           heroSignupUrl: heroUrl,
+          goTerms: () => { window.location.href = '/terms'; },
+          goPrivacy: () => { window.location.href = '/privacy'; },
           heroHoverOn: () => this.setState({ heroHov: true }),
           heroHoverOff: () => this.setState({ heroHov: false }),
           heroArrow: s.lang === 'ar' ? '←' : '→',

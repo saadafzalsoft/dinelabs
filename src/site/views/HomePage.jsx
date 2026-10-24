@@ -41,36 +41,36 @@ export default function HomePage({ v, AR }) {
             >
               {'\n        '}
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0c0a09' }}></span>
-              {tr('Direct ordering for restaurants and coffee shops\n      ', AR)}
+              {tr('Free to start, free to keep', AR)}
             </div>
             {'\n      '}
             <h1
               style={{
                 fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
-                fontWeight: '500',
-                fontSize: 'clamp(34px,5.3vw,68px)',
+                fontWeight: '600',
+                fontSize: 'clamp(44px,6.8vw,80px)',
                 lineHeight: '1.04',
                 letterSpacing: '-0.04em',
                 margin: 'clamp(16px,2.5vw,24px) auto 0',
-                maxWidth: 'none',
+                maxWidth: '960px',
                 textWrap: 'balance',
               }}
             >
-              {tr('Keep 100% of every order.', AR)}
+              {tr('Commission-free online ordering menu.', AR)}
             </h1>
             {'\n      '}
             <p
               style={{
-                fontSize: 'clamp(16px,1.5vw,20px)',
+                fontSize: 'clamp(17px,1.8vw,21px)',
                 lineHeight: '1.55',
                 color: '#4e4e4e',
                 margin: 'clamp(14px,2.5vw,24px) auto 0',
-                maxWidth: '620px',
+                maxWidth: '680px',
                 textWrap: 'pretty',
               }}
             >
               {tr(
-                'Commission-free online ordering for restaurants and coffee shops. Your own page for pickup, delivery and table orders, with nothing for guests to download.',
+                'Turn your menu into your own ordering page for pickup, delivery and table orders. Built for restaurants and coffee shops, with nothing for guests to download.',
                 AR,
               )}
             </p>
@@ -284,11 +284,8 @@ export default function HomePage({ v, AR }) {
                 {'\n        '}
               </div>
               {'\n        '}
-              <a
-                href={v['storeUrl']}
-                target={'_blank'}
-                rel={'noopener'}
-                aria-label={'Tap to try a live store'}
+              <div
+                aria-label={'Live interactive store preview'}
                 style={{
                   display: 'block',
                   position: 'relative',
@@ -298,7 +295,7 @@ export default function HomePage({ v, AR }) {
                   width: 'min(360px,78vw)',
                   aspectRatio: '780/1598',
                   filter: 'drop-shadow(0 40px 40px rgba(12,10,9,0.28))',
-                  cursor: 'pointer',
+                  cursor: 'default',
                 }}
               >
                 <div
@@ -330,7 +327,7 @@ export default function HomePage({ v, AR }) {
                     display: 'block',
                   }}
                 />
-              </a>
+              </div>
               {'\n        '}
               <div className="dl-only-desk">
                 {'\n          '}

@@ -220,11 +220,11 @@ export default function ManagerSignInPage() {
     <div style={{ minHeight: '100vh', minHeight: '100dvh', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
       
       {/* Left Column: Form */}
-      <main style={{ flex: '1 1 460px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '56px 32px' }}>
+      <main className="dl-auth-main" style={{ flex: '1 1 460px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '56px 32px' }}>
         
         {/* Mobile Header Logo */}
         <div style={{ display: 'none' }} className="mobile-only-logo">
-          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', marginBottom: '32px' }} />
+          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', margin: '0 auto 28px' }} />
         </div>
 
         {/* 1. SIGN IN FORM */}
@@ -655,7 +655,13 @@ export default function ManagerSignInPage() {
         }
         @media (max-width: 860px) {
           aside { display: none !important; }
-          .mobile-only-logo { display: block !important; }
+          .mobile-only-logo { display: block !important; margin: 0 auto 24px !important; }
+          .dl-auth-main {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            padding: 36px 20px 48px !important;
+            box-sizing: border-box !important;
+          }
         }
       `}</style>
     </div>

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { hashPassword, signToken } from '@/lib/auth';
+import { sendMetaCapiEvent } from '@/lib/meta-capi';
 import { ObjectId } from 'mongodb';
 
 export async function POST(request) {
   try {
-    const { name, email, password, store, slug, country, currency, channels } = await request.json();
+    const { name, email, password, store, slug, country, currency, channels, eventId, phone } = await request.json();
 
     if (!name || !email || !password || !store || !slug) {
       return NextResponse.json(
@@ -262,8 +263,29 @@ export async function POST(request) {
       tenantSlug: cleanSlug,
     });
 
+    // Extract IP, User Agent, and cookies for Meta Conversions API
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || '';
+    const userAgent = request.headers.get('user-agent') || '';
+    const fbp = request.cookies.get('_fbp')?.value;
+    const fbc = request.cookies.get('_fbc')?.value;
+
+    if (eventId) {
+      sendMetaCapiEvent({
+        eventName: 'CompleteRegistration',
+        eventId,
+        email: newUser.email,
+        phone,
+        ip,
+        userAgent,
+        fbp,
+        fbc,
+      }).catch(err => console.error('Meta CAPI trigger error:', err));
+    }
+
     const response = NextResponse.json({
       success: true,
+      restaurantId: tenantId,
+      tenantId,
       tenantSlug: cleanSlug,
       role: 'manager',
       email: newUser.email,
