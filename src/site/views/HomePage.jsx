@@ -105,6 +105,12 @@ export default function HomePage({ v, AR }) {
               {'\n        '}
               <a
                 href={v['heroSignupUrl']}
+                onClick={() => {
+                  try {
+                    const hName = v['heroName'] ? String(v['heroName']).trim() : '';
+                    if (hName) localStorage.setItem('dl_prefill_store', hName);
+                  } catch (e) {}
+                }}
                 style={{
                   flex: '0 0 auto',
                   background: '#0c0a09',
@@ -425,23 +431,6 @@ export default function HomePage({ v, AR }) {
               </div>
               {'\n      '}
             </div>
-            {'\n      '}
-            <a
-              href={v['storeUrl']}
-              target={'_blank'}
-              rel={'noopener'}
-              style={{
-                marginTop: '16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#4e4e4e',
-                textDecoration: 'underline',
-                textUnderlineOffset: '4px',
-              }}
-              className="dlha"
-            >
-              {tr('Tap to try a live store', AR)}
-            </a>
             {'\n    '}
           </div>
           {'\n  '}

@@ -113,10 +113,16 @@ export default function ManagerSignUpPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search);
-      const prefill = sp.get('store') || sp.get('name') || '';
+      let prefill = sp.get('store') || sp.get('name') || '';
+      if (!prefill) {
+        try {
+          prefill = localStorage.getItem('dl_prefill_store') || '';
+        } catch (e) {}
+      }
       if (prefill) {
         setStore(prefill);
         setSlug(slugify(prefill));
+        try { localStorage.removeItem('dl_prefill_store'); } catch (e) {}
       }
     }
 
@@ -378,8 +384,8 @@ export default function ManagerSignUpPage() {
       <main className="dl-auth-main" style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', overflowY: 'auto' }}>
         
         {/* Mobile Header Logo */}
-        <div style={{ display: 'none' }} className="mobile-only-logo">
-          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', margin: '0 auto 24px' }} />
+        <div style={{ display: 'none', width: '100%', maxWidth: '420px', margin: '0 auto 20px' }} className="mobile-only-logo">
+          <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '140px', height: 'auto' }} />
         </div>
 
         <form onSubmit={handleNext} onFocusCapture={triggerSignUpStart} onClickCapture={triggerSignUpStart} noValidate style={{ margin: 'auto', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column' }}>
@@ -748,7 +754,7 @@ export default function ManagerSignUpPage() {
       </main>
 
       {/* Right Column: Live Mobile Mockup Preview */}
-      <aside style={{ flex: '1 1 50%', minWidth: 0, background: '#f4f1ec', display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', position: 'relative', overflow: 'hidden' }}>
+      <aside className="dl-auth-aside" style={{ flex: '1 1 50%', minWidth: 0, background: '#f4f1ec', display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', position: 'relative', overflow: 'hidden' }}>
         <img src="/assets/dinelabs-logo.png" alt="Dinelabs Manager" style={{ display: 'block', width: '150px', height: 'auto', alignSelf: 'flex-start' }} />
 
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'clamp(12px, 2.4vh, 20px)', padding: 'clamp(12px, 2vh, 20px) 0' }}>
@@ -968,20 +974,23 @@ export default function ManagerSignUpPage() {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        @media (max-width: 860px) {
-          aside { display: none !important; }
-          .mobile-only-logo { display: block !important; margin: 0 auto 20px !important; }
+        @media (max-width: 960px) {
+          aside, .dl-auth-aside { display: none !important; }
+          .mobile-only-logo { display: block !important; }
           .dl-auth-wrap {
             height: auto !important;
             min-height: 100vh !important;
             min-height: 100dvh !important;
             overflow-y: auto !important;
+            overflow-x: hidden !important;
             display: flex !important;
             flex-direction: column !important;
+            width: 100% !important;
           }
           .dl-auth-main {
             flex: 1 1 100% !important;
             width: 100% !important;
+            max-width: 100% !important;
             padding: 32px 20px 48px !important;
             min-height: 100vh !important;
             min-height: 100dvh !important;

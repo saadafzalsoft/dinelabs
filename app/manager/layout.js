@@ -4016,13 +4016,15 @@ function ManagerLayoutContent({ children }) {
           setSession(data);
         } else {
           setSession(null);
-          if (window.location.pathname !== '/manager') {
+          const isAuth = typeof window !== 'undefined' && (window.location.pathname === '/manager' || window.location.pathname.startsWith('/manager/signup'));
+          if (!isAuth) {
             router.push('/manager');
           }
         }
       } catch (err) {
         console.error('Session verify failed', err);
-        if (window.location.pathname !== '/manager') router.push('/manager');
+        const isAuth = typeof window !== 'undefined' && (window.location.pathname === '/manager' || window.location.pathname.startsWith('/manager/signup'));
+        if (!isAuth) router.push('/manager');
       } finally {
         setLoading(false);
       }
@@ -4165,6 +4167,11 @@ function ManagerLayoutContent({ children }) {
     setTimeout(() => el.remove(), 2500);
   };
 
+  const isAuthRoute = pathname === '/manager' || pathname.startsWith('/manager/signup');
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="layout" style={{ fontFamily: 'var(--font)' }}>
@@ -4212,11 +4219,8 @@ function ManagerLayoutContent({ children }) {
     );
   }
 
-  // If not logged in, render login or signup page
+  // If not logged in and not auth route, return null
   if (!session) {
-    if (pathname === '/manager' || pathname.startsWith('/manager/signup')) {
-      return <>{children}</>;
-    }
     return null;
   }
 
@@ -4784,50 +4788,7 @@ function ManagerLayoutContent({ children }) {
 
 export default function ManagerLayout({ children }) {
   return (
-    <Suspense fallback={
-      <div className="layout" style={{ fontFamily: 'var(--font)' }}>
-        {/* Sidebar Skeleton */}
-        <aside className="sidebar" style={{ top: '0', borderRight: '1px solid var(--line)' }}>
-          <div className="brand" style={{ opacity: 0.5 }}>
-            <div className="skeleton" style={{ width: '34px', height: '34px', borderRadius: '9px' }} />
-            <div>
-              <div className="skeleton" style={{ width: '80px', height: '16px', borderRadius: '4px', marginBottom: '6px' }} />
-              <div className="skeleton" style={{ width: '50px', height: '10px', borderRadius: '3px' }} />
-            </div>
-          </div>
-          <div className="nav" style={{ opacity: 0.5, display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div className="skeleton" style={{ width: '60px', height: '12px', borderRadius: '3px' }} />
-                <div className="skeleton" style={{ width: '100%', height: '32px', borderRadius: '8px' }} />
-                <div className="skeleton" style={{ width: '90%', height: '32px', borderRadius: '8px' }} />
-              </div>
-            ))}
-          </div>
-        </aside>
-        
-        {/* Main Column Skeleton */}
-        <div className="main-col">
-          <header className="topbar" style={{ opacity: 0.5 }}>
-            <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: '6px' }} />
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
-              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
-              <div className="skeleton" style={{ width: '100px', height: '36px', borderRadius: '8px' }} />
-              <div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-            </div>
-          </header>
-          <main className="content" style={{ opacity: 0.5 }}>
-            <div style={{ marginBottom: '24px' }}>
-              <div className="skeleton" style={{ width: '240px', height: '32px', borderRadius: '8px', marginBottom: '8px' }} />
-              <div className="skeleton" style={{ width: '400px', height: '16px', borderRadius: '4px' }} />
-            </div>
-            <div className="card" style={{ padding: '24px' }}>
-              <div className="skeleton" style={{ width: '100%', height: '200px', borderRadius: '12px' }} />
-            </div>
-          </main>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={null}>
       <ManagerLayoutContent>{children}</ManagerLayoutContent>
     </Suspense>
   );

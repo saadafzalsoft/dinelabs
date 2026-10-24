@@ -1100,7 +1100,7 @@ export default class SiteApp extends React.Component {
           "Hi Dinelabs, I'd like to set up online ordering for my restaurant.",
           'مرحبًا Dinelabs، أريد إنشاء صفحة طلب لمطعمي.',
         );
-        const heroUrl = nm ? q(su, 'store=' + encodeURIComponent(nm)) : su;
+        const heroUrl = nm ? q(su, 'store=' + encodeURIComponent(nm) + '&name=' + encodeURIComponent(nm)) : su;
         return {
           signupUrl: su,
           premiumUrl: q(su, 'plan=premium'),
@@ -1124,10 +1124,20 @@ export default class SiteApp extends React.Component {
               ? wa('Hi Dinelabs, I have a question about pricing.', 'مرحبًا Dinelabs، عندي سؤال عن الأسعار.')
               : waG,
           heroName: s.heroName,
-          setHeroName: (e) => this.setState({ heroName: e.target.value }),
+          setHeroName: (e) => {
+            const val = e.target.value;
+            this.setState({ heroName: val });
+            try {
+              if (val && val.trim()) localStorage.setItem('dl_prefill_store', val.trim());
+              else localStorage.removeItem('dl_prefill_store');
+            } catch (err) {}
+          },
           heroKey: (e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
+              if (nm) {
+                try { localStorage.setItem('dl_prefill_store', nm); } catch (err) {}
+              }
               window.location.href = heroUrl;
             }
           },

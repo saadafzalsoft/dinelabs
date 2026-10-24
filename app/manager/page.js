@@ -582,7 +582,7 @@ export default function ManagerSignInPage() {
       </main>
 
       {/* Right Column: Aside Banner */}
-      <aside style={{ flex: '1 1 460px', background: '#f4f1ec', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '56px 32px', position: 'relative', overflow: 'hidden' }}>
+      <aside className="dl-auth-aside" style={{ flex: '1 1 460px', background: '#f4f1ec', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '56px 32px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           
           {view === 'signin' ? (
@@ -653,12 +653,13 @@ export default function ManagerSignInPage() {
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        @media (max-width: 860px) {
-          aside { display: none !important; }
-          .mobile-only-logo { display: block !important; margin: 0 auto 24px !important; }
+        @media (max-width: 960px) {
+          aside, .dl-auth-aside { display: none !important; }
+          .mobile-only-logo { display: block !important; width: 100% !important; max-width: 420px !important; margin: 0 auto 28px !important; }
           .dl-auth-main {
             flex: 1 1 100% !important;
             width: 100% !important;
+            max-width: 100% !important;
             padding: 36px 20px 48px !important;
             box-sizing: border-box !important;
           }
