@@ -179,6 +179,12 @@ export async function PUT(request) {
     if (body.country !== undefined) updateObj.country = body.country;
     if (body.managerLanguage !== undefined) updateObj.managerLanguage = body.managerLanguage;
     if (body.website !== undefined) updateObj.website = body.website;
+      if (body.pushToken) {
+        const existing = Array.isArray(tenant.pushTokens) ? tenant.pushTokens : [];
+        if (!existing.includes(body.pushToken)) {
+          updateObj.pushTokens = [...existing, body.pushToken];
+        }
+      }
     if (body.facebook !== undefined) updateObj.facebook = body.facebook;
     if (body.x !== undefined) updateObj.x = body.x;
     if (body.youtube !== undefined) updateObj.youtube = body.youtube;
