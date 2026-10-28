@@ -377,8 +377,6 @@ export default function ManagerSignUpPage() {
 
   return (
     <div className="dl-auth-wrap" style={{ minHeight: '100vh', minHeight: '100dvh', height: '100vh', height: '100dvh', overflow: 'hidden', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
-      <GTMHead />
-      <GTMBody />
       
       {/* Left Column: Form Steps */}
       <main className="dl-auth-main" style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', overflowY: 'auto' }}>

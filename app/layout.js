@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { GTMHead, GTMBody } from '@/components/GTM';
 
 const inter = Inter({
   variable: '--font-body',
@@ -17,6 +18,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable}`} suppressHydrationWarning={true}>
       <head>
+        <GTMHead />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.ico" />
@@ -26,6 +28,7 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
       </head>
       <body suppressHydrationWarning={true}>
+        <GTMBody />
         {children}
       </body>
     </html>
