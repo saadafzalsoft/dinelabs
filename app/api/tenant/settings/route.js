@@ -4,9 +4,12 @@ import { verifyToken } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 
 async function getAuthorizedTenantId(request) {
+  const authHeader = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  const customSession = request.headers.get('x-dinelabs-session');
   const sessionCookie = request.cookies.get('dinelabs_session')?.value;
   const masqueradeCookie = request.cookies.get('dinelabs_masquerade')?.value;
-  const session = verifyToken(sessionCookie);
+  const rawToken = customSession || authHeader || sessionCookie;
+  const session = verifyToken(rawToken);
 
   if (!session) return null;
   if (session.role === 'superadmin' && masqueradeCookie) {
@@ -106,15 +109,20 @@ export async function GET(request) {
 
 export async function PUT(request) {
   try {
-    const tenantId = await getAuthorizedTenantId(request);
+    const body = await request.json();
+    let tenantId = await getAuthorizedTenantId(request);
+    const db = await getDb();
+
+    if (!tenantId && body.pushToken && body.tenantSlug) {
+      const matchT = await db.collection('tenants').findOne({ slug: String(body.tenantSlug).toLowerCase() });
+      if (matchT) tenantId = matchT._id;
+    }
+
     if (!tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
     const { name, logoUrl, openingHours, waitTimes, baseCurrency, languages, defaultLanguage, enabledModes, address, notifications, deliveryFee } = body;
-
-    const db = await getDb();
 
     const queryId = tenantId.toString();
     let tenant = await db.collection('tenants').findOne({ _id: queryId });
