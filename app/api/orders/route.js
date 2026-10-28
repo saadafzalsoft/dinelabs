@@ -1,4 +1,5 @@
-import { emitNewOrder } from '@/lib/orderEvents';\nimport { NextResponse } from 'next/server';
+import { emitNewOrder } from '@/lib/orderEvents';
+import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
@@ -55,7 +56,10 @@ export async function POST(request) {
       createdAt: new Date()
     };
 
-    await db.collection('orders').insertOne(newOrder);\n\n    // Broadcast in real-time to mobile app and web manager stream\n    emitNewOrder(tenant._id.toString(), newOrder);
+    await db.collection('orders').insertOne(newOrder);
+
+    // Broadcast in real-time to mobile app and web manager stream
+    emitNewOrder(tenant._id.toString(), newOrder);
 
     // Dispatch notifications to configured manager alert channels asynchronously (non-blocking)
     sendOrderNotifications(newOrder, tenant).catch(notifErr => {
