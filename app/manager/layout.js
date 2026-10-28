@@ -4060,13 +4060,12 @@ function ManagerLayoutContent({ children }) {
 
   // Real-time EventSource Stream for instant order push (zero polling delay)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !session) return;
 
     let eventSource = null;
     let reconnectTimeout = null;
 
     const connectStream = () => {
-      if (!sessionRef.current) return;
       try {
         eventSource = new EventSource('/api/orders/stream');
 
@@ -4076,8 +4075,8 @@ function ManagerLayoutContent({ children }) {
 
         eventSource.onerror = () => {
           if (eventSource) eventSource.close();
-          // Auto reconnect after 5 seconds if connection drops
-          reconnectTimeout = setTimeout(connectStream, 5000);
+          // Auto reconnect after 3 seconds if connection drops
+          reconnectTimeout = setTimeout(connectStream, 3000);
         };
       } catch (e) {
         console.warn('Order stream connection warning:', e);
@@ -4086,12 +4085,10 @@ function ManagerLayoutContent({ children }) {
 
     connectStream();
 
-    // Low-frequency heartbeat fallback (every 60s instead of 10s)
+    // Fast 3s fallback sync to guarantee immediate notification even behind buffered proxies
     const fallbackInterval = setInterval(() => {
-      if (sessionRef.current) {
-        refreshOrders();
-        refreshViews();
-      }
+      refreshOrders();
+      refreshViews();
     }, 3000);
 
     return () => {
@@ -4099,7 +4096,7 @@ function ManagerLayoutContent({ children }) {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       clearInterval(fallbackInterval);
     };
-  }, []);
+  }, [session?.tenantId, session?.tenantSlug]);
 
   // Handle tracking of pending orders count to show/hide the notification banner
   useEffect(() => {
