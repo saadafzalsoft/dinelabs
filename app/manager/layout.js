@@ -4058,15 +4058,47 @@ function ManagerLayoutContent({ children }) {
     }
   }, [session]);
 
-  // Poll active pending orders count for sidebar badge and context
+  // Real-time EventSource Stream for instant order push (zero polling delay)
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (typeof window === 'undefined') return;
+
+    let eventSource = null;
+    let reconnectTimeout = null;
+
+    const connectStream = () => {
+      if (!sessionRef.current) return;
+      try {
+        eventSource = new EventSource('/api/orders/stream');
+
+        eventSource.addEventListener('new_order', () => {
+          refreshOrders();
+        });
+
+        eventSource.onerror = () => {
+          if (eventSource) eventSource.close();
+          // Auto reconnect after 5 seconds if connection drops
+          reconnectTimeout = setTimeout(connectStream, 5000);
+        };
+      } catch (e) {
+        console.warn('Order stream connection warning:', e);
+      }
+    };
+
+    connectStream();
+
+    // Low-frequency heartbeat fallback (every 60s instead of 10s)
+    const fallbackInterval = setInterval(() => {
       if (sessionRef.current) {
         refreshOrders();
         refreshViews();
       }
-    }, 10000);
-    return () => clearInterval(interval);
+    }, 60000);
+
+    return () => {
+      if (eventSource) eventSource.close();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      clearInterval(fallbackInterval);
+    };
   }, []);
 
   // Handle tracking of pending orders count to show/hide the notification banner
