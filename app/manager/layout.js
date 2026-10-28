@@ -4092,7 +4092,7 @@ function ManagerLayoutContent({ children }) {
         refreshOrders();
         refreshViews();
       }
-    }, 60000);
+    }, 3000);
 
     return () => {
       if (eventSource) eventSource.close();
