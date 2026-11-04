@@ -5,13 +5,39 @@ import { verifyToken } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { sendOrderNotifications } from '@/lib/notifications';
 import { checkIfStoreOpen } from '@/lib/timezone';
+import { getClientIp, rateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
-    const { tenantSlug, type, customer, items, subtotal, deliveryFee, total, language, notes } = await request.json();
+    const clientIp = getClientIp(request);
+
+    // SECURITY: Limit order placement to 5 orders per 10 minutes per IP (Stops kitchen notification spamming)
+    const MAX_ORDERS_PER_WINDOW = 5;
+    const rl = rateLimit('orders_ip', clientIp, MAX_ORDERS_PER_WINDOW, 10 * 60);
+    const rlHeaders = getRateLimitHeaders(rl, MAX_ORDERS_PER_WINDOW);
+
+    if (!rl.allowed) {
+      console.warn('[Security Alert] Order flood blocked for IP: ' + clientIp);
+      return NextResponse.json(
+        { error: 'You are placing orders too quickly. Please wait ' + Math.ceil(rl.retryAfter / 60) + ' minutes before submitting another order.' },
+        { status: 429, headers: rlHeaders }
+      );
+    }
+
+    const body = await request.json();
+    const { tenantSlug, type, customer, items, subtotal, deliveryFee, total, language, notes, order_hp } = body;
+
+    // SECURITY: Honeypot check for automated order bots
+    if (order_hp) {
+      console.warn('[Security Alert] Bot trapped in order placement honeypot from IP: ' + clientIp);
+      return NextResponse.json(
+        { error: 'Invalid order submission' },
+        { status: 400, headers: rlHeaders }
+      );
+    }
 
     if (!tenantSlug || !type || !customer || !items || items.length === 0) {
-      return NextResponse.json({ error: 'Missing required order details' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required order details' }, { status: 400, headers: rlHeaders });
     }
 
     const db = await getDb();

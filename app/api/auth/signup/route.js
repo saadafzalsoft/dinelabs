@@ -3,15 +3,40 @@ import { getDb } from '@/lib/db';
 import { hashPassword, signToken } from '@/lib/auth';
 import { sendMetaCapiEvent } from '@/lib/meta-capi';
 import { ObjectId } from 'mongodb';
+import { getClientIp, rateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function POST(request) {
   try {
-    const { name, email, password, store, slug, country, currency, channels, eventId, phone } = await request.json();
+    const clientIp = getClientIp(request);
+
+    // SECURITY: Limit account creations to 3 per hour per IP (Stops mass bot account creation)
+    const MAX_SIGNUPS_PER_HOUR = 3;
+    const rl = rateLimit('signup_ip', clientIp, MAX_SIGNUPS_PER_HOUR, 3600);
+    const rlHeaders = getRateLimitHeaders(rl, MAX_SIGNUPS_PER_HOUR);
+
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many account creation requests from this IP. Please try again in ' + Math.ceil(rl.retryAfter / 60) + ' minutes.' },
+        { status: 429, headers: rlHeaders }
+      );
+    }
+
+    const body = await request.json();
+    const { name, email, password, store, slug, country, currency, channels, eventId, phone, website_hp } = body;
+
+    // SECURITY: Honeypot check. Hidden field in registration forms. Legitimate users leave it blank; automated bots fill it.
+    if (website_hp) {
+      console.warn('[Security Alert] Bot trapped in signup honeypot from IP: ' + clientIp);
+      return NextResponse.json(
+        { error: 'Registration request could not be processed.' },
+        { status: 400, headers: rlHeaders }
+      );
+    }
 
     if (!name || !email || !password || !store || !slug) {
       return NextResponse.json(
         { error: 'All fields are required.' },
-        { status: 400 }
+        { status: 400, headers: rlHeaders }
       );
     }
 
