@@ -59,7 +59,7 @@ export default function Footer({ v, AR }) {
             {'\n      '}
             <div
               style={{
-                flex: '1 1 100%',
+                flex: '0 1 auto',
                 display: 'flex',
                 flexWrap: 'wrap',
                 justifyContent: 'space-between',
@@ -438,11 +438,11 @@ export default function Footer({ v, AR }) {
                   <bdi dir={'ltr'}>{'+961 71 407 202'}</bdi>
                 </a>
                 <a
-                  href={'mailto:team@dinelabs.co'}
+                  href={'mailto:info@dinelabs.co'}
                   style={{ padding: '4px 0', fontSize: '15px', color: '#4e4e4e', textDecoration: 'none' }}
                   className="dlha"
                 >
-                  {tr('team@dinelabs.co', AR)}
+                  {tr('info@dinelabs.co', AR)}
                 </a>
                 <span style={{ padding: '4px 0', fontSize: '15px', color: '#4e4e4e' }}>
                   {tr('BDD, Bechara El Khoury, Beirut', AR)}
