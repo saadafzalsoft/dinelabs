@@ -4,49 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { GTMHead, GTMBody } from '@/components/GTM';
+import { COUNTRIES, CURRENCIES, TIMEZONE_TO_COUNTRY, COUNTRY_TO_CURRENCY } from '@/lib/countries-data';
 
-const TIMEZONE_TO_COUNTRY = {
-  'Asia/Tbilisi': 'GE',
-  'Asia/Dubai': 'AE',
-  'Asia/Riyadh': 'SA',
-  'Asia/Kolkata': 'IN',
-  'Asia/Calcutta': 'IN',
-  'Asia/Tokyo': 'JP',
-  'Asia/Singapore': 'SG',
-  'Europe/London': 'GB',
-  'Europe/Berlin': 'DE',
-  'Europe/Paris': 'FR',
-  'Europe/Madrid': 'ES',
-  'Europe/Rome': 'IT',
-  'Europe/Amsterdam': 'NL',
-  'Europe/Warsaw': 'PL',
-  'Europe/Istanbul': 'TR',
-  'Europe/Kiev': 'UA',
-  'Europe/Kyiv': 'UA',
-  'America/New_York': 'US',
-  'America/Chicago': 'US',
-  'America/Denver': 'US',
-  'America/Los_Angeles': 'US',
-  'America/Toronto': 'CA',
-  'America/Vancouver': 'CA',
-  'America/Mexico_City': 'MX',
-  'America/Sao_Paulo': 'BR',
-  'Australia/Sydney': 'AU',
-  'Australia/Melbourne': 'AU',
-};
-
-const COUNTRIES = [
-  ['GE', 'Georgia', 'GEL'], ['US', 'United States', 'USD'], ['GB', 'United Kingdom', 'GBP'], ['DE', 'Germany', 'EUR'], ['FR', 'France', 'EUR'],
-  ['ES', 'Spain', 'EUR'], ['IT', 'Italy', 'EUR'], ['NL', 'Netherlands', 'EUR'], ['PL', 'Poland', 'PLN'], ['TR', 'Türkiye', 'TRY'],
-  ['AE', 'United Arab Emirates', 'AED'], ['SA', 'Saudi Arabia', 'SAR'], ['UA', 'Ukraine', 'UAH'], ['IN', 'India', 'INR'], ['SG', 'Singapore', 'SGD'],
-  ['JP', 'Japan', 'JPY'], ['AU', 'Australia', 'AUD'], ['CA', 'Canada', 'CAD'], ['MX', 'Mexico', 'MXN'], ['BR', 'Brazil', 'BRL'],
-];
-
-const CURRENCIES = {
-  USD: ['US Dollar', '$'], EUR: ['Euro', '€'], GBP: ['British Pound', '£'], GEL: ['Georgian Lari', '₾'], TRY: ['Turkish Lira', '₺'],
-  AED: ['UAE Dirham', 'AED '], SAR: ['Saudi Riyal', 'SAR '], UAH: ['Ukrainian Hryvnia', '₴'], INR: ['Indian Rupee', '₹'], JPY: ['Japanese Yen', '¥'],
-  PLN: ['Polish Złoty', 'zł '], AUD: ['Australian Dollar', 'A$'], CAD: ['Canadian Dollar', 'C$'], BRL: ['Brazilian Real', 'R$'], MXN: ['Mexican Peso', 'MX$'], SGD: ['Singapore Dollar', 'S$']
-};
 
 const CHANNELS = [
   { key: 'pickup', label: 'Pick-up', desc: 'Customers order ahead and collect from your counter.' },
@@ -69,8 +28,8 @@ export default function ManagerSignUpPage() {
   const [store, setStore] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
-  const [country, setCountry] = useState('GE');
-  const [currency, setCurrency] = useState('GEL');
+  const [country, setCountry] = useState('US');
+  const [currency, setCurrency] = useState('USD');
   const [channels, setChannels] = useState({ delivery: false, pickup: true, dinein: false });
   const [tierCaps, setTierCaps] = useState({ modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, telegram: 0 } });
   const [tierInfo, setTierInfo] = useState({ name: 'Tier 0', tag: 'Free' });
@@ -111,47 +70,56 @@ export default function ManagerSignUpPage() {
 
   // Pre-fill store name from homepage hero and auto-detect country/currency
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
-      let prefill = sp.get('store') || sp.get('name') || '';
+      let prefill = sp.get("store") || sp.get("name") || "";
       if (!prefill) {
         try {
-          prefill = localStorage.getItem('dl_prefill_store') || '';
+          prefill = localStorage.getItem("dl_prefill_store") || "";
         } catch (e) {}
       }
       if (prefill) {
         setStore(prefill);
         setSlug(slugify(prefill));
-        try { localStorage.removeItem('dl_prefill_store'); } catch (e) {}
+        try { localStorage.removeItem("dl_prefill_store"); } catch (e) {}
       }
     }
 
+    // Auto-detect user's country & currency based on location:
+    let detectedCountry = null;
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      let detected = TIMEZONE_TO_COUNTRY[tz];
-      if (!detected && typeof navigator !== 'undefined') {
-        const lang = navigator.language || '';
+      if (tz && TIMEZONE_TO_COUNTRY[tz]) {
+        detectedCountry = TIMEZONE_TO_COUNTRY[tz];
+      }
+      if (!detectedCountry && typeof navigator !== "undefined") {
+        const lang = navigator.language || "";
         const m = lang.match(/-([A-Z]{2})$/i);
-        if (m) detected = m[1].toUpperCase();
+        if (m) detectedCountry = m[1].toUpperCase();
       }
 
-      if (detected) {
-        const entry = COUNTRIES.find(c => c[0] === detected);
-        if (entry) {
-          setCountry(entry[0]);
-          setCurrency(entry[2]);
-        }
+      if (detectedCountry && COUNTRY_TO_CURRENCY[detectedCountry]) {
+        setCountry(detectedCountry);
+        setCurrency(COUNTRY_TO_CURRENCY[detectedCountry]);
       }
 
-      fetch('/api/geo')
+      // Query server-side /api/geo (checks Cloudflare / Vercel headers)
+      fetch("/api/geo")
         .then(res => res.json())
         .then(data => {
-          if (data?.country) {
-            const entry = COUNTRIES.find(c => c[0] === data.country);
-            if (entry) {
-              setCountry(entry[0]);
-              setCurrency(entry[2]);
-            }
+          if (data?.country && COUNTRY_TO_CURRENCY[data.country]) {
+            setCountry(data.country);
+            setCurrency(data.currency || COUNTRY_TO_CURRENCY[data.country]);
+          } else if (!detectedCountry) {
+            fetch("https://api.country.is")
+              .then(r => r.json())
+              .then(geo => {
+                if (geo?.country && COUNTRY_TO_CURRENCY[geo.country]) {
+                  setCountry(geo.country);
+                  setCurrency(COUNTRY_TO_CURRENCY[geo.country]);
+                }
+              })
+              .catch(() => {});
           }
         })
         .catch(() => {});

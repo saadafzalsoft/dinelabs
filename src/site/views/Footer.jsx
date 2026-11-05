@@ -27,7 +27,9 @@ export default function Footer({ v, AR }) {
               </p>
               {'\n        '}
               <a
-                href={v['signupUrl']}
+                href={v['waDemo']}
+                target={'_blank'}
+                rel={'noopener'}
                 style={{
                   alignSelf: 'flex-start',
                   marginTop: '4px',
@@ -50,7 +52,7 @@ export default function Footer({ v, AR }) {
                 }}
                 className="dlh3 dlh4"
               >
-                {tr('Start free', AR)}
+                {tr('Book a demo', AR)}
               </a>
               {'\n      '}
             </div>

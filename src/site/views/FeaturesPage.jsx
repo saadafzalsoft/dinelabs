@@ -467,7 +467,7 @@ export default function FeaturesPage({ v, AR }) {
             </a>
             {'\n      '}
             <div style={{ marginTop: '20px', fontSize: '14px', color: '#a8a29e' }}>
-              {tr('Free plan, no time limit · Premium free for 30 days', AR)}
+              {tr('Premium free for 30 days, no card needed', AR)}
             </div>
             {'\n    '}
           </div>

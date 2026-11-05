@@ -48,56 +48,57 @@ export default function Header({ v, AR }) {
             {'\n    '}
           </Btn>
           {'\n    '}
-          <div className="dl-only-desk">
-            {'\n      '}
-            <nav style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
-              {'\n        '}
-              <Btn
-                as="button"
-                onMouseEnter={v['openMega']}
-                onClick={v['toggleMega']}
-                style={css(
-                  `display:flex; align-items:center; gap:6px; background:${S(v['productBg'])}; border:0; border-radius:999px; padding:9px 14px; cursor:pointer; font-family:var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif); font-size:15px; font-weight:500; color:#0c0a09; transition:filter 0.18s ease`,
-                )}
-                className="dlh1"
+          <div className="dl-only-desk" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <a
+                href={v['loginUrl']}
+                style={{
+                  background: 'transparent',
+                  border: '0',
+                  borderRadius: '999px',
+                  padding: '9px 14px',
+                  cursor: 'pointer',
+                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  color: '#0c0a09',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  boxSizing: 'border-box',
+                }}
+                className="dlh2"
               >
-                {tr('Product', AR)}
-                <svg
-                  width={'12'}
-                  height={'12'}
-                  viewBox={'0 0 24 24'}
-                  fill={'none'}
-                  stroke={'#777169'}
-                  strokeWidth={'2.4'}
-                  strokeLinecap={'round'}
-                  strokeLinejoin={'round'}
-                  style={css(`transform:${S(v['chevron'])}; transition:transform 0.3s ease`)}
-                >
-                  <path d={'M6 9l6 6 6-6'}></path>
-                </svg>
-              </Btn>
-              {'\n        '}
-              {arr(v['navItems']).map((L0_n, I1) => (
-                <React.Fragment key={I1}>
-                  {'\n          '}
-                  <Btn
-                    as="button"
-                    onClick={L0_n?.onClick}
-                    onMouseEnter={v['closeMega']}
-                    style={css(
-                      `background:${S(L0_n?.bg)}; border:0; border-radius:999px; padding:9px 14px; cursor:pointer; font-family:var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif); font-size:15px; font-weight:500; color:#0c0a09`,
-                    )}
-                    className="dlh2"
-                  >
-                    {val(L0_n?.label, AR)}
-                  </Btn>
-                  {'\n        '}
-                </React.Fragment>
-              ))}
-              {'\n      '}
-            </nav>
-            {'\n    '}
-          </div>
+                {tr('Log in', AR)}
+              </a>
+              <a
+                href={v['waDemo']}
+                target={'_blank'}
+                rel={'noopener'}
+                style={{
+                  background: 'transparent',
+                  color: '#0c0a09',
+                  border: '1px solid #d6d3d1',
+                  borderRadius: '999px',
+                  height: '42px',
+                  padding: '0 18px',
+                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'background 0.18s ease, border-color 0.18s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  boxSizing: 'border-box',
+                }}
+              >
+                {tr('Book a demo', AR)}
+              </a>
+            </div>
           {'\n    '}
           <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
             {'\n      '}

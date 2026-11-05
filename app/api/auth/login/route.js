@@ -21,7 +21,7 @@ export async function POST(request) {
       );
     }
 
-    const { email, password } = await request.json();
+    const { email, password, portal } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -49,6 +49,21 @@ export async function POST(request) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401, headers: rlHeaders }
+      );
+    }
+
+    // Role boundary enforcement:
+    if (portal === 'manager' && user.role === 'superadmin') {
+      return NextResponse.json(
+        { error: 'Access denied. Super admins cannot sign in through the Manager portal. Please use the Super Admin login.' },
+        { status: 403, headers: rlHeaders }
+      );
+    }
+
+    if (portal === 'super' && user.role !== 'superadmin') {
+      return NextResponse.json(
+        { error: 'Access denied. Store managers cannot sign in through the Super Admin portal. Please use the Manager login.' },
+        { status: 403, headers: rlHeaders }
       );
     }
 

@@ -1,13 +1,5 @@
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { GTMHead, GTMBody } from '@/components/GTM';
-
-const inter = Inter({
-  variable: '--font-body',
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-});
 
 export const metadata = {
   title: 'DineLabs - Frictionless Restaurant Ordering SaaS',
@@ -16,7 +8,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable}`} suppressHydrationWarning={true}>
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <GTMHead />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />

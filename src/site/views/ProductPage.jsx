@@ -233,36 +233,6 @@ export default function ProductPage({ v, AR }) {
                               <path d={'M2.5 6.2l2.4 2.4 4.6-5'}></path>
                             </svg>
                           </span>
-                          <span>{tr('Free plan, no time limit', AR)}</span>
-                        </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '9px' }}>
-                          <span
-                            style={{
-                              flex: 'none',
-                              width: '17px',
-                              height: '17px',
-                              marginTop: '0.12em',
-                              borderRadius: '50%',
-                              background: '#fff',
-                              boxShadow: '0 0 0 1px #e7e5e4, 0 1px 2px rgba(12,10,9,0.06)',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <svg
-                              width={'10'}
-                              height={'10'}
-                              viewBox={'0 0 12 12'}
-                              fill={'none'}
-                              stroke={'#777169'}
-                              strokeWidth={'2'}
-                              strokeLinecap={'round'}
-                              strokeLinejoin={'round'}
-                            >
-                              <path d={'M2.5 6.2l2.4 2.4 4.6-5'}></path>
-                            </svg>
-                          </span>
                           <span>{tr('0% commission', AR)}</span>
                         </span>
                       </div>
