@@ -172,6 +172,7 @@ export default class SiteApp extends React.Component {
     pulse: false,
     nextId: 5,
     board: [0, 1, 1, 2, 2].map((stage, id) => ({ id, stage, fresh: false })),
+    mProd: false,
   };
 
   T = {
@@ -298,7 +299,13 @@ export default class SiteApp extends React.Component {
     return null;
   }
   setLang(l) {
-    if (l !== this.state.lang && this.props.navigate) this.props.navigate(this.state.page, this.state.prod, l);
+    const target = l === 'ar' ? 'ar' : 'en';
+    if (this.props.navigate) {
+      this.props.navigate(this.state.page, this.state.prod, target);
+    } else {
+      window.location.href = urlFor(this.state.page, this.state.prod, target);
+    }
+    this.setState({ lang: target });
   }
   componentDidMount() {
     this.rm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -357,7 +364,14 @@ export default class SiteApp extends React.Component {
       }, 2800);
     this.t4 = setTimeout(() => this.setupReveal(), 60);
   }
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
+    if (prevProps && (prevProps.lang !== this.props.lang || prevProps.page !== this.props.page || prevProps.prod !== this.props.prod)) {
+      this.setState({
+        lang: this.props.lang === 'ar' ? 'ar' : 'en',
+        page: this.props.page || 'home',
+        prod: this.props.prod || 'storefront',
+      });
+    }
     const key = this.state.page + ':' + this.state.prod;
     if (this._lastPage !== key) {
       this._lastPage = key;
@@ -551,6 +565,7 @@ export default class SiteApp extends React.Component {
     // language switch buttons link to the same page in the other language
     if (v.setEn) v.setEn.href = urlFor(this.state.page, this.state.prod, 'en');
     if (v.setAr) v.setAr.href = urlFor(this.state.page, this.state.prod, 'ar');
+    if (v.langSwitch) v.langSwitch.href = urlFor(this.state.page, this.state.prod, this.state.lang === 'ar' ? 'en' : 'ar');
     return (
       <div id="site">
         <div className="site-root">{SiteView(v, this.state.lang === 'ar')}</div>
@@ -600,10 +615,39 @@ export default class SiteApp extends React.Component {
       menuIcon: s.menu ? '✕' : '☰',
       menuLabel: s.menu ? 'Close menu' : 'Open menu',
       toggleMenu: () => this.setState({ menu: !s.menu }),
+      barO: s.menu ? 0 : 1,
+      barPE: s.menu ? 'none' : 'auto',
+      barY: s.menu ? '16px' : '0px',
+      bar1T: s.menu ? 'rotate(45deg)' : 'translateY(-4px)',
+      bar2T: s.menu ? 'rotate(-45deg)' : 'translateY(4px)',
+      mProdOpen: !!s.mProd,
+      mProdRot: s.mProd ? '180deg' : '0deg',
+      chevSide: ar ? '90deg' : '-90deg',
+      toggleMProd: () => this.setState({ mProd: !s.mProd }),
+      mobileGroups: (() => {
+        let k = 0;
+        return ['Take orders', 'Sell more', 'Coming next'].map((g) => ({
+          name: g,
+          d: (k++ * 0.03).toFixed(2) + 's',
+          items: this.PRODUCTS.filter((p) => p.group === g).map((p) => ({
+            id: p.id,
+            title: p.title,
+            c: p.c,
+            soon: !!p.soon,
+            d: (k++ * 0.03).toFixed(2) + 's',
+            onClick: this.nav('product', p.id),
+          })),
+        }));
+      })(),
       navItems: pages
         .slice(1)
         .map(([id, label]) => ({ label, onClick: this.nav(id), bg: s.page === id ? '#f0efed' : 'transparent' })),
-      mobileNav: pages.map(([id, label]) => ({ label, onClick: this.nav(id) })),
+      mobileNav: pages.map(([id, label], i) => ({
+        id,
+        label,
+        d: (0.09 + i * 0.04).toFixed(2) + 's',
+        onClick: this.nav(id),
+      })),
       megaO: s.mega ? 1 : 0,
       megaPE: s.mega ? 'auto' : 'none',
       megaT: s.mega ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.985)',
@@ -728,6 +772,14 @@ export default class SiteApp extends React.Component {
           }),
         };
       })(),
+      ctaPadX: '20px',
+      langHdrW: '80px',
+      langHdrO: 1,
+      langHdrM: '0px',
+      langHdrPE: 'auto',
+      langHdrPad: '0 4px',
+      hdrGap: '28px',
+      hdrRGap: '10px',
       headerShadow: s.scrolled ? '0 10px 30px -18px rgba(12,10,9,0.22)' : 'none',
       hdr:
         s.scrolled && !s.menu
@@ -1158,6 +1210,22 @@ export default class SiteApp extends React.Component {
       },
       arPromptTop: !ar && !s.arDismissed && /^ar/i.test(s.navLang || ''),
       arPromptChip: !ar && !s.arDismissed && /^ar/i.test(s.navLang || ''),
+      langSwitch: () => {
+        const nextLang = ar ? 'en' : 'ar';
+        if (nextLang === 'ar') {
+          try { localStorage.setItem('dl_ar_prompt', '1'); } catch (e) {}
+          this.setState({ arDismissed: true });
+        }
+        this.setLang(nextLang);
+      },
+      langSwitchLabel: ar ? 'English' : 'العربية',
+      langCode: ar ? 'EN' : 'AR',
+      langEnC: !ar ? '#0c0a09' : '#a8a29e',
+      langArC: ar ? '#0c0a09' : '#a8a29e',
+      langSwitchAria: ar ? 'Switch to English' : 'التبديل إلى العربية',
+      langSwitchFont: ar
+        ? "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)"
+        : "'IBM Plex Sans Arabic', sans-serif",
       enBg: tEn.bg,
       enColor: tEn.color,
       enShadow: tEn.shadow,

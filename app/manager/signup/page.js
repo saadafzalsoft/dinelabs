@@ -2,9 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { GTMHead, GTMBody } from '@/components/GTM';
 import { COUNTRIES, CURRENCIES, TIMEZONE_TO_COUNTRY, COUNTRY_TO_CURRENCY } from '@/lib/countries-data';
+import { cleanSlug } from '@/lib/slug';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '28204657433-vfefa5u8a7jrrk8qge1df26f25cie4tn.apps.googleusercontent.com';
 
 
 const CHANNELS = [
@@ -14,7 +18,7 @@ const CHANNELS = [
 ];
 
 const BUILD_MS = 5200;
-const slugify = s => s.toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '').slice(0, 30);
+const slugify = cleanSlug;
 
 export default function ManagerSignUpPage() {
   const router = useRouter();
@@ -28,11 +32,15 @@ export default function ManagerSignUpPage() {
   const [store, setStore] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
+  const [slugChecking, setSlugChecking] = useState(false);
+  const [slugStatus, setSlugStatus] = useState(null); // { available: boolean, error?: string }
+  const [slugSuggestions, setSlugSuggestions] = useState([]);
   const [country, setCountry] = useState('US');
   const [currency, setCurrency] = useState('USD');
   const [channels, setChannels] = useState({ delivery: false, pickup: true, dinein: false });
   const [tierCaps, setTierCaps] = useState({ modes: { delivery: 0, pickup: 1, dinein: 0 }, channels: { email: 1, telegram: 0 } });
-  const [tierInfo, setTierInfo] = useState({ name: 'Tier 0', tag: 'Free' });
+  const [tierInfo, setTierInfo] = useState({ id: 't0', name: 'Tier 0', tag: 'Free' });
+  const [selectedPlan, setSelectedPlan] = useState('');
 
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null); // 'country' | 'currency' | null
@@ -41,6 +49,8 @@ export default function ManagerSignUpPage() {
   // Status & Error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleAuthData, setGoogleAuthData] = useState(null); // { isGoogle: boolean, googleId: string, googlePicture: string }
 
   // Tracking state & refs
   const hasTrackedStart = useRef(false);
@@ -68,20 +78,39 @@ export default function ManagerSignUpPage() {
   const [windowHeight, setWindowHeight] = useState(900);
   const buildRafRef = useRef(null);
 
-  // Pre-fill store name from homepage hero and auto-detect country/currency
+  // Pre-fill store name / email from URL or homepage hero and auto-detect country/currency
   useEffect(() => {
     if (typeof window !== "undefined") {
       const sp = new URLSearchParams(window.location.search);
-      let prefill = sp.get("store") || sp.get("name") || "";
-      if (!prefill) {
+      const storeParam = sp.get("store");
+      const emailParam = sp.get("email");
+      const nameParam = sp.get("name");
+
+      if (storeParam) {
+        setStore(storeParam);
+        setSlug(slugify(storeParam));
+      } else if (nameParam && !emailParam) {
+        setStore(nameParam);
+        setSlug(slugify(nameParam));
+      } else {
         try {
-          prefill = localStorage.getItem("dl_prefill_store") || "";
+          const prefill = localStorage.getItem("dl_prefill_store") || "";
+          if (prefill) {
+            setStore(prefill);
+            setSlug(slugify(prefill));
+            localStorage.removeItem("dl_prefill_store");
+          }
         } catch (e) {}
       }
-      if (prefill) {
-        setStore(prefill);
-        setSlug(slugify(prefill));
-        try { localStorage.removeItem("dl_prefill_store"); } catch (e) {}
+
+      if (emailParam) {
+        setEmail(emailParam);
+        if (nameParam) setName(nameParam);
+      }
+
+      const planParam = sp.get("plan") || sp.get("tier");
+      if (planParam) {
+        setSelectedPlan(planParam);
       }
     }
 
@@ -126,15 +155,19 @@ export default function ManagerSignUpPage() {
     } catch (e) {}
   }, []);
 
-  // Sync Tier 0 configuration from Super Admin
+  // Sync selected plan / tier configuration from API
   useEffect(() => {
-    fetch('/api/auth/signup')
+    const sp = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const planParam = sp ? (sp.get('plan') || sp.get('tier') || '') : '';
+    const query = planParam ? `?plan=${encodeURIComponent(planParam)}` : '';
+
+    fetch(`/api/auth/signup${query}`)
       .then(res => res.json())
       .then(data => {
         if (data.tier?.caps) {
           setTierCaps(data.tier.caps);
           if (data.tier.name) {
-            setTierInfo({ name: data.tier.name, tag: data.tier.tag || 'Free' });
+            setTierInfo({ id: data.tier._id, name: data.tier.name, tag: data.tier.tag || 'Free' });
           }
           const modes = data.tier.caps.modes || {};
           setChannels({
@@ -153,6 +186,44 @@ export default function ManagerSignUpPage() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Live Storefront Link Availability Check
+  useEffect(() => {
+    if (!slug) {
+      setSlugStatus(null);
+      setSlugSuggestions([]);
+      setSlugChecking(false);
+      return;
+    }
+
+    if (slug.length < 3) {
+      setSlugStatus({ available: false, error: 'Storefront link must be at least 3 characters.' });
+      setSlugSuggestions([]);
+      setSlugChecking(false);
+      return;
+    }
+
+    setSlugChecking(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/check-slug?slug=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+        if (data.available) {
+          setSlugStatus({ available: true });
+          setSlugSuggestions([]);
+        } else {
+          setSlugStatus({ available: false, error: data.error || 'Link is not available.' });
+          setSlugSuggestions(data.suggestions || []);
+        }
+      } catch (err) {
+        setSlugStatus(null);
+      } finally {
+        setSlugChecking(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [slug]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -175,6 +246,89 @@ export default function ManagerSignUpPage() {
       document.removeEventListener('keydown', handleEsc);
     };
   }, [openDropdown]);
+
+  // Google Identity Services (GSI) Sign Up
+  const handleGoogleSignUpResponse = async (response) => {
+    if (!response?.credential) return;
+    setGoogleLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: response.credential,
+          action: 'verify_signup',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.existingUser) {
+          throw new Error('An account with this Google email already exists. Please sign in instead.');
+        }
+        throw new Error(data.error || 'Google verification failed.');
+      }
+
+      setName(data.name || '');
+      setEmail(data.email);
+      // Auto-generate high-entropy password for backend account requirements
+      const randomPass = 'Gg_' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10) + '!9Aa';
+      setPassword(randomPass);
+      setGoogleAuthData({
+        isGoogle: true,
+        googleId: data.googleId,
+        googlePicture: data.picture,
+      });
+
+      // Advance directly to Step 2
+      setStep(2);
+    } catch (err) {
+      setError(err.message || 'Google sign-up failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const initGoogleSignUp = () => {
+    if (typeof window === 'undefined' || !window.google?.accounts?.id) return;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleSignUpResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      const container = document.getElementById('google-signup-btn-container');
+      if (container) {
+        container.innerHTML = '';
+        const width = Math.min(420, Math.max(260, container.offsetWidth || 380));
+        window.google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          type: 'standard',
+          text: 'signup_with',
+          shape: 'pill',
+          width,
+          logo_alignment: 'left',
+        });
+      }
+    } catch (err) {
+      console.warn('Google GSI signup init error:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 1) {
+      const timer = setTimeout(() => {
+        initGoogleSignUp();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
 
   // Password strength calculation
   const getStrength = (p) => {
@@ -205,7 +359,26 @@ export default function ManagerSignUpPage() {
 
     if (step === 2) {
       if (!store.trim()) return setError('Enter your restaurant name.');
-      if (!slug) return setError('Choose a storefront link.');
+      if (!slug || slug.length < 3) return setError('Choose a valid storefront link (at least 3 characters).');
+      if (slugStatus && !slugStatus.available) {
+        return setError(slugStatus.error || 'Please choose an available storefront link.');
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/auth/check-slug?slug=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+        if (!data.available) {
+          setSlugStatus({ available: false, error: data.error });
+          setSlugSuggestions(data.suggestions || []);
+          setError(data.error || 'This storefront link is unavailable. Please choose another.');
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        // fallback if check fails
+      }
+      setLoading(false);
       return setStep(3);
     }
 
@@ -229,7 +402,14 @@ export default function ManagerSignUpPage() {
           country,
           currency,
           channels,
+          tier: tierInfo.id,
+          plan: selectedPlan,
           eventId: eventIdRef.current,
+          ...(googleAuthData?.isGoogle ? {
+            authProvider: 'google',
+            googleId: googleAuthData.googleId,
+            googlePicture: googleAuthData.googlePicture,
+          } : {}),
         })
       });
 
@@ -345,6 +525,7 @@ export default function ManagerSignUpPage() {
 
   return (
     <div className="dl-auth-wrap" style={{ minHeight: '100vh', minHeight: '100dvh', height: '100vh', height: '100dvh', overflow: 'hidden', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initGoogleSignUp} />
       
       {/* Left Column: Form Steps */}
       <main className="dl-auth-main" style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vh, 28px) 32px', overflowY: 'auto' }}>
@@ -372,9 +553,34 @@ export default function ManagerSignUpPage() {
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <h1 style={{ margin: 0, fontSize: 'clamp(24px, 4vh, 30px)', lineHeight: 1.1, fontWeight: 400, letterSpacing: '-.035em' }}>Create your account</h1>
-              <p style={{ margin: '8px 0 clamp(12px, 3vh, 24px)', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
+              <p style={{ margin: '8px 0 clamp(10px, 2vh, 18px)', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
                 Get your restaurant's storefront live in a few minutes.
               </p>
+
+              {/* Google Sign Up Button Container */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginBottom: 'clamp(10px, 2vh, 16px)' }}>
+                <div
+                  id="google-signup-btn-container"
+                  style={{
+                    width: '100%',
+                    minHeight: '44px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                />
+                {googleLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6b6b6b', marginTop: '8px' }}>
+                    <span style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid rgba(0,0,0,.2)', borderTopColor: '#000', animation: 'spin 0.7s linear infinite' }} />
+                    Verifying Google account…
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'clamp(12px, 2vh, 18px)', gap: '14px' }}>
+                <div style={{ flex: 1, height: '1px', background: '#ececec' }} />
+                <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '.06em', color: '#9a9a9a', fontWeight: 500 }}>or with email</span>
+                <div style={{ flex: 1, height: '1px', background: '#ececec' }} />
+              </div>
 
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label htmlFor="su-name" style={{ fontSize: '13.5px', fontWeight: 500, marginBottom: 'clamp(5px, 1vh, 8px)' }}>Full name</label>
@@ -440,9 +646,22 @@ export default function ManagerSignUpPage() {
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <h1 style={{ margin: 0, fontSize: 'clamp(24px, 4vh, 30px)', lineHeight: 1.1, fontWeight: 400, letterSpacing: '-.035em' }}>Tell us about your restaurant</h1>
-              <p style={{ margin: '8px 0 clamp(12px, 3vh, 24px)', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
+              <p style={{ margin: '8px 0 clamp(10px, 2vh, 18px)', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
                 This is how customers will find you. You can change it later in Store profile.
               </p>
+
+              {googleAuthData?.isGoogle && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 13px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: 'clamp(10px, 2vh, 16px)', fontSize: '13px', color: '#334155' }}>
+                  {googleAuthData.googlePicture ? (
+                    <img src={googleAuthData.googlePicture} alt="" style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
+                  ) : (
+                    <span style={{ fontSize: '13px', color: '#10b981' }}>✓</span>
+                  )}
+                  <span>
+                    Signing up as <strong>{name}</strong> ({email})
+                  </span>
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <label htmlFor="su-store" style={{ fontSize: '13.5px', fontWeight: 500, marginBottom: 'clamp(5px, 1vh, 8px)' }}>Restaurant name</label>
@@ -461,8 +680,41 @@ export default function ManagerSignUpPage() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'clamp(8px, 2vh, 16px)' }}>
-                <label htmlFor="su-slug" style={{ fontSize: '13.5px', fontWeight: 500, marginBottom: 'clamp(5px, 1vh, 8px)' }}>Storefront link</label>
-                <div style={{ display: 'flex', alignItems: 'center', height: 'clamp(40px, 5.5vh, 46px)', borderRadius: '12px', border: '1px solid #e0e0e0', background: '#fff', boxShadow: '0 1px 2px rgba(10,10,10,.04)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'clamp(5px, 1vh, 8px)' }}>
+                  <label htmlFor="su-slug" style={{ fontSize: '13.5px', fontWeight: 500 }}>Storefront link</label>
+                  {slugChecking && (
+                    <span style={{ fontSize: '12px', color: '#888' }}>Checking...</span>
+                  )}
+                  {!slugChecking && slugStatus?.available && (
+                    <span style={{ fontSize: '12px', color: '#059669', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      Available
+                    </span>
+                  )}
+                  {!slugChecking && slugStatus && !slugStatus.available && (
+                    <span style={{ fontSize: '12px', color: '#dc2626', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      Unavailable
+                    </span>
+                  )}
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  height: 'clamp(40px, 5.5vh, 46px)',
+                  borderRadius: '12px',
+                  border: `1px solid ${
+                    slugStatus?.available
+                      ? '#10b981'
+                      : slugStatus && !slugStatus.available
+                      ? '#ef4444'
+                      : '#e0e0e0'
+                  }`,
+                  background: '#fff',
+                  boxShadow: '0 1px 2px rgba(10,10,10,.04)',
+                  overflow: 'hidden',
+                  transition: 'border-color .15s'
+                }}>
                   <span style={{ padding: '0 0 0 16px', fontSize: '15px', color: '#9a9a9a', whiteSpace: 'nowrap' }}>dinelabs.co/</span>
                   <input
                     id="su-slug"
@@ -472,6 +724,60 @@ export default function ManagerSignUpPage() {
                     style={{ flex: 1, minWidth: 0, height: '100%', padding: '0 16px 0 2px', border: 0, background: 'transparent', font: 'inherit', fontSize: '15px', color: '#0a0a0a', outline: 'none' }}
                   />
                 </div>
+
+                {/* Helpful note if restaurant name contains non-Latin letters (e.g. Arabic) resulting in empty slug */}
+                {store.trim() && !cleanSlug(store) && !slug && (
+                  <p style={{ margin: '6px 0 0', fontSize: '12.5px', color: '#b45309' }}>
+                    💡 Your restaurant name contains non-Latin letters. Please type an English link for your web address (e.g. 'al-sham').
+                  </p>
+                )}
+
+                {/* Error message if unavailable */}
+                {!slugChecking && slugStatus && !slugStatus.available && (
+                  <p style={{ margin: '6px 0 0', fontSize: '12.5px', color: '#dc2626' }}>
+                    {slugStatus.error}
+                  </p>
+                )}
+
+                {/* Smart Alternative Suggestions Pills */}
+                {slugSuggestions.length > 0 && (
+                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <span style={{ fontSize: '12px', color: '#6b6b6b', fontWeight: 500 }}>
+                      Available suggestions (click to use):
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {slugSuggestions.map((sug) => (
+                        <button
+                          key={sug}
+                          type="button"
+                          onClick={() => {
+                            setSlug(sug);
+                            setSlugTouched(true);
+                            setSlugStatus({ available: true });
+                            setSlugSuggestions([]);
+                            setError('');
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            border: '1px solid #10b981',
+                            background: '#ecfdf5',
+                            color: '#047857',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all .12s'
+                          }}
+                        >
+                          <span style={{ color: '#059669', fontWeight: 600 }}>+</span> dinelabs.co/{sug}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ position: 'relative', zIndex: 30, display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: '12px', marginTop: 'clamp(8px, 2vh, 16px)' }}>
@@ -572,13 +878,38 @@ export default function ManagerSignUpPage() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <h1 style={{ margin: 0, fontSize: 'clamp(24px, 4vh, 30px)', lineHeight: 1.1, fontWeight: 400, letterSpacing: '-.035em' }}>How do you serve?</h1>
-                <span style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px', background: '#f5f5f5', color: '#555', border: '1px solid #e0e0e0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  background: tierInfo.tag && tierInfo.tag.toLowerCase() !== 'free' ? '#0a0a0a' : '#f5f5f5',
+                  color: tierInfo.tag && tierInfo.tag.toLowerCase() !== 'free' ? '#fff' : '#555',
+                  border: `1px solid ${tierInfo.tag && tierInfo.tag.toLowerCase() !== 'free' ? '#0a0a0a' : '#e0e0e0'}`,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
+                }}>
                   {tierInfo.tag || 'Free'} Plan
                 </span>
               </div>
               <p style={{ margin: '8px 0 clamp(10px, 2.5vh, 20px)', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
-                Pick active channels for your storefront. Only modes enabled in Tier 0 can be toggled.
+                {tierInfo.tag && tierInfo.tag.toLowerCase() !== 'free'
+                  ? `Pick active channels for your storefront. All channels are unlocked with your ${tierInfo.tag} plan.`
+                  : 'Pick active channels for your storefront. Only modes enabled in your plan can be toggled.'}
               </p>
+
+              {googleAuthData?.isGoogle && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 13px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: 'clamp(10px, 2vh, 16px)', fontSize: '13px', color: '#334155' }}>
+                  {googleAuthData.googlePicture ? (
+                    <img src={googleAuthData.googlePicture} alt="" style={{ width: '20px', height: '20px', borderRadius: '50%' }} />
+                  ) : (
+                    <span style={{ fontSize: '13px', color: '#10b981' }}>✓</span>
+                  )}
+                  <span>
+                    Signing up as <strong>{name}</strong> ({email})
+                  </span>
+                </div>
+              )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {CHANNELS.map(ch => {
@@ -591,7 +922,7 @@ export default function ManagerSignUpPage() {
                       type="button"
                       onClick={() => {
                         if (!isAllowed) {
-                          setError(`This is the Free version. ${ch.label} is currently disabled in your plan. Upgrade in Super Admin to unlock.`);
+                          setError(`${ch.label} is currently disabled in your ${tierInfo.tag || 'Free'} plan.`);
                           return;
                         }
                         setError('');
@@ -634,12 +965,12 @@ export default function ManagerSignUpPage() {
                           <span style={{ fontSize: '15px', fontWeight: 500, color: '#0a0a0a' }}>{ch.label}</span>
                           {!isAllowed && (
                             <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '999px', background: '#fbe9ea', color: '#cf2e36', border: '1px solid #fad2d4', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                              Free: Disabled
+                              {tierInfo.tag || 'Free'}: Disabled
                             </span>
                           )}
                         </div>
                         <div style={{ fontSize: '13px', color: '#6b6b6b', marginTop: '3px', lineHeight: 1.4 }}>
-                          {isAllowed ? ch.desc : `Disabled in your free plan. Only active modes configured in Tier 0 can be enabled.`}
+                          {isAllowed ? ch.desc : `Disabled in your ${tierInfo.tag || 'free'} plan. Only active modes configured in this plan can be enabled.`}
                         </div>
                       </div>
                       <div style={{ width: '22px', height: '22px', borderRadius: '7px', border: `1.5px solid ${on ? '#0a0a0a' : isAllowed ? '#cfcfcf' : '#e0e0e0'}`, background: on ? '#0a0a0a' : isAllowed ? '#fff' : '#f0f0f0', color: on ? '#fff' : '#888', display: 'grid', placeItems: 'center', fontSize: '13px', flex: 'none' }}>

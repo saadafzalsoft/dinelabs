@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter } from 'next/navigation';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '28204657433-vfefa5u8a7jrrk8qge1df26f25cie4tn.apps.googleusercontent.com';
 
 export default function ManagerSignInPage() {
   const router = useRouter();
@@ -14,6 +17,8 @@ export default function ManagerSignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [noAccountPrompt, setNoAccountPrompt] = useState(null);
 
   // Forgot password & reset state
   const [code, setCode] = useState('');
@@ -46,6 +51,88 @@ export default function ManagerSignInPage() {
       });
     }, 1000);
   };
+
+  // Google Identity Services (GSI) Handler
+  const handleGoogleResponse = async (response) => {
+    if (!response?.credential) return;
+    setGoogleLoading(true);
+    setError('');
+    setNoAccountPrompt(null);
+
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: response.credential,
+          action: 'login',
+          portal: 'manager',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.notFound) {
+          setNoAccountPrompt({ email: data.email, name: data.name });
+          return;
+        }
+        throw new Error(data.error || 'Google sign-in failed');
+      }
+
+      try {
+        localStorage.setItem('dl_mode', 'demo');
+      } catch (err) {}
+
+      if (data.role === 'superadmin') {
+        window.location.href = '/super/dashboard';
+      } else {
+        window.location.href = '/manager/dashboard';
+      }
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const initGoogleSignIn = () => {
+    if (typeof window === 'undefined' || !window.google?.accounts?.id) return;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      const container = document.getElementById('google-signin-btn-container');
+      if (container) {
+        container.innerHTML = '';
+        const width = Math.min(420, Math.max(260, container.offsetWidth || 380));
+        window.google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          type: 'standard',
+          text: 'continue_with',
+          shape: 'pill',
+          width,
+          logo_alignment: 'left',
+        });
+      }
+    } catch (err) {
+      console.warn('Google GSI init error:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (view === 'signin') {
+      const timer = setTimeout(() => {
+        initGoogleSignIn();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [view]);
 
   // Password strength calculation
   const getStrength = (p) => {
@@ -218,6 +305,7 @@ export default function ManagerSignInPage() {
 
   return (
     <div style={{ minHeight: '100vh', minHeight: '100dvh', display: 'flex', background: '#fff', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", color: '#0a0a0a' }}>
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initGoogleSignIn} />
       
       {/* Left Column: Form */}
       <main className="dl-auth-main" style={{ flex: '1 1 460px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '56px 32px' }}>
@@ -231,16 +319,71 @@ export default function ManagerSignInPage() {
         {view === 'signin' && (
           <form onSubmit={handleSignIn} noValidate style={{ width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column' }}>
             <h1 style={{ margin: 0, fontSize: '30px', lineHeight: 1.1, fontWeight: 400, letterSpacing: '-.035em' }}>Welcome back</h1>
-            <p style={{ margin: '10px 0 36px', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
+            <p style={{ margin: '10px 0 24px', fontSize: '15.5px', lineHeight: 1.5, color: '#6b6b6b' }}>
               Sign in to manage your menu, orders and storefront.
             </p>
 
             {resetDone && (
-              <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '-16px 0 24px', padding: '12px 14px', borderRadius: '12px', background: '#e9f5ef', color: '#138a52', fontSize: '13.5px', fontWeight: 500 }}>
+              <div role="status" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '-10px 0 20px', padding: '12px 14px', borderRadius: '12px', background: '#e9f5ef', color: '#138a52', fontSize: '13.5px', fontWeight: 500 }}>
                 <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#138a52', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '11px', flex: 'none' }}>✓</span>
                 Password updated. Sign in with your new password.
               </div>
             )}
+
+            {noAccountPrompt && (
+              <div role="status" style={{ margin: '0 0 20px', padding: '14px 16px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: 600 }}>
+                  No restaurant found for {noAccountPrompt.email}
+                </div>
+                <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.4 }}>
+                  Would you like to create your restaurant storefront with this Google account?
+                </div>
+                <Link
+                  href={`/manager/signup?email=${encodeURIComponent(noAccountPrompt.email)}&name=${encodeURIComponent(noAccountPrompt.name || '')}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    background: '#0a0a0a',
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    textDecoration: 'none',
+                    alignSelf: 'flex-start',
+                    marginTop: '4px',
+                  }}
+                >
+                  Create your storefront →
+                </Link>
+              </div>
+            )}
+
+            {/* Google Sign In Button Container */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', margin: '0 0 20px' }}>
+              <div
+                id="google-signin-btn-container"
+                style={{
+                  width: '100%',
+                  minHeight: '44px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+              />
+              {googleLoading && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#6b6b6b', marginTop: '10px' }}>
+                  <span style={{ width: '14px', height: '14px', borderRadius: '50%', border: '2px solid rgba(0,0,0,.2)', borderTopColor: '#000', animation: 'spin 0.7s linear infinite' }} />
+                  Signing in with Google…
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', margin: '0 0 20px', gap: '14px' }}>
+              <div style={{ flex: 1, height: '1px', background: '#ececec' }} />
+              <span style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '.06em', color: '#9a9a9a', fontWeight: 500 }}>or with email</span>
+              <div style={{ flex: 1, height: '1px', background: '#ececec' }} />
+            </div>
 
             <label htmlFor="dl-email" style={{ fontSize: '13.5px', fontWeight: 500, marginBottom: '8px' }}>Email</label>
             <input

@@ -99,40 +99,38 @@ export default function Header({ v, AR }) {
             {'\n    '}
           </div>
           {'\n    '}
-          <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: v['hdrRGap'] || '10px' }}>
             {/* Language Switcher */}
-            <div className="dl-only-desk">
-              <Btn
-                as="button"
-                data-demo-allow="1"
-                data-no-ar="1"
-                dir="ltr"
-                onClick={v['langSwitch']}
-                aria-label={v['langSwitchAria']}
-                title={v['langSwitchAria']}
-                style={{
-                  flex: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '34px',
-                  padding: '0 8px',
-                  border: '0',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  letterSpacing: '0.04em',
-                  color: '#a8a29e',
-                }}
-                className="dlh0"
-              >
-                <span style={{ color: v['langEnC'] || '#0c0a09', transition: 'color 0.2s ease' }}>{'EN'}</span>
-                <span style={{ width: '1px', height: '12px', background: '#d6d3d1' }}></span>
-                <span style={{ color: v['langArC'] || '#a8a29e', transition: 'color 0.2s ease' }}>{'AR'}</span>
-              </Btn>
-            </div>
+            <Btn
+              as="button"
+              data-demo-allow="1"
+              data-no-ar="1"
+              dir="ltr"
+              onClick={v['langSwitch']}
+              aria-label={v['langSwitchAria']}
+              title={v['langSwitchAria']}
+              style={{
+                flex: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                height: '34px',
+                padding: '0 8px',
+                border: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                fontSize: '13px',
+                fontWeight: '500',
+                letterSpacing: '0.04em',
+                color: '#a8a29e',
+              }}
+              className="dlh0"
+            >
+              <span style={{ color: v['langEnC'] || '#0c0a09', transition: 'color 0.2s ease' }}>{'EN'}</span>
+              <span style={{ width: '1px', height: '12px', background: '#d6d3d1' }}></span>
+              <span style={{ color: v['langArC'] || '#a8a29e', transition: 'color 0.2s ease' }}>{'AR'}</span>
+            </Btn>
 
             {/* Book a Demo Button */}
             <div className="dl-only-desk">
@@ -198,19 +196,46 @@ export default function Header({ v, AR }) {
                 aria-label={v['menuLabel']}
                 aria-expanded={v['menuOpen']}
                 style={{
+                  position: 'relative',
+                  flex: 'none',
                   background: '#f0efed',
                   border: '0',
                   borderRadius: '999px',
                   width: '42px',
                   height: '42px',
-                  fontSize: '17px',
                   cursor: 'pointer',
-                  color: '#0c0a09',
-                  transition: 'background 0.18s ease',
+                  transition: 'background 0.18s ease, transform 0.15s ease',
                 }}
                 className="dlh5"
               >
-                {val(v['menuIcon'], AR)}
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: '13px',
+                    right: '13px',
+                    top: '50%',
+                    height: '1.6px',
+                    marginTop: '-0.8px',
+                    borderRadius: '2px',
+                    background: '#0c0a09',
+                    transform: v['bar1T'] || 'translateY(-4px)',
+                    transition: 'transform 0.3s cubic-bezier(.2,.8,.2,1)',
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: '13px',
+                    right: '13px',
+                    top: '50%',
+                    height: '1.6px',
+                    marginTop: '-0.8px',
+                    borderRadius: '2px',
+                    background: '#0c0a09',
+                    transform: v['bar2T'] || 'translateY(4px)',
+                    transition: 'transform 0.3s cubic-bezier(.2,.8,.2,1)',
+                  }}
+                />
               </Btn>
               {'\n      '}
             </div>
@@ -973,148 +998,277 @@ export default function Header({ v, AR }) {
         </div>
         {'\n\n  '}
         {v['menuOpen'] ? (
-          <>
-            {'\n    '}
-            <div
-              style={{
-                borderTop: '1px solid #e7e5e4',
-                padding: '12px 20px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-                background: '#fff',
-                maxHeight: 'calc(100vh - 68px)',
-                overflowY: 'auto',
-              }}
-            >
-              {'\n      '}
-              {arr(v['mobileNav']).map((L1_n, I2) => (
-                <React.Fragment key={I2}>
-                  {'\n        '}
-                  <Btn
-                    as="button"
-                    onClick={L1_n?.onClick}
-                    style={{
-                      background: 'none',
-                      border: '0',
-                      textAlign: 'start',
-                      padding: '14px 0',
-                      fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
-                      fontWeight: '500',
-                      fontSize: '30px',
-                      color: '#0c0a09',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #e7e5e4',
-                      transition: 'opacity 0.18s ease',
-                    }}
-                    className="dlh0"
-                  >
-                    {val(L1_n?.label, AR)}
-                  </Btn>
-                  {'\n      '}
-                </React.Fragment>
-              ))}
-              {'\n      '}
-              <div
+          <div
+            data-manim="1"
+            style={{
+              animation: 'dlSheetIn 0.32s cubic-bezier(.2,.8,.2,1) both',
+              borderTop: '1px solid #e7e5e4',
+              background: '#fff',
+              height: `calc(100dvh - ${v['hdr']?.h || '68px'})`,
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ flex: '1', minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '8px 20px 16px' }}>
+              <Btn
+                as="button"
+                data-manim="1"
+                data-demo-allow="1"
+                onClick={v['toggleMProd']}
+                aria-expanded={v['mProdOpen']}
                 style={{
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: '#777169',
-                  padding: '18px 0 8px',
-                }}
-              >
-                {tr('Product', AR)}
-              </div>
-              {'\n      '}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '4px 12px' }}>
-                {'\n        '}
-                {arr(v['mobileProducts']).map((L2_mp, I3) => (
-                  <React.Fragment key={I3}>
-                    {'\n          '}
-                    <Btn
-                      as="button"
-                      onClick={L2_mp?.onClick}
-                      style={{
-                        background: 'none',
-                        border: '0',
-                        textAlign: 'start',
-                        padding: '11px 0',
-                        fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
-                        fontSize: '15px',
-                        color: '#292524',
-                        cursor: 'pointer',
-                        transition: 'opacity 0.18s ease',
-                      }}
-                      className="dlh0"
-                    >
-                      {val(L2_mp?.title, AR)}
-                    </Btn>
-                    {'\n        '}
-                  </React.Fragment>
-                ))}
-                {'\n      '}
-              </div>
-              {'\n      '}
-              <div
-                style={{
+                  animation: 'dlRowIn 0.42s cubic-bezier(.2,.8,.2,1) 0.05s both',
+                  transition: 'opacity 0.15s ease',
+                  width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: '16px',
-                  paddingTop: '18px',
+                  gap: '12px',
+                  background: 'none',
+                  border: '0',
+                  borderBottom: '1px solid #f0efed',
+                  padding: '0',
+                  height: '60px',
+                  textAlign: 'start',
+                  cursor: 'pointer',
+                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                  fontSize: '20px',
+                  fontWeight: '500',
+                  letterSpacing: '-0.01em',
+                  color: '#0c0a09',
                 }}
               >
-                {'\n        '}
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <a href={v['loginUrl']} style={{ fontSize: '15px', fontWeight: '500', textDecoration: 'none' }}>
-                    {tr('Log in', AR)}
-                  </a>
-                  <a
-                    href={v['waChat']}
-                    target={'_blank'}
-                    rel={'noopener'}
-                    style={{ fontSize: '15px', fontWeight: '500', textDecoration: 'none' }}
-                  >
-                    {tr('WhatsApp us', AR)}
-                  </a>
-                </div>
-                {'\n        '}
-                <div
-                  data-no-ar={'1'}
+                {tr('Product', AR)}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#a8a29e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: '#f0efed',
-                    borderRadius: '999px',
-                    padding: '3px',
+                    flex: 'none',
+                    transform: `rotate(${v['mProdRot'] || '0deg'})`,
+                    transition: 'transform 0.3s cubic-bezier(.2,.8,.2,1)',
                   }}
                 >
-                  <Btn
-                    as="button"
-                    onClick={v['setEn']}
-                    style={css(
-                      `border:0; cursor:pointer; font-family:var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif); font-size:13px; font-weight:500; background:${S(v['enBg'])}; color:${S(v['enColor'])}; box-shadow:${S(v['enShadow'])}; border-radius:999px; padding:5px 11px`,
-                    )}
-                  >
-                    {'EN'}
-                  </Btn>
-                  <Btn
-                    as="button"
-                    onClick={v['setAr']}
-                    style={css(
-                      `border:0; cursor:pointer; font-family:'IBM Plex Sans Arabic',sans-serif; font-size:13px; font-weight:500; background:${S(v['arBg'])}; color:${S(v['arColor'])}; box-shadow:${S(v['arShadow'])}; border-radius:999px; padding:5px 11px`,
-                    )}
-                  >
-                    {'عربي'}
-                  </Btn>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </Btn>
+
+              {v['mProdOpen'] ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', padding: '16px 0 20px', borderBottom: '1px solid #f0efed' }}>
+                  {arr(v['mobileGroups']).map((g, gIdx) => (
+                    <div key={gIdx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div
+                        data-manim="1"
+                        style={{
+                          animation: `dlRowIn 0.36s cubic-bezier(.2,.8,.2,1) ${g.d || '0s'} both`,
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          color: '#a8a29e',
+                          padding: '0 0 6px',
+                        }}
+                      >
+                        {tr(g.name, AR)}
+                      </div>
+                      {arr(g.items).map((it, itIdx) => (
+                        <Btn
+                          as="button"
+                          key={itIdx}
+                          data-manim="1"
+                          onClick={it.onClick}
+                          style={{
+                            animation: `dlRowIn 0.36s cubic-bezier(.2,.8,.2,1) ${it.d || '0s'} both`,
+                            transition: 'background 0.15s ease, transform 0.15s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            width: 'calc(100% + 20px)',
+                            background: 'none',
+                            border: '0',
+                            borderRadius: '12px',
+                            padding: '0 10px',
+                            margin: '0 -10px',
+                            height: '46px',
+                            textAlign: 'start',
+                            cursor: 'pointer',
+                            fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                            fontSize: '16px',
+                            fontWeight: '500',
+                            color: '#292524',
+                          }}
+                        >
+                          <span style={{ flex: '1', minWidth: 0 }}>{val(it.title, AR)}</span>
+                          {it.soon ? (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                letterSpacing: '0.04em',
+                                color: '#777169',
+                                background: '#f0efed',
+                                borderRadius: '999px',
+                                padding: '3px 8px',
+                              }}
+                            >
+                              {tr('Soon', AR)}
+                            </span>
+                          ) : null}
+                        </Btn>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-                {'\n      '}
-              </div>
-              {'\n    '}
+              ) : null}
+
+              {arr(v['mobileNav']).map((n, nIdx) => (
+                <Btn
+                  as="button"
+                  key={nIdx}
+                  data-manim="1"
+                  onClick={n.onClick}
+                  style={{
+                    animation: `dlRowIn 0.42s cubic-bezier(.2,.8,.2,1) ${n.d || '0.1s'} both`,
+                    transition: 'opacity 0.15s ease',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    background: 'none',
+                    border: '0',
+                    borderBottom: '1px solid #f0efed',
+                    padding: '0',
+                    height: '60px',
+                    textAlign: 'start',
+                    cursor: 'pointer',
+                    fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                    fontSize: '20px',
+                    fontWeight: '500',
+                    letterSpacing: '-0.01em',
+                    color: '#0c0a09',
+                  }}
+                >
+                  {val(n.label, AR)}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#a8a29e"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ flex: 'none', transform: `rotate(${v['chevSide'] || '-90deg'})` }}
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </Btn>
+              ))}
             </div>
-            {'\n  '}
-          </>
+
+            <div
+              data-manim="1"
+              style={{
+                animation: 'dlRowIn 0.46s cubic-bezier(.2,.8,.2,1) 0.26s both',
+                flex: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                padding: '16px 20px calc(20px + env(safe-area-inset-bottom))',
+                borderTop: '1px solid #f0efed',
+                background: '#fff',
+              }}
+            >
+              <a
+                href={v['signupUrl']}
+                style={{
+                  transition: 'transform 0.15s ease, background-color 0.12s ease',
+                  height: '52px',
+                  borderRadius: '999px',
+                  background: '#0c0a09',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                  fontSize: '16px',
+                  fontWeight: '500',
+                }}
+              >
+                {val(v['headerCta'], AR)}
+              </a>
+              <a
+                href={v['waDemo']}
+                target="_blank"
+                rel="noopener"
+                style={{
+                  transition: 'transform 0.15s ease, background-color 0.12s ease',
+                  height: '52px',
+                  borderRadius: '999px',
+                  background: '#fff',
+                  color: '#0c0a09',
+                  border: '1px solid #d6d3d1',
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                  fontSize: '16px',
+                  fontWeight: '500',
+                }}
+              >
+                {tr('Book a demo', AR)}
+              </a>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '6px' }}>
+                <a
+                  href={v['waChat']}
+                  target="_blank"
+                  rel="noopener"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#57534e', textDecoration: 'none' }}
+                >
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />
+                  {tr('WhatsApp us', AR)}
+                </a>
+                <Btn
+                  as="button"
+                  data-demo-allow="1"
+                  data-no-ar="1"
+                  dir="ltr"
+                  onClick={v['langSwitch']}
+                  aria-label={v['langSwitchAria']}
+                  title={v['langSwitchAria']}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    height: '34px',
+                    padding: '0 4px',
+                    border: '0',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    fontFamily: "var(--dl-display, 'STK Bureau Sans', 'Instrument Sans', sans-serif)",
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    letterSpacing: '0.04em',
+                    color: '#a8a29e',
+                  }}
+                >
+                  <span style={{ color: v['langEnC'] || '#0c0a09', transition: 'color 0.2s ease' }}>{'EN'}</span>
+                  <span style={{ width: '1px', height: '12px', background: '#d6d3d1' }} />
+                  <span style={{ color: v['langArC'] || '#a8a29e', transition: 'color 0.2s ease' }}>{'AR'}</span>
+                </Btn>
+              </div>
+            </div>
+          </div>
         ) : null}
       </header>
     </>

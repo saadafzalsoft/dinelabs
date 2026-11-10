@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { verifyToken, hashPassword } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { ObjectId } from 'mongodb';
+import { cleanSlug, validateSlug } from '@/lib/slug';
 
 async function checkSuperAdmin(request) {
   const sessionCookie = request.cookies.get('dinelabs_session')?.value;
@@ -168,12 +169,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const cleanCandidate = cleanSlug(slug);
+    const slugValidation = validateSlug(cleanCandidate);
+    if (!slugValidation.valid) {
+      return NextResponse.json({ error: slugValidation.error }, { status: 400 });
+    }
+
     const db = await getDb();
     
     // Check if slug or email exists
-    const existingTenant = await db.collection('tenants').findOne({ slug: slug.toLowerCase() });
+    const existingTenant = await db.collection('tenants').findOne({ slug: cleanCandidate });
     if (existingTenant) {
-      return NextResponse.json({ error: 'Store slug is already taken' }, { status: 400 });
+      return NextResponse.json({ error: `Store slug 'dinelabs.co/${cleanCandidate}' is already taken` }, { status: 400 });
     }
 
     const existingUser = await db.collection('users').findOne({ email: managerEmail.toLowerCase() });
@@ -187,7 +194,7 @@ export async function POST(request) {
     // Create tenant
     const newTenant = {
       _id: tenantId,
-      slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+      slug: cleanCandidate,
       name,
       logoUrl: logoUrl ? logoUrl.trim() : '',
       tier: parseInt(tier) || 1,
