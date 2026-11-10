@@ -55,8 +55,8 @@ export async function POST(request) {
       );
     }
 
-    const cleanSlugCandidate = cleanSlug(slug);
-    const slugValidation = validateSlug(cleanSlugCandidate);
+    const normalizedSlug = cleanSlug(slug);
+    const slugValidation = validateSlug(normalizedSlug);
     if (!slugValidation.valid) {
       return NextResponse.json(
         { error: slugValidation.error, reason: slugValidation.reason },
@@ -64,7 +64,6 @@ export async function POST(request) {
       );
     }
 
-    const cleanSlug = cleanSlugCandidate;
     const db = await getDb();
 
     // Check if user already exists
@@ -77,15 +76,15 @@ export async function POST(request) {
     }
 
     // Check if store slug already exists
-    const existingTenant = await db.collection('tenants').findOne({ slug: cleanSlug });
+    const existingTenant = await db.collection('tenants').findOne({ slug: normalizedSlug });
     if (existingTenant) {
-      const suggestions = await generateSlugSuggestions(cleanSlug, async (cand) => {
+      const suggestions = await generateSlugSuggestions(normalizedSlug, async (cand) => {
         const match = await db.collection('tenants').findOne({ slug: cand });
         return !!match;
       }, 3);
       return NextResponse.json(
         {
-          error: `The storefront link 'dinelabs.co/${cleanSlug}' is already taken. Please choose another.`,
+          error: `The storefront link 'dinelabs.co/${normalizedSlug}' is already taken. Please choose another.`,
           suggestions
         },
         { status: 400 }
@@ -140,7 +139,7 @@ export async function POST(request) {
 
     const newTenant = {
       _id: tenantId,
-      slug: cleanSlug,
+      slug: normalizedSlug,
       name: store.trim(),
       logoUrl: '',
       tier: chosenTier._id,
@@ -191,7 +190,7 @@ export async function POST(request) {
       name: newUser.name,
       role: 'manager',
       tenantId,
-      tenantSlug: cleanSlug,
+      tenantSlug: normalizedSlug,
     });
 
     // Extract IP, User Agent, and cookies for Meta Conversions API
@@ -217,7 +216,7 @@ export async function POST(request) {
       success: true,
       restaurantId: tenantId,
       tenantId,
-      tenantSlug: cleanSlug,
+      tenantSlug: normalizedSlug,
       role: 'manager',
       email: newUser.email,
     });
