@@ -171,7 +171,12 @@ export async function POST(request) {
       role: user.role,
       tenantSlug,
       email: user.email,
+      token,
+      userId: user._id.toString(),
+      tenantId: user.tenantId ? user.tenantId.toString() : null,
     });
+
+    response.headers.set('x-dinelabs-session', token);
 
     // Set HTTP-only session cookie
     response.cookies.set({

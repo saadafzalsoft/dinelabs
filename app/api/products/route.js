@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, getSessionFromRequest, getMasqueradeFromRequest } from '@/lib/auth';
 import { createTranslationMap } from '@/lib/translate';
 import { ObjectId } from 'mongodb';
 
 async function getAuthorizedTenantId(request) {
-  const sessionCookie = request.cookies.get('dinelabs_session')?.value;
-  const masqueradeCookie = request.cookies.get('dinelabs_masquerade')?.value;
-  const session = verifyToken(sessionCookie);
+  const session = getSessionFromRequest(request);
 
   if (!session) return null;
-  if (session.role === 'superadmin' && masqueradeCookie) {
-    const masqueradeData = verifyToken(masqueradeCookie);
+  if (session.role === 'superadmin') {
+    const masqueradeData = getMasqueradeFromRequest(request);
     return masqueradeData ? masqueradeData.tenantId : null;
   }
 

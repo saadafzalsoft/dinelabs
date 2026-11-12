@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, getSessionFromRequest, getMasqueradeFromRequest } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { sendOrderStatusUpdateNotification } from '@/lib/notifications';
 
@@ -46,17 +46,15 @@ export async function PUT(request, { params }) {
     }
 
     // Authenticate session
-    const sessionCookie = request.cookies.get('dinelabs_session')?.value;
-    const masqueradeCookie = request.cookies.get('dinelabs_masquerade')?.value;
-    const session = verifyToken(sessionCookie);
+    const session = getSessionFromRequest(request);
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     let tenantId = session.tenantId;
-    if (session.role === 'superadmin' && masqueradeCookie) {
-      const masqueradeData = verifyToken(masqueradeCookie);
+    if (session.role === 'superadmin') {
+      const masqueradeData = getMasqueradeFromRequest(request);
       if (masqueradeData) {
         tenantId = masqueradeData.tenantId;
       }

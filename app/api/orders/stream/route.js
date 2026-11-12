@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, getSessionFromRequest, getMasqueradeFromRequest } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { orderEvents } from '@/lib/orderEvents';
 
@@ -8,15 +8,7 @@ export const runtime = 'nodejs';
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const queryToken = searchParams.get('token');
-    const authHeader = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-    const customSession = request.headers.get('x-dinelabs-session');
-    const sessionCookie = request.cookies.get('dinelabs_session')?.value;
-    const masqueradeCookie = request.cookies.get('dinelabs_masquerade')?.value;
-
-    const rawToken = queryToken || customSession || authHeader || sessionCookie;
-    const session = verifyToken(rawToken);
+    const session = getSessionFromRequest(request);
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -24,8 +16,8 @@ export async function GET(request) {
 
     let tenantId = session.tenantId;
 
-    if (session.role === 'superadmin' && masqueradeCookie) {
-      const masqueradeData = verifyToken(masqueradeCookie);
+    if (session.role === 'superadmin') {
+      const masqueradeData = getMasqueradeFromRequest(request);
       if (masqueradeData) {
         tenantId = masqueradeData.tenantId;
       }

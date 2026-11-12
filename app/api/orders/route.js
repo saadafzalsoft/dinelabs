@@ -1,7 +1,7 @@
 import { emitNewOrder } from '@/lib/orderEvents';
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, getSessionFromRequest, getMasqueradeFromRequest } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 import { sendOrderNotifications } from '@/lib/notifications';
 import { checkIfStoreOpen } from '@/lib/timezone';
@@ -102,9 +102,7 @@ export async function POST(request) {
 // GET: fetches orders for a specific tenant manager session (or masquerading session)
 export async function GET(request) {
   try {
-    const sessionCookie = request.cookies.get('dinelabs_session')?.value;
-    const masqueradeCookie = request.cookies.get('dinelabs_masquerade')?.value;
-    const session = verifyToken(sessionCookie);
+    const session = getSessionFromRequest(request);
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -113,8 +111,8 @@ export async function GET(request) {
     let tenantId = session.tenantId;
 
     // Check if masquerading
-    if (session.role === 'superadmin' && masqueradeCookie) {
-      const masqueradeData = verifyToken(masqueradeCookie);
+    if (session.role === 'superadmin') {
+      const masqueradeData = getMasqueradeFromRequest(request);
       if (masqueradeData) {
         tenantId = masqueradeData.tenantId;
       }
