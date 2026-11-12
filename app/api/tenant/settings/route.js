@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { verifyToken, getSessionFromRequest, getMasqueradeFromRequest } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
+import { cleanSlug, validateSlug } from '@/lib/slug';
 
 async function getAuthorizedTenantId(request) {
   const session = getSessionFromRequest(request);
@@ -152,6 +153,20 @@ export async function PUT(request) {
     };
 
     const updateObj = {};
+    if (body.slug !== undefined) {
+      const candidateSlug = cleanSlug(body.slug);
+      if (candidateSlug && candidateSlug !== tenant.slug) {
+        const v = validateSlug(candidateSlug);
+        if (!v.valid) {
+          return NextResponse.json({ error: v.error }, { status: 400 });
+        }
+        const existing = await db.collection('tenants').findOne({ slug: candidateSlug });
+        if (existing && existing._id.toString() !== tenant._id.toString()) {
+          return NextResponse.json({ error: `The link 'dinelabs.co/${candidateSlug}' is already taken.` }, { status: 400 });
+        }
+        updateObj.slug = candidateSlug;
+      }
+    }
     if (name !== undefined) updateObj.name = name;
     if (logoUrl !== undefined) updateObj.logoUrl = logoUrl;
     if (openingHours !== undefined) updateObj.openingHours = openingHours;
@@ -171,12 +186,14 @@ export async function PUT(request) {
     // Persist social media links
     if (body.instagram !== undefined) updateObj.instagram = body.instagram;
     if (body.tiktok !== undefined) updateObj.tiktok = body.tiktok;
-    if (body.whatsappNumber !== undefined) {
-      updateObj.whatsappNumber = body.whatsappNumber;
+    const waNum = body.whatsapp !== undefined ? body.whatsapp : body.whatsappNumber;
+    if (waNum !== undefined) {
+      updateObj.whatsapp = waNum;
+      updateObj.whatsappNumber = waNum;
       if (!updateObj.notifications) {
-        updateObj.notifications = { ...(tenant.notifications || {}), whatsappNumber: body.whatsappNumber };
+        updateObj.notifications = { ...(tenant.notifications || {}), whatsappNumber: waNum };
       } else {
-        updateObj.notifications.whatsappNumber = body.whatsappNumber;
+        updateObj.notifications.whatsappNumber = waNum;
       }
     }
     if (body.country !== undefined) updateObj.country = body.country;
