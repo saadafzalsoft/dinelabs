@@ -303,14 +303,10 @@ class Component extends DCLogic {
   analysisVals(st, go) {
     const IMG = (k) => k < 0 ? "#F4F4F3" : `url(assets/dishes.jpg) ${(k * 100 / 9).toFixed(2)}% 0/1000% 100%`;
     const per = st.aPer || "30", f = { "7": 0.24, "30": 1, "90": 3.1 }[per];
-    const AP = [["Pepperoni Party", "Pizzas", 1640, 264, 10, 1], ["Tomato & Cheese", "Pizzas", 1210, 198, 14, 3], ["BBQ Chicken", "Pizzas", 1050, 171, 12, 5], ["Strawberry Dream Crêpe", "Crêpes", 960, 140, 12, 8], ["Four Cheese Melt", "Pizzas", 880, 122, 14, 6], ["Chocolate Hazelnut Crêpe", "Crêpes", 902, 97, 10, 7], ["Philly Steak", "Pizzas", 1488, 58, 15, 2], ["Buffalo Ranch", "Pizzas", 980, 61, 14, 4], ["Margherita", "Pizzas", 611, 55, 11, 9], ["Fresh Lemonade", "Drinks", 420, 88, 3.5, -1]]
-      .map(([name, cat, views, sold, price, img], i) => { const v = Math.round(views * f), s = Math.round(sold * f);
-        const seed = (k) => { const x = Math.sin((i + 1) * 9301 + k * 49297 + per.length * 233) * 10000; return x - Math.floor(x); };
-        const slope = [0.18, 0.06, 0.1, 0.22, -0.04, 0.03, -0.2, -0.12, 0.02, 0.15][i];
-        const pts = Array.from({ length: 8 }, (_, k) => 1 + slope * (k / 7) + (seed(k) - 0.5) * 0.18);
-        const ch = (pts[7] - pts[0]) / pts[0] * 100;
-        return { name, cat, v, s, pct: s / v * 100, rev: s * price, img: IMG(img), pts, ch }; });
-    const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+    const AP = Array.isArray(st.liveStats?.productInsights) && st.liveStats.productInsights.length > 0
+      ? st.liveStats.productInsights.map((x, i) => ({ name: x.name, cat: "Menu", v: x.views || 0, s: x.ordered || 0, pct: x.pct || 0, rev: (x.ordered || 0) * 10, img: "#F4F4F3", pts: [1, 1, 1, 1, 1, 1, 1, 1], ch: 0 }))
+      : [];
+    const usd = (n) => (window.__dlCurrency || "€") + Math.round(n).toLocaleString("en-US");
     const openPromo = (prods) => { window.__dlPendingPromo = prods; this.props.go && this.props.go("promotions"); };
     const low = AP.filter(p => p.pct < 7 && p.v > 300).sort((a, b) => b.v - a.v).slice(0, 2);
     const TIPS = { "Philly Steak": "People open it and leave. Show what's inside in the photo and description.", "Buffalo Ranch": "Curious but not convinced. A week-long discount can get people to try it." };

@@ -180,7 +180,7 @@ class Component extends DCLogic {
       socials: [["instagram", "Instagram", "@yourstore"], ["facebook", "Facebook", "facebook.com/yourstore"], ["tiktok", "TikTok", "@yourstore"], ["youtube", "YouTube", "youtube.com/@yourstore"]].map(([k, label, ph]) => ({ label, v: st[k] || "", ph, onChange: (e) => this.setState({ [k]: e.target.value }) })),
       openApp: () => this.props.openApp && this.props.openApp(),
       testSound: () => this.t("Playing the new-order sound"),
-      emailOn: st.email, emailSw: sw(st.email)[0], emailJ: sw(st.email)[1], toggleEmail: () => this.setState({ email: !st.email }), sendTest: () => this.t("Test email sent to orders@blockparty.lb"),
+      emailOn: st.email, emailSw: sw(st.email)[0], emailJ: sw(st.email)[1], toggleEmail: () => this.setState({ email: !st.email }), sendTest: () => this.t("Test email sent to " + (window.__dlTenant?.ownerEmail || "your email")),
       disconnect: () => this.t("Talk to us on WhatsApp to change your payment account"),
       methods: [["card", "credit-card", "Card", "Visa and Mastercard through your areeba account"], ["cash", "banknote", "Cash", "Paid on delivery or at the counter"]].map(([k, icon, label, sub]) => ({ icon, label, sub, sw: sw(st[k])[0], j: sw(st[k])[1], toggle: () => this.setState({ [k]: !st[k] }) })),
       tipsSw: sw(st.tips)[0], tipsJ: sw(st.tips)[1], toggleTips: () => this.setState({ tips: !st.tips }), tipPcts: ["10", "15", "20"],
@@ -214,8 +214,8 @@ class Component extends DCLogic {
       stopPin: (e) => e.stopPropagation(), pinCancel: () => this.setState({ pin: null }), pinSave: () => { this.setState(s => ({ pinSaved: s.pin, pin: null })); this.t("Pin saved. Delivery distances use the new spot."); },
       countries: (window.DL_COUNTRIES || [{ value: "Lebanon", label: "Lebanon" }]).map(c => ({ value: c.value, label: c.label, flag: c.flag })),
       ...(() => { const pl = this.props.plan || (this.props.trial ? "trial" : "premium"), ar = this.props.lang === "ar", fd = (m, d) => new Date(2026, m, d).toLocaleDateString(ar ? "ar-LB-u-nu-latn" : "en-GB", { day: "numeric", month: "short" });
-        const hamra = { trial: "Premium trial", premium: "Premium", free: "Free", suspended: "Suspended" }[pl];
-        const rows = [["Hamra", hamra, 11, 1, "#FAFAFA"], ["Achrafieh", pl === "trial" ? "Premium trial" : "Premium", 11, 4, "#fff"], ["Jounieh", pl === "trial" ? "Premium trial" : "Premium", 11, 19, "#fff"]];
+        const bPlan = { trial: "Premium trial", premium: "Premium", free: "Free", suspended: "Suspended" }[pl];
+        const rows = [[st.storeName || window.__dlTenant?.name || "My Store", bPlan, 11, 1, "#FAFAFA"]];
         return { branches: rows.map(([name, plan, m, d, bg]) => ({ name, plan, bg, noteA: plan === "Premium" ? "Next payment" : "", noteB: plan === "Premium" ? fd(m, d) : "" })),
           pTrial: pl === "trial", pPrem: pl === "premium", pFree: pl === "free", pSusp: pl === "suspended", hasPrem: pl === "trial" || pl === "premium", noPrem: pl === "free" || pl === "suspended",
           nextDue: new Date(2026, 11, 1).toLocaleDateString(ar ? "ar-LB-u-nu-latn" : "en-GB", { day: "numeric", month: "long" }), trialEnds: this.props.trial ? this.props.trial.ends : "" }; })(),

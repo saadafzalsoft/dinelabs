@@ -98,7 +98,7 @@
       </div>
       <div style="position:absolute;inset-inline-start:12px;inset-inline-end:12px;bottom:12px;z-index:12;display:flex;align-items:center;gap:10px;padding-block:8px 8px;padding-inline:12px 8px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(20,17,15,.15)">
         <i class="icon-map-pin" style="font-size:16px;color:#FF4A1C;flex-shrink:0"></i>
-        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hamra Street, Beirut</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Zones are measured from this pin</span></span>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ storeAddress }}</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Zones are measured from this pin</span></span>
         <button onClick="{{ goProfile }}" style="height:32px;padding:0 12px;border-radius:9px;border:1px solid #DADAD7;background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="border-color:#5A5A57">Change</button>
       </div>
     </div>
@@ -349,6 +349,7 @@ class Component extends DCLogic {
     const sw = (on) => [on ? "#14110F" : "#DADAD7", on ? "flex-end" : "flex-start"];
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile, dayW: this.props.mobile ? "100%" : "150px",
+      storeAddress: window.__dlTenant?.address || "Your store location",
       isHours: scr === "hours", isDelivery: scr === "delivery", isPickup: scr === "pickup", isDinein: scr === "dinein",
       copyMonday: () => { const m0 = st.hours[0]; this.setState(s => ({ hours: s.hours.map(() => ({ mode: m0.mode, shifts: m0.shifts.map(p => [...p]) })) })); this.t("Monday's hours copied to every day"); },
       weekSummary: `${openDays} of 7 days · ${Math.round(total)} hrs a week`,
