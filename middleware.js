@@ -4,10 +4,10 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
 
   if (pathname === '/manager' || pathname.startsWith('/manager/')) {
-    return NextResponse.redirect(new URL('/manager-v2/', request.url));
+    return NextResponse.redirect(new URL('/manager-v2/Dinelabs%20Manager.dc.html', request.url));
   }
   if (pathname === '/super' || pathname.startsWith('/super/')) {
-    return NextResponse.redirect(new URL('/super-v2/', request.url));
+    return NextResponse.redirect(new URL('/super-v2/Dinelabs%20Super%20v3.dc.html', request.url));
   }
 
   const response = NextResponse.next();
