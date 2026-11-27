@@ -171,14 +171,60 @@ const EXTRA = [["Pizzas", ["Hawaiian","Veggie Supreme","Meat Lovers","Truffle Mu
 const CATS_X = ["Popular", "Pizzas", "Crêpes", "Sides", "Salads", "Drinks"];
 const ORDER = (items, CL) => { const seen = new Set(), out = []; CL.forEach(c => items.forEach(p => { if (p.cats.includes(c) && !seen.has(p.id)) { seen.add(p.id); out.push(p); } })); items.forEach(p => !seen.has(p.id) && out.push(p)); return out; };
 const SOURCES = [["link", "Website link", "Paste the page where your menu lives"], ["file-text", "PDF", "Your printed or delivery menu"], ["camera", "Photo", "A clear photo of each menu page"], ["sheet", "CSV", "Columns: name, name_ar, category, price, description"]];
-const photo = (p) => p.photo ? `url(assets/dishes.jpg) ${(p.photo / 9) * 100}% 0/1000% 100%` : "#F4F4F3";
+const photo = (p) => p.imageUrl ? `url(${p.imageUrl}) center/cover` : p.photo ? `url(assets/dishes.jpg) ${(p.photo / 9) * 100}% 0/1000% 100%` : "#F4F4F3";
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0px", fs: "14px" };
 class Component extends DCLogic {
-  state = { items: P0, q: "", cat: "all", avail: "all", sel: [], bulk: "", tip: true, menu: null, ed: null, imp: false, src: 1, importing: false };
-  componentDidMount() { this.sync(); }
+  state = { items: [], cats: [], q: "", cat: "all", avail: "all", sel: [], bulk: "", tip: true, menu: null, ed: null, imp: false, src: 1, importing: false };
+  async loadProducts() {
+    try {
+      const [cRes, pRes] = await Promise.all([fetch('/api/categories'), fetch('/api/products')]);
+      const [rawCats, rawProds] = await Promise.all([cRes.ok ? cRes.json() : [], pRes.ok ? pRes.json() : []]);
+      const catMap = new Map();
+      const catNames = [];
+      if (Array.isArray(rawCats)) {
+        rawCats.forEach(c => {
+          const nm = typeof c.name === 'object' ? (c.name.en || c.name.de || Object.values(c.name)[0] || 'Category') : (c.name || 'Category');
+          catMap.set(String(c._id || c.id), nm);
+          catNames.push(nm);
+        });
+      }
+      if (Array.isArray(rawProds)) {
+        const items = rawProds.map(p => {
+          const nm = typeof p.name === 'object' ? (p.name.en || p.name.de || Object.values(p.name)[0] || 'Product') : (p.name || 'Product');
+          const ar = typeof p.name === 'object' ? (p.name.ar || '') : '';
+          const pCats = Array.isArray(p.categories) ? p.categories.map(cid => catMap.get(String(cid))).filter(Boolean) : [];
+          return {
+            id: String(p._id || p.id),
+            name: nm,
+            ar,
+            cats: pCats.length ? pCats : (catNames[0] ? [catNames[0]] : ['Menu']),
+            price: Number(p.price) || 0,
+            tags: [],
+            on: p.isAvailable !== false,
+            imageUrl: p.imageUrl || '',
+            photo: 0,
+            groups: [],
+          };
+        });
+        this.setState({ items, cats: catNames });
+      }
+    } catch (e) {}
+  }
+  componentDidMount() { this.loadProducts(); this.sync(); }
   componentDidUpdate() { this.sync(); }
   sync() { const o = !!this.props.over50; if (o && !this.state.gen) this.setState(s => ({ gen: true, items: [...s.items, ...EXTRA], keep: null })); else if (!o && this.state.gen) this.setState(s => ({ gen: false, items: s.items.filter(p => !p.gen), keep: null, pick: null })); }
-  upd(id, fn) { this.setState(s => ({ items: s.items.map(p => p.id === id ? fn(p) : p) })); }
+  upd(id, fn) {
+    this.setState(s => ({
+      items: s.items.map(p => {
+        if (p.id !== id) return p;
+        const next = fn(p);
+        if (next.on !== p.on) {
+          fetch('/api/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, isAvailable: next.on }) }).catch(() => {});
+        }
+        return next;
+      })
+    }));
+  }
   move(id, dir) { this.setState(s => { const a = [...s.items], i = a.findIndex(p => p.id === id), j = i + dir; if (j < 0 || j >= a.length) return { menu: null }; [a[i], a[j]] = [a[j], a[i]]; return { items: a, menu: null }; }); }
   t(m) { this.props.toast && this.props.toast(m); }
   reorder(dragId, targetId, pos) {
@@ -186,11 +232,14 @@ class Component extends DCLogic {
   }
   doBulk(kind) {
     const sel = this.state.sel, n = sel.length; if (!n) return;
+    if (kind === "in" || kind === "out") {
+      sel.forEach(id => fetch('/api/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, isAvailable: kind === "in" }) }).catch(() => {}));
+    }
     this.setState(s => ({ items: kind === "delete" ? s.items.filter(p => !sel.includes(p.id)) : s.items.map(p => sel.includes(p.id) ? { ...p, on: kind === "in" } : p), sel: [], bulk: "" }));
     this.t(kind === "delete" ? `${n} product${n > 1 ? "s" : ""} deleted` : `${n} product${n > 1 ? "s" : ""} marked ${kind === "in" ? "in stock" : "out of stock"}`);
   }
   renderVals() {
-    const st = this.state, q = st.q.trim().toLowerCase(), CL = st.gen ? CATS_X : CATS;
+    const st = this.state, q = st.q.trim().toLowerCase(), CL = st.cats.length ? st.cats : CATS;
     const over = st.gen && (this.props.plan === "free" || this.props.plan === "suspended"), ordered = ORDER(st.items, CL);
     const keepIds = over ? new Set(st.keep || ordered.slice(0, 50).map(p => p.id)) : null, isHidden = p => !!keepIds && !keepIds.has(p.id);
     const hidN = over ? st.items.filter(isHidden).length : 0;

@@ -240,12 +240,27 @@ const STEPS = [
 const DONE = { established: [1,1,1,1,1,1,1,1], few: [1,1,1,1,1,1,0,0], none: [0,0,1,0,0,0,0,0] };
 const SEV = { red: ["#FFE6DE", "#C2300B"], amber: ["#FFF0C2", "#7A5300"], grey: ["#F4F4F3", "#14110F"] };
 class Component extends DCLogic {
-  state = { period: "week", test: false, shared: false, menuTab: "top" };
+  state = { period: "week", test: false, shared: false, menuTab: "top", liveStats: null };
+  componentDidMount() {
+    fetch('/api/manager/stats').then(r => r.ok ? r.json() : null).then(d => {
+      if (d) this.setState({ liveStats: d });
+    }).catch(() => {});
+  }
   renderVals() {
     const st = this.state, mob = !!this.props.mobile;
     const ds = ["few", "none"].includes(this.props.dataState) ? this.props.dataState : "established";
     const est = ds === "established", few = ds === "few", none = ds === "none";
-    const p = P[st.period];
+    const ls = st.liveStats?.stats?.[st.period];
+    const p = ls ? {
+      ...P[st.period],
+      sales: ls.sales ?? 0,
+      orders: ls.orders ?? 0,
+      avg: ls.avg ?? 0,
+      views: ls.views ?? 0,
+      pts: Array.isArray(ls.bars) && ls.bars.length > 1 ? ls.bars : P[st.period].pts,
+      x: Array.isArray(ls.labels) && ls.labels.length > 1 ? ls.labels : P[st.period].x,
+      top: Array.isArray(ls.top) ? ls.top : [],
+    } : P[st.period];
     const go = (s) => () => this.props.go && this.props.go(s);
     const toast = (m) => this.props.toast && this.props.toast(m);
     const share = () => { this.setState({ shared: true }); this.props.openShare && this.props.openShare(); };

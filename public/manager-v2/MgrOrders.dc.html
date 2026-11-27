@@ -115,33 +115,77 @@ const T = {
   dinein: { label: "Dine-in", icon: "utensils", bg: "#F4F4F3", ink: "#14110F", prep: 20 },
 };
 const PH = { "Pepperoni Party": 1, "Philly Steak": 2, "Tomato & Cheese": 3, "BBQ Chicken": 4, "Buffalo Ranch": 5, "Four Cheese Melt": 6, "Chocolate Hazelnut Crêpe": 7, "Strawberry Dream Crêpe": 8, "Margherita": 9 };
-const ORDERS = [
-  { id: 1048, type: "pickup", status: "new", min: 1, customer: "Rami Khoury", phone: "+961 70 555 214", email: "rami.k@gmail.com", items: [[2, "Pepperoni Party", 10, ["Large · +$3.00"]], [1, "Chocolate Hazelnut Crêpe", 10, []]], pay: "paid", tip: 0, ready: 9 },
-  { id: 1047, type: "delivery", status: "new", min: 11, customer: "Lina Saad", phone: "+961 3 412 908", address: "Bliss St, Hamra", km: 1.2, items: [[2, "Tomato & Cheese", 14, []], [2, "Strawberry Dream Crêpe", 12, []]], pay: "cash", tip: 0 },
-  { id: 1046, type: "dinein", status: "new", min: 2, customer: "Table 6", table: 6, items: [[1, "Philly Steak", 12, ["No onion"]], [1, "Margherita", 12, []]], pay: "cash", tip: 0 },
-  { id: 1045, type: "delivery", status: "preparing", min: 6, customer: "Maya Rizk", phone: "+961 71 323 482", email: "maya.rizk@outlook.com", address: "Makdessi St, Hamra", km: 0.8, items: [[1, "Four Cheese Melt", 14, ["Medium", "Jalapeños · +$1.00"]], [2, "Tomato & Cheese", 14, []]], pay: "failed", tip: 0 },
-  { id: 1043, type: "pickup", status: "preparing", min: 24, customer: "Omar Aoun", phone: "+961 75 766 248", items: [[2, "Margherita", 12, []]], pay: "paid", tip: 1.2, ready: 0 },
-  { id: 1042, type: "dinein", status: "preparing", min: 9, customer: "Table 2", table: 2, items: [[1, "Pepperoni Party", 10, []], [1, "BBQ Chicken", 12, []]], pay: "paid", tip: 2.2 },
-  { id: 1044, type: "dinein", status: "ready", min: 18, customer: "Table 4", table: 4, items: [[2, "Pepperoni Party", 10, []], [2, "Coca-Cola", 2.5, []]], pay: "cash", tip: 0 },
-  { id: 1041, type: "delivery", status: "ready", min: 22, customer: "Dana Haddad", phone: "+961 76 119 302", address: "Clemenceau St", km: 1.6, items: [[1, "Buffalo Ranch", 12.5, []], [1, "Still Water", 1.5, []]], pay: "cash", tip: 0 },
-];
-const money = (v) => "$" + v.toFixed(2);
-const sub = (o) => o.items.reduce((s, [q, , p, a]) => s + q * p + a.reduce((x, s2) => x + (+(s2.match(/\+\$(\d+\.\d+)/) || [0, 0])[1]), 0) * q, 0);
+const ORDERS = [];
+const money = (v) => (window.__dlCurrency || "€") + Number(v || 0).toFixed(2);
+const sub = (o) => o.items.reduce((s, [q, , p, a]) => s + q * p + a.reduce((x, s2) => x + (+(s2.match(/\+[€$](\d+\.\d+)/) || [0, 0])[1]), 0) * q, 0);
 const total = (o) => sub(o) + (o.tip || 0);
 const REASONS = ["Out of stock", "Too busy", "Closing soon", "Customer asked", "Other"];
 const NEXT = { new: ["Accept", "preparing"], preparing: ["Ready", "ready"], ready: ["Complete", "done"] };
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+function mapOrder(o) {
+  const stMap = { pending: "new", new: "new", accepted: "preparing", preparing: "preparing", ready: "ready", shipped: "ready" };
+  const status = stMap[o.status];
+  if (!status) return null;
+  const type = o.type === "dine-in" || o.type === "dinein" ? "dinein" : o.type === "delivery" ? "delivery" : "pickup";
+  const min = o.createdAt ? Math.max(0, Math.floor((Date.now() - new Date(o.createdAt).getTime()) / 60000)) : 0;
+  const items = (o.items || []).map(it => {
+    const nm = typeof it.name === "object" ? (it.name.en || it.name.de || Object.values(it.name)[0] || "Item") : (it.name || "Item");
+    const ads = Array.isArray(it.addons) ? it.addons.map(a => typeof a === "object" ? (a.en || a.de || Object.values(a)[0]) : String(a)) : [];
+    return [it.quantity || it.qty || 1, String(nm), Number(it.price) || 0, ads];
+  });
+  return {
+    id: o.orderNo || parseInt(String(o._id).slice(-4), 16) || 1000,
+    rawId: o._id,
+    type,
+    status,
+    min,
+    customer: o.customer?.name || "Customer",
+    phone: o.customer?.phone || "",
+    email: o.customer?.email || "",
+    address: o.customer?.address || "",
+    km: o.km || 1,
+    table: o.customer?.tableNo || o.table || 1,
+    items,
+    pay: o.paymentStatus === "paid" || o.isPaid ? "paid" : "cash",
+    tip: Number(o.tip) || 0,
+    ready: o.deliveryMinutes || 15,
+  };
+}
 class Component extends DCLogic {
-  state = { col: 0, orders: ORDERS, filter: "all", tip: true, det: null, rej: null, reason: null, prep: {}, completed: 47 };
-  componentDidMount() { this.report(); }
+  state = { col: 0, orders: ORDERS, filter: "all", tip: true, det: null, rej: null, reason: null, prep: {}, completed: 0 };
+  async loadOrders() {
+    try {
+      const res = await fetch('/api/orders');
+      if (!res.ok) return;
+      const raw = await res.json();
+      if (!Array.isArray(raw)) return;
+      const activeOrders = raw.map(mapOrder).filter(Boolean);
+      const completed = raw.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+      this.setState({ orders: activeOrders, completed });
+    } catch (e) {}
+  }
+  componentDidMount() {
+    this.loadOrders();
+    this._iv = setInterval(() => this.loadOrders(), 5000);
+    this.report();
+  }
+  componentWillUnmount() { clearInterval(this._iv); }
   componentDidUpdate() { this.report(); }
   report() { const n = this.state.orders.filter(o => o.status === "new").length; this.props.onCount && this.props.onCount(n); }
-  advance(id) {
+  async advance(id) {
     const o = this.state.orders.find(x => x.id === id); if (!o) return;
     const [label, to] = NEXT[o.status];
+    const backendStatus = to === "done" ? "completed" : to === "preparing" ? "accepted" : "ready";
     if (to === "done") this.setState(s => ({ orders: s.orders.filter(x => x.id !== id), completed: s.completed + 1, det: null }));
     else this.setState(s => ({ orders: s.orders.map(x => x.id === id ? { ...x, status: to, min: to === "preparing" ? 0 : x.min } : x), det: null }));
     this.props.toast && this.props.toast(`#${id} ${to === "done" ? "completed" : to === "preparing" ? "accepted · Preparing" : "is ready"}`);
+    if (o.rawId) {
+      fetch(`/api/orders/${o.rawId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: backendStatus, deliveryMinutes: this.state.prep[id] || undefined })
+      }).catch(() => {});
+    }
   }
   view(o) {
     const t = T[o.type], late = o.status === "new" ? o.min >= 10 : o.status === "preparing" && o.min > (this.state.prep[o.id] || t.prep) - 10 ? false : false;
@@ -195,7 +239,7 @@ class Component extends DCLogic {
       reasons: REASONS.map((label, i) => ({ label, pick: () => this.setState({ reason: i }), ring: st.reason === i ? "6px solid #14110F" : "1.5px solid #DADAD7" })),
       noReason: st.reason === null, rejBg: st.reason === null ? "#EAEAE8" : "#C2300B", rejInk: st.reason === null ? "#5A5A57" : "#fff",
       closeRej: () => this.setState({ rej: null }),
-      confirmRej: () => { const id = st.rej; this.setState(s => ({ orders: s.orders.filter(o => o.id !== id), rej: null, det: null })); this.props.toast && this.props.toast(`#${id} rejected · customer notified`); },
+      confirmRej: () => { const id = st.rej; const o = st.orders.find(x => x.id === id); const rsn = REASONS[st.reason] || "Other"; this.setState(s => ({ orders: s.orders.filter(o => o.id !== id), rej: null, det: null })); this.props.toast && this.props.toast(`#${id} rejected · customer notified`); if (o && o.rawId) { fetch(`/api/orders/${o.rawId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'declined', cancellationReason: rsn }) }).catch(() => {}); } },
     };
   }
 }

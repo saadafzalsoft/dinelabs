@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  if (pathname === '/manager' || pathname.startsWith('/manager/')) {
+    return NextResponse.redirect(new URL('/manager-v2/', request.url));
+  }
+  if (pathname === '/super' || pathname.startsWith('/super/')) {
+    return NextResponse.redirect(new URL('/super-v2/', request.url));
+  }
+
   const response = NextResponse.next();
 
   // 1. Prevent Clickjacking attacks

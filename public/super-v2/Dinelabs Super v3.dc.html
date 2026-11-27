@@ -1101,7 +1101,7 @@ class Component extends DCLogic {
     sorts: { stores: { k: 'created', dir: 'desc' } }, period: 'Week', reqTab: 'Waiting', storesTab: 'All', storesQ: '', planFilter: 'All', statusF: [], planF: [], attnF: false, newF: false, menu: null, actPerson: 'Everyone',
     billView: 'Subscriptions', billTab: 'All', billQ: '', teamTab: 'Members', settings: 'General', showArchived: false,
     expanded: {}, modal: null, toast: '', sideQ: '', vw: typeof window !== 'undefined' ? window.innerWidth : 1280, drawer: false, searchOpen: false,
-    email: 'mariam@dinelabs.co', pw: 'dinelabs-super', showPw: false, signing: false, loginErr: '',
+    email: '', pw: '', showPw: false, signing: false, loginErr: '',
     stores: [], activity: [], members: [], payments: [], notes: {}, noteDraft: '',
     plans: {
       Free: { price: 0, products: '50', langs: '2', analysis: 'Top 3 sellers', branding: 'Logo only', pickup: true, customers: true, translation: true, delivery: false, dineIn: false, addons: false, payments: false, promotions: false, labels: false },
@@ -1118,12 +1118,38 @@ class Component extends DCLogic {
     document.addEventListener('mousedown', this._ddClose);
     this._ddScroll = e => { if (this.state.dd && !(e.target.closest && e.target.closest('[role=listbox]'))) this.setState({ dd: null }); };
     document.addEventListener('scroll', this._ddScroll, true);
-    const load = () => {
-      const d = window.SUPER_DATA;
-      if (!d) { this._t = setTimeout(load, 50); return; }
-      const T0 = Date.parse('16 Nov 2026'); const stores = d.stores.map(x => { const age = Math.round((T0 - Date.parse(x.created)) / 864e5); let y = { ...x }; if (y.status !== 'demo' && age >= 0 && age < 30 && y.plan === 'Free') y = { ...y, plan: 'Premium trial', trialLeft: 30 - age }; y.signupMenu = y.signupMenu || ({ 'le-petit-cafe': { link: 'https://lepetitcafe.lb/menu', files: [] }, 'morning-brew': { link: '', files: ['menu-page-1.jpg', 'menu-page-2.jpg'] } })[y.id]; y.open = y.open || (y.id === 'falafel-house' ? 'Paused · resumes 19:30' : y.id === 'nomad-kebab' ? 'Paused · delivery, 30 min' : 'Open'); y.cycle = y.cycle || (['burger-palace', 'sweet-tooth', 'nomad-kebab'].includes(y.id) ? 'yearly' : 'monthly'); if (y.status === 'trial' || y.status === 'onboarding') y.status = y.last === 'Never' && !y.orders30 ? 'onboarding' : 'live'; return y; });
-      this.setState({ ready: true, stores, activity: d.activity, members: d.members, payments: d.payments });
+    const load = async () => {
+      try {
+        const res = await fetch('/api/super/tenants');
+        if (res.ok) {
+          const tenants = await res.json();
+          if (Array.isArray(tenants)) {
+            const stores = tenants.map(t => ({
+              id: t.slug || t._id,
+              rawId: t._id,
+              name: t.name || t.restaurantName || t.slug,
+              brand: t.name || t.restaurantName || t.slug,
+              country: t.country || 'DE',
+              area: t.address || '',
+              plan: t.tier || 'Free',
+              status: t.status === 'active' ? 'live' : 'suspended',
+              created: t.createdAt ? t.createdAt.slice(0, 10) : '2026-01-01',
+              last: 'Today',
+              orders30: t.ordersCount || 0,
+              sales30: t.revenue || 0,
+              ownerName: t.ownerEmail || '',
+              ownerEmail: t.ownerEmail || '',
+              open: t.status === 'active' ? 'Open' : 'Paused',
+              cycle: 'monthly',
+            }));
+            this.setState({ ready: true, authed: true, stores });
+            return;
+          }
+        }
+      } catch (e) {}
+      this.setState({ ready: true, authed: false });
     };
+    this._reloadSuper = load;
     load();
     this._rs = () => this.setState({ vw: window.innerWidth, dd: null });
     window.addEventListener('resize', this._rs); this._rs();
@@ -1199,7 +1225,7 @@ class Component extends DCLogic {
       ...out, showShell: true, nav, tabs, crumb, is, screenKey: s.screen + s.storeId + s.brandId,
       showAside: true, asideStyle, drawerOpen: mobile && s.drawer, closeDrawer: () => this.setState({ drawer: false }), openDrawer: () => this.setState({ drawer: true }),
       searchOpen: s.searchOpen, openSearch: () => this.setState({ searchOpen: !s.searchOpen, sideQ: '' }),
-      goHome: go('home'), signOut: () => this.setState({ authed: false, signing: false, pw: '' }),
+      goHome: go('home'), signOut: () => { fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); this.setState({ authed: false, signing: false, pw: '' }); },
       sideQ: s.sideQ, onSideQ: e => this.setState({ sideQ: e.target.value }),
       onSideKey: e => { if (e.key === 'Enter') this.nav('stores', { storesQ: s.sideQ, storesTab: 'All', sideQ: '' }); },
       newStore: () => this.openNew(),
@@ -1210,7 +1236,29 @@ class Component extends DCLogic {
   dots() { return React.createElement('span', { style: { display: 'inline-flex', gap: 4, alignItems: 'center', height: 16 } }, [0, 1, 2].map(i => React.createElement('i', { key: i, style: { display: 'block', width: 6, height: 6, borderRadius: '50%', background: 'currentColor', animation: 'dl-dot 1s cubic-bezier(.34,1.36,.64,1) ' + (i * .16) + 's infinite' } }))); }
   loginVals(V) {
     const s = this.state;
-    const submit = e => { if (e && e.preventDefault) e.preventDefault(); if (s.signing) return; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.email.trim())) return this.setState({ loginErr: 'Enter your email, for example name@example.com.' }); if (s.pw.length < 6) return this.setState({ loginErr: 'Enter your password. It has at least 6 characters.' }); this.setState({ signing: true, loginErr: '' }); setTimeout(() => this.setState({ authed: true, signing: false, screen: 'home' }), 900); };
+    const submit = async e => {
+      if (e && e.preventDefault) e.preventDefault();
+      if (s.signing) return;
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.email.trim())) return this.setState({ loginErr: 'Enter your email, for example name@example.com.' });
+      if (s.pw.length < 6) return this.setState({ loginErr: 'Enter your password. It has at least 6 characters.' });
+      this.setState({ signing: true, loginErr: '' });
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: s.email.trim(), password: s.pw, portal: 'super' })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          this.setState({ signing: false, loginErr: data.error || 'Invalid credentials' });
+          return;
+        }
+        if (this._reloadSuper) await this._reloadSuper();
+        this.setState({ authed: true, signing: false, screen: 'home' });
+      } catch (err) {
+        this.setState({ signing: false, loginErr: 'Network error. Please try again.' });
+      }
+    };
     return { showLogin: true, lEmail: s.email, lPw: s.pw, onEmail: e => this.setState({ email: e.target.value, loginErr: '' }), onPw: e => this.setState({ pw: e.target.value, loginErr: '' }), pwType: s.showPw ? 'text' : 'password', pwToggle: s.showPw ? 'Hide' : 'Show', togglePw: () => this.setState({ showPw: !s.showPw }), signIn: submit, onPwKey: e => { if (e.key === 'Enter') submit(); }, loginErr: s.loginErr, hasLoginErr: !!s.loginErr, signing: s.signing, notSigning: !s.signing, dots: this.dots(), forgotPw: () => this.toast('Ask an Owner to send you a reset link'), loginBrand: !V.mobile, emailBd: s.loginErr && s.loginErr.includes('email') ? '#C2300B' : '#DADAD7' };
   }
   homeVals(V) {

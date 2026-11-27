@@ -86,8 +86,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
         <button onClick="{{ signIn }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 384 512" aria-hidden="true" style="margin-top:-3px"><path fill="#000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>Continue with Apple</button>
         <button onClick="{{ signIn }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>Continue with Google</button>
         <div style="display:flex;align-items:center;gap:12px;color:#5A5A57;font-size:13px;margin:6px 0"><span style="flex:1;height:1px;background:#EAEAE8"></span>or with email<span style="flex:1;height:1px;background:#EAEAE8"></span></div>
-        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Email<input type="email" placeholder="you@restaurant.com" value="karim@blockparty.lb" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
-        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500"><span style="display:flex;justify-content:space-between">Password<a href="#" style="font-weight:500;color:#14110F">Forgot password?</a></span><input type="password" value="blockparty22" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Email<input type="email" placeholder="you@restaurant.com" value="{{ loginEmail }}" onChange="{{ setLoginEmail }}" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500"><span style="display:flex;justify-content:space-between">Password<a href="#" style="font-weight:500;color:#14110F">Forgot password?</a></span><input type="password" value="{{ loginPass }}" onChange="{{ setLoginPass }}" placeholder="••••••••" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px"></label>
+        <sc-if value="{{ loginErr }}"><div style="padding:10px 12px;border-radius:10px;background:#FFE6DE;color:#C2300B;font-size:13px;font-weight:500">{{ loginErr }}</div></sc-if>
         <button onClick="{{ signIn }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center">{{ signInLabel }}</button>
         <div style="border-top:1px solid #EAEAE8;padding-top:18px;margin-top:8px;font-size:14px;color:#5A5A57">New to Dinelabs? <a href="#" onClick="{{ signUp }}" style="color:#14110F;text-decoration:underline;font-weight:600">Create your storefront</a></div>
         </sc-if>
@@ -513,14 +514,35 @@ const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0",
 const TABS = [["home", "Home", "layout-dashboard"], ["orders", "Orders", "receipt-text"], ["products", "Menu", "utensils-crossed"], ["history", "History", "history"], ["more", "More", "menu"]];
 
 class Component extends DCLogic {
-  state = { auth: "signin", su: 0, suDir: "fwd", f: { ...SU_DEF }, build: 0, resent: false, screen: "home", signedOut: false, modal: null, toastMsg: "", newCount: 3, paused: null, pw: 0, pf: 1, unread: true, storeIdx: 0, signingIn: false, mobile: typeof window !== "undefined" && window.innerWidth < BP, navOpen: false, lang: (() => { try { return JSON.parse(localStorage.getItem(KEY) || "{}").lang === "ar" ? "ar" : "en"; } catch (e) { return "en"; } })() };
+  state = { auth: "signin", su: 0, suDir: "fwd", f: { ...SU_DEF }, build: 0, resent: false, screen: "home", signedOut: true, loginEmail: "", loginPass: "", loginErr: "", tenant: null, modal: null, toastMsg: "", newCount: 0, paused: null, pw: 0, pf: 1, unread: true, storeIdx: 0, signingIn: false, mobile: typeof window !== "undefined" && window.innerWidth < BP, navOpen: false, lang: (() => { try { return JSON.parse(localStorage.getItem(KEY) || "{}").lang === "ar" ? "ar" : "en"; } catch (e) { return "en"; } })() };
   applyLang() { if (window.DLI18N) window.DLI18N.set(this.state.lang); else setTimeout(() => this.applyLang(), 50); }
   componentDidUpdate() { if (this._lang !== this.state.lang) { this._lang = this.state.lang; this.applyLang(); } }
   setLang = (l) => { this.setState({ lang: l }); this.save({ lang: l }); if (window.DLI18N) window.DLI18N.set(l); };
+  async loadLiveSession() {
+    try {
+      const res = await fetch('/api/tenant/settings');
+      if (res.ok) {
+        const tenant = await res.json();
+        const curr = tenant.baseCurrency || tenant.currency || 'EUR';
+        const sym = curr === 'USD' ? '$' : curr === 'GBP' ? '£' : curr === 'EUR' ? '€' : (curr + ' ');
+        window.__dlTenant = tenant;
+        window.__dlCurrency = sym;
+        this.setState({ tenant, signedOut: false });
+        fetch('/api/orders').then(r => r.ok ? r.json() : []).then(orders => {
+          if (Array.isArray(orders)) {
+            this.setState({ newCount: orders.filter(o => o.status === 'pending' || o.status === 'new').length });
+          }
+        }).catch(() => {});
+        return true;
+      }
+    } catch (e) {}
+    this.setState({ signedOut: true });
+    return false;
+  }
   componentDidMount() {
     this.applyLang();
-    if (this.props.startScreen && LABELS[this.props.startScreen]) this.setState({ screen: this.props.startScreen, signedOut: false });
-    else try { const s = JSON.parse(localStorage.getItem(KEY) || "{}"); if (s.screen && LABELS[s.screen]) this.setState({ screen: s.screen, signedOut: !!s.signedOut }); } catch (e) {}
+    this.loadLiveSession();
+    try { const s = JSON.parse(localStorage.getItem(KEY) || "{}"); if (s.screen && LABELS[s.screen]) this.setState({ screen: s.screen }); } catch (e) {}
     this.onResize = () => { const m = window.innerWidth < BP, sh = window.innerHeight < 700; if (m !== this.state.mobile || sh !== !!this.state.short) this.setState({ mobile: m, short: sh, navOpen: m === this.state.mobile && this.state.navOpen }); };
     window.addEventListener("resize", this.onResize); this.onResize();
     try { const s3 = JSON.parse(localStorage.getItem(KEY) || "{}"); if (s3.appDismissed) this.setState({ appDismissed: true }); } catch (e) {}
@@ -649,8 +671,31 @@ class Component extends DCLogic {
         return { label, icon, color: on ? "#14110F" : "#5A5A57", weight: on ? 600 : 500, badge: k === "orders" && st.newCount > 0 ? st.newCount : 0,
           go: () => k === "more" ? this.setState({ navOpen: true }) : this.go(k) }; }),
       signedOut: st.signedOut, signedIn: !st.signedOut,
+      loginEmail: st.loginEmail, loginPass: st.loginPass, loginErr: st.loginErr,
+      setLoginEmail: (e) => this.setState({ loginEmail: e.target.value, loginErr: "" }),
+      setLoginPass: (e) => this.setState({ loginPass: e.target.value, loginErr: "" }),
       signInLabel: st.signingIn ? "…" : "Sign in",
-      signIn: () => { this.setState({ signingIn: true }); setTimeout(() => { this.setState({ signedOut: false, signingIn: false, screen: "home", fresh: false }); this.save({ signedOut: false, screen: "home" }); }, 700); },
+      signIn: async () => {
+        if (!st.loginEmail.trim() || !st.loginPass) { this.setState({ loginErr: "Please enter your email and password" }); return; }
+        this.setState({ signingIn: true, loginErr: "" });
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: st.loginEmail.trim(), password: st.loginPass, portal: 'manager' })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            this.setState({ signingIn: false, loginErr: data.error || 'Invalid email or password' });
+            return;
+          }
+          await this.loadLiveSession();
+          this.setState({ signedOut: false, signingIn: false, screen: "home", fresh: false });
+          this.save({ signedOut: false, screen: "home" });
+        } catch (err) {
+          this.setState({ signingIn: false, loginErr: 'Network error. Please try again.' });
+        }
+      },
       signUp: (e) => { e && e.preventDefault && e.preventDefault(); this.setState({ auth: "signup", su: 0, suDir: "fwd", f: { ...SU_DEF } }); },
       goSignin: (e) => { e && e.preventDefault && e.preventDefault(); this.setState({ auth: "signin" }); },
       ...this.signupVals(),
@@ -672,7 +717,7 @@ class Component extends DCLogic {
           : PS === "Payment late" ? { ...amber, icon: "clock-alert", segs: S(["Payment for Hamra is late.", "Premium stays on until", grace]) }
           : PS === "Suspended" ? { ...red, icon: "circle-pause", segs: S(["Premium is off for Hamra until payment.", "Your storefront stays open."]) } : null;
         return { trial, plan, bill: PS, bn: bn || { segs: [] }, bnOn: !!bn, archived: PS === "Archived", over50: PS === "Free, over 50 products", talkSales: () => window.open("https://wa.me/96171407202", "_blank") }; })(),
-      signOut: () => { this.setState({ signedOut: true }); this.save({ signedOut: true }); },
+      signOut: () => { fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); window.__dlTenant = null; this.setState({ signedOut: true, tenant: null }); this.save({ signedOut: true }); },
       storePhones: PHONES.map((n, i) => { const d = ((i - st.storeIdx + 12) % 8) - 4, a = Math.abs(d), sh = (b, y, r, o) => `blur(${b}px) drop-shadow(0 ${y}px ${r}px rgba(20,17,15,${o}))`;
         return { src: `assets/phones/${n}.webp`, dx: d * 74, rot: 0, s: a === 0 ? 1 : a === 1 ? 0.8 : 0.66, o: a === 0 ? 1 : a === 1 ? 0.5 : 0, z: 10 - a, f: a === 0 ? sh(0, 24, 40, 0.18) : sh(1.5, 12, 20, 0.08) }; }),
       storeDots: Array.from({ length: 8 }, (_, i) => ({ w: i === st.storeIdx ? 22 : 6, c: i === st.storeIdx ? "#14110F" : "#DADAD7" })),
@@ -685,10 +730,10 @@ class Component extends DCLogic {
       goHome: () => this.go("home"), goAccount: () => ns === "smart" || ns === "combined" ? this.setState(s => ({ acctOpen: !s.acctOpen })) : this.go("account"),
       acctOpen: (ns === "smart" || ns === "combined") && !!st.acctOpen, closeAcct: () => this.setState({ acctOpen: false }),
       acctItems: (ns === "combined" ? [["branches", "Branches", "building-2"], ["plan", "Plan", "gem"], ["account", "Your account", "user-round"]] : [["branches", "Branches", "building-2"], ["branding", "Branding", "palette"], ["account", "Your account", "user-round"]]).map(([k, label, icon]) => ({ label, icon, sep: k === "account", on: scr === k, bg: scr === k ? "#F4F4F3" : "transparent", go: () => { this.setState({ acctOpen: false, navOpen: false }); this.go(k); } })),
-      acctSignOut: () => { this.setState({ acctOpen: false, signedOut: true }); this.save({ signedOut: true }); }, goBranches: () => this.go("branches"), goInbox: () => this.go("inbox"),
+      acctSignOut: () => { fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); window.__dlTenant = null; this.setState({ acctOpen: false, signedOut: true, tenant: null }); this.save({ signedOut: true }); }, goBranches: () => this.go("branches"), goInbox: () => this.go("inbox"),
       accountBg: scr === "account" ? "#F4F4F3" : "transparent",
       branchPage: !BRAND_WIDE.includes(scr),
-      switcherLabel: BRAND_WIDE.includes(scr) ? "Block Party" : "Hamra",
+      switcherLabel: st.tenant?.name || st.tenant?.restaurantName || "My Store",
       unread: st.unread, markRead: () => this.setState({ unread: false }),
       setNewCount: (n) => { if (n !== st.newCount) this.setState({ newCount: n }); },
       statusTip: paused ? "Resume new orders" : "Pause new orders",
@@ -702,7 +747,7 @@ class Component extends DCLogic {
       isPaused: !!paused,
       resume: () => { this.setState({ paused: null, modal: null }); this.toast("New orders are back on"); },
       confirmPause: () => { const w = st.pw === 0 ? "" : WHICH[st.pw].toLowerCase() + " "; const f = FOR[st.pf]; this.setState({ paused: st.pf === 4 ? "until resumed" : f.toLowerCase(), modal: null }); this.toast(`New ${w}orders paused`); },
-      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/blockparty"); } catch (e) {} this.toast("Link copied"); },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (st.tenant?.slug || "")); } catch (e) {} this.toast("Link copied"); },
       downloadQr: () => this.toast("QR code downloaded"),
       toastMsg: st.toastMsg,
     };
