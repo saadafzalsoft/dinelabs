@@ -303,18 +303,20 @@ class Component extends DCLogic {
       : few ? [["amber", "image-plus", "6 products have no photo", "Customers order more when they can see it", "Add", "products"], ["grey", "badge-percent", "Bring your first customers back", "Create a promotion in a minute", "Create", "promotions"]]
       : [["grey", "send", "Share your storefront", "Customers can't order until they have your link", "Share", "share"]];
 
-    const mtop = [["Pepperoni Party", 64, 1], ["Tomato & Cheese", 51, 3], ["BBQ Chicken", 43, 4], ["Strawberry Dream Crêpe", 38, 8]];
-    const mview = few ? [["Pepperoni Party", 41, 1], ["Philly Steak", 27, 2], ["Tomato & Cheese", 16, 3], ["BBQ Chicken", 12, 4]] : [["Pepperoni Party", 412, 1, 16], ["Philly Steak", 388, 2, 11], ["Tomato & Cheese", 301, 3, 17], ["Chocolate Hazelnut Crêpe", 266, 8, 12]];
+    const mtop = Array.isArray(p.top) ? p.top.map(([name, n]) => [name, n, 0]) : [];
+    const mview = Array.isArray(st.liveStats?.productInsights) ? st.liveStats.productInsights.map(x => [x.name, x.views, 0, x.pct]) : [];
     const isTop = st.menuTab === "top";
     const menuReady = est || (few && !isTop);
     const menuRows = !menuReady ? [] : isTop ? mtop.map(([name, n, ph], i) => ({ rank: i + 1, name, n, unit: "sold", sub: "", pos: (ph / 9) * 100 + "%" }))
       : mview.map(([name, n, ph, c], i) => ({ rank: i + 1, name, n, unit: "views", sub: c ? c + "% ordered it" : "", pos: (ph / 9) * 100 + "%" }));
     const [cTot, cRet] = p.cust;
+    const storeName = window.__dlTenant?.name || window.__dlTenant?.restaurantName || "your store";
+    const ownerFirst = window.__dlTenant?.ownerEmail ? window.__dlTenant.ownerEmail.split("@")[0] : (storeName || "Manager");
 
     return {
       ui: null, mobile: mob, lay12: mob ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(0,2fr)", lay21: mob ? "minmax(0,1fr)" : "minmax(0,2fr) minmax(0,1fr)", kpiFs: mob ? 22 : 28, kpiPad: mob ? "14px" : "16px 20px",
-      greeting: (new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening") + ", Karim",
-      subline: est ? `Here's how Block Party · Hamra is doing ${p.word}.` : few ? "Your first few orders are in. Numbers get more useful as more come through." : "Welcome to Dinelabs. Let's get your first order in.",
+      greeting: (new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening") + ", " + ownerFirst,
+      subline: est ? `Here's how ${storeName} is doing ${p.word}.` : few ? "Your first few orders are in. Numbers get more useful as more come through." : "Welcome to Dinelabs. Let's get your first order in.",
       showPeriods: est, showSince: !est, sinceLabel: few ? "Since you opened · Nov 12" : "Opened today",
       periodLabel: est ? p.label : "Since you opened",
       periods: Object.entries(P).map(([k]) => { const on = k === st.period; return { label: k === "week" ? "Week" : k === "month" ? "Month" : "Today", pick: () => this.setState({ period: k, hi: null }), bg: on ? "#fff" : "transparent", weight: on ? 600 : 500, shadow: on ? "0 1px 3px rgba(0,0,0,.08)" : "none" }; }),

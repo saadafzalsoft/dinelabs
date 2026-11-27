@@ -263,7 +263,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
     <sc-if value="{{ acctOpen }}">
       <div onClick="{{ closeAcct }}" style="position:fixed;inset:0;z-index:1"></div>
       <div role="menu" style="position:relative;z-index:2;margin-bottom:4px;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 12px 32px rgba(20,17,15,.12);padding:6px;display:flex;flex-direction:column;gap:2px;animation:rise .18s cubic-bezier(.22,1,.36,1) both">
-        <p style="margin:0;padding:6px 8px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#5A5A57">Block Party · 3 branches</p>
+        <p style="margin:0;padding:6px 8px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#5A5A57">{{ switcherLabel }}</p>
         <sc-for list="{{ acctItems }}" as="a" hint-placeholder-count="4">
           <sc-if value="{{ a.sep }}"><span style="height:1px;background:#EAEAE8;margin:4px 0"></span></sc-if>
           <button onClick="{{ a.go }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;border-radius:10px;border:0;background:{{ a.bg }};cursor:pointer;font-size:{{ itemFs }}px;text-align:start;color:#14110F" style-hover="background:#F4F4F3"><i class="icon-{{ a.icon }}" style="font-size:18px"></i>{{ a.label }}</button>
@@ -273,8 +273,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
     </sc-if>
     <sc-if value="{{ mobile }}"><button onClick="{{ openHelp }}" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;flex-shrink:0;border-radius:10px;border:0;background:none;cursor:pointer;font-size:{{ itemFs }}px;text-align:start;color:#14110F" style-hover="background:#F4F4F3"><i class="icon-life-buoy" style="font-size:18px"></i>Help and support</button></sc-if>
     <button onClick="{{ goAccount }}" style="position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:0;background:{{ accountBg }};cursor:pointer;text-align:start" style-hover="background:#F4F4F3">
-      <span style="width:32px;height:32px;border-radius:99px;background:#F4F4F3;color:#14110F;font-size:12px;font-weight:600;display:grid;place-items:center">KH</span>
-      <span style="flex:1;min-width:0;line-height:1.25;white-space:nowrap;overflow:hidden;opacity:{{ cOff }};transition:opacity .22s"><span style="display:block;font-size:13px;font-weight:600">Karim Haddad</span><span style="display:block;font-size:12px;color:#5A5A57">Owner · Block Party</span></span>
+      <span style="width:32px;height:32px;border-radius:99px;background:#F4F4F3;color:#14110F;font-size:12px;font-weight:600;display:grid;place-items:center">{{ userInitials }}</span>
+      <span style="flex:1;min-width:0;line-height:1.25;white-space:nowrap;overflow:hidden;opacity:{{ cOff }};transition:opacity .22s"><span style="display:block;font-size:13px;font-weight:600">{{ userName }}</span><span style="display:block;font-size:12px;color:#5A5A57">Owner · {{ switcherLabel }}</span></span>
       <i class="icon-chevrons-up-down" style="font-size:16px;color:#5A5A57"></i>
     </button>
   </aside>
@@ -290,7 +290,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
     <header style="position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:{{ headGap }}px;border-bottom:1px solid #EAEAE8;background:rgba(250,250,250,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:0 {{ padX }}px">
       <sc-if value="{{ mobile }}"><button onClick="{{ openNav }}" aria-label="Open menu" style="width:44px;height:44px;margin-inline-start:-8px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer"><i class="icon-menu" style="font-size:22px"></i></button></sc-if>
       <button onClick="{{ goBranches }}" style="display:flex;align-items:center;gap:8px;min-width:0;height:{{ swH }};border:0;background:none;border-radius:10px;padding:4px {{ swPadX }};font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F3">
-        <span style="width:22px;height:22px;flex-shrink:0;border-radius:99px;background:url(assets/dishes.jpg) 0 0/1000% 100%;border:1px solid #EAEAE8"></span><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ switcherLabel }}</span><i class="icon-chevrons-up-down" style="font-size:14px;color:#5A5A57;flex-shrink:0"></i>
+        <span style="width:22px;height:22px;flex-shrink:0;border-radius:99px;background:{{ switcherLogoBg }};border:1px solid #EAEAE8"></span><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ switcherLabel }}</span><i class="icon-chevrons-up-down" style="font-size:14px;color:#5A5A57;flex-shrink:0"></i>
       </button>
       <div style="margin-inline-start:auto;display:flex;align-items:center;gap:{{ headGap }}px">
         <sc-if value="{{ branchPage }}">
@@ -406,7 +406,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
     <div onClick="{{ stop }}" style="width:100%;max-width:560px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
       <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-send" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Share your storefront</b><button onClick="{{ closeModal }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
       <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
-        <div style="display:flex;gap:8px"><div style="flex:1;height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;display:flex;align-items:center;font-size:14px;background:#F4F4F3">dinelabs.co/blockparty</div><button onClick="{{ copyLink }}" style="height:44px;padding:0 18px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-copy" style="font-size:16px"></i>Copy</button></div>
+        <div style="display:flex;gap:8px"><div style="flex:1;height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;display:flex;align-items:center;font-size:14px;background:#F4F4F3">{{ storeLink }}</div><button onClick="{{ copyLink }}" style="height:44px;padding:0 18px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-copy" style="font-size:16px"></i>Copy</button></div>
         <div style="display:flex;gap:16px;align-items:center;border:1px solid #EAEAE8;border-radius:14px;padding:16px">
           <img src="assets/qr-code.svg" alt="QR code" style="width:112px;height:112px">
           <div style="display:flex;flex-direction:column;gap:8px;flex:1"><b style="font-size:14px;font-weight:600">QR code</b><span style="font-size:13px;color:#5A5A57">Put it on tables, bags and your window.</span>
@@ -416,7 +416,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
         <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
           <button style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">WhatsApp</button>
           <button style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">Instagram</button>
-          <a href="https://dinelabs.co/blockparty" target="_blank" style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;color:#14110F;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none">View storefront</a>
+          <a href="https://{{ storeLink }}" target="_blank" style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;color:#14110F;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none">View storefront</a>
         </div>
       </div>
     </div>
@@ -734,6 +734,10 @@ class Component extends DCLogic {
       accountBg: scr === "account" ? "#F4F4F3" : "transparent",
       branchPage: !BRAND_WIDE.includes(scr),
       switcherLabel: st.tenant?.name || st.tenant?.restaurantName || "My Store",
+      switcherLogoBg: st.tenant?.logoUrl ? `url(${st.tenant.logoUrl}) center/cover` : "#F4F4F3",
+      storeLink: `dinelabs.co/store/${st.tenant?.slug || ""}`,
+      userName: st.tenant?.ownerEmail ? st.tenant.ownerEmail.split("@")[0] : (st.tenant?.name || "Manager"),
+      userInitials: (st.tenant?.name || "DL").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase(),
       unread: st.unread, markRead: () => this.setState({ unread: false }),
       setNewCount: (n) => { if (n !== st.newCount) this.setState({ newCount: n }); },
       statusTip: paused ? "Resume new orders" : "Pause new orders",

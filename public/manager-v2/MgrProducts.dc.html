@@ -192,7 +192,7 @@ class Component extends DCLogic {
         const items = rawProds.map(p => {
           const nm = typeof p.name === 'object' ? (p.name.en || p.name.de || Object.values(p.name)[0] || 'Product') : (p.name || 'Product');
           const ar = typeof p.name === 'object' ? (p.name.ar || '') : '';
-          const pCats = Array.isArray(p.categories) ? p.categories.map(cid => catMap.get(String(cid))).filter(Boolean) : [];
+          const pCats = Array.isArray(p.categories) ? p.categories.map(cid => catMap.get(String(cid))).filter(Boolean) : (p.categoryId && catMap.get(String(p.categoryId)) ? [catMap.get(String(p.categoryId))] : []);
           return {
             id: String(p._id || p.id),
             name: nm,
@@ -206,7 +206,8 @@ class Component extends DCLogic {
             groups: [],
           };
         });
-        this.setState({ items, cats: catNames });
+        const finalCats = catNames.length ? catNames : ['Menu'];
+        this.setState({ items, cats: finalCats });
       }
     } catch (e) {}
   }
@@ -256,7 +257,7 @@ class Component extends DCLogic {
     const groups = CL.filter(c => st.cat === "all" || c === st.cat).map(c => {
       const rows = vis.filter(p => p.cats.includes(c)).map(p => {
         const sel = st.sel.includes(p.id);
-        return { name: p.name, ar: p.ar, arMissing: !p.ar && !p.gen, hidden: isHidden(p), tags: p.tags, out: !p.on, price: "$" + p.price.toFixed(2), photo: photo(p), icon: p.photo ? "" : p.icon,
+        return { name: p.name, ar: p.ar, arMissing: !p.ar && !p.gen, hidden: isHidden(p), tags: p.tags, out: !p.on, price: (window.__dlCurrency || "€") + p.price.toFixed(2), photo: photo(p), icon: (p.imageUrl || p.photo) ? "" : (p.icon || "utensils"),
           addons: p.groups.length ? `${p.groups.length} add-on group${p.groups.length > 1 ? "s" : ""}` : "No add-ons", addonInk: p.groups.length ? "#14110F" : "#5A5A57", addonDeco: p.groups.length ? "underline" : "none",
           addonCursor: p.groups.length ? "default" : "auto", addonOpen: st.addonHover === p.id + c && p.groups.length > 0,
           addonList: p.groups.map(i => ({ name: GROUPS[i][0], rule: GROUPS[i][1] })),
