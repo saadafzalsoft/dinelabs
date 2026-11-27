@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<sc-if value="{{ isAccount }}">
+<div data-screen-label="Your account" style="display:flex;flex-direction:column;gap:16px;max-width:760px">
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Your account</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Your login is shared with the Dinelabs app.</p></div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+    <div style="display:flex;align-items:center;gap:14px;padding:20px;border-bottom:1px solid #EAEAE8"><span style="width:52px;height:52px;border-radius:99px;background:#F4F4F3;color:#14110F;font-size:16px;font-weight:600;display:grid;place-items:center">KH</span><span><b style="display:block;font-size:16px;font-weight:600">Karim Haddad</b><span style="font-size:13px;color:#5A5A57">Owner · Block Party</span></span></div>
+    <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:16px"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Full name<input value="Karim Haddad" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Email<input value="karim@blockparty.lb" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Your phone number<input type="tel" dir="ltr" value="+961 71 214 870" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400;text-align:start"><span style="font-weight:400;font-size:12px;color:#5A5A57">Our team reaches you here on WhatsApp. Customers never see it.</span></label></div>
+  </section>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+    <button onClick="{{ changePw }}" style="width:100%;display:flex;align-items:center;gap:14px;padding:16px 20px;border:0;border-bottom:1px solid #EAEAE8;border-radius:14px 14px 0 0;background:#fff;cursor:pointer;text-align:start" style-hover="background:#FAFAFA"><i class="icon-key-round" style="font-size:18px"></i><b style="flex:1;font-size:14px;font-weight:600">Change password</b><i class="icon-chevron-right" style="font-size:16px;color:#5A5A57"></i></button>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-languages" style="font-size:18px"></i><span style="flex:1 1 180px"><b style="display:block;font-size:14px;font-weight:600">Manager language</b><span style="font-size:13px;color:#5A5A57">Just for you. Applies straight away.</span></span><div style="width:220px;max-width:100%"><dc-import name="Dropdown" options="{{ langOpts }}" value="{{ mgrLang }}" on-change="{{ setMgrLang }}" searchable="{{ true }}" search-placeholder="Search languages" align-right="{{ true }}" height="{{ 40 }}" weight="{{ 500 }}" font-size="14px" block="{{ true }}" hint-size="100%,40px"></dc-import></div></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:16px 20px"><i class="icon-wind" style="font-size:18px"></i><span style="flex:1"><b style="display:block;font-size:14px;font-weight:600">Reduce motion</b><span style="font-size:13px;color:#5A5A57">Fewer animations across Manager</span></span><button onClick="{{ toggleMotion }}" style="width:44px;height:26px;border-radius:99px;border:0;padding:2px;cursor:pointer;background:{{ motionSw }};display:flex;justify-content:{{ motionJ }}"><span style="width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></button></div>
+  </section>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ signOut }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-log-out" style="font-size:16px"></i>Sign out</button><button onClick="{{ openDelete }}" style="height:44px;padding:0 20px;border:0;background:none;font-size:14px;font-weight:600;cursor:pointer;color:#C2300B">Delete account</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isInbox }}">
+<div data-screen-label="Notifications inbox" style="display:flex;flex-direction:column;gap:16px;max-width:860px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Notifications</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Plan, trial and billing news for every branch.</p></div>
+    <button onClick="{{ markAll }}" style="height:40px;padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="icon-check-check" style="font-size:15px"></i>Mark all as read</button>
+  </div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <sc-for list="{{ notes }}" as="n" hint-placeholder-count="4">
+      <div onClick="{{ n.read }}" style="display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid #EAEAE8;background:{{ n.bg }};cursor:pointer">
+        <span style="width:8px;padding-top:6px"><sc-if value="{{ n.unread }}"><span style="display:block;width:8px;height:8px;border-radius:99px;background:#FF4A1C"></span></sc-if></span>
+        <span style="width:40px;height:40px;flex-shrink:0;border-radius:10px;background:{{ n.iconBg }};color:{{ n.iconInk }};display:grid;place-items:center"><i class="icon-{{ n.icon }}" style="font-size:18px"></i></span>
+        <span style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="display:flex;gap:8px;align-items:baseline"><b style="flex:1;font-size:14px;font-weight:{{ n.weight }}">{{ n.title }}</b><span style="font-size:12px;color:#5A5A57">{{ n.when }}</span></span><span style="font-size:13px;color:#14110F;line-height:1.5">{{ n.body }}</span>
+          <sc-if value="{{ n.gold }}"><button onClick="{{ n.act }}" style="align-self:flex-start;margin-top:6px;height:36px;padding:0 16px;border-radius:12px;border:0;font-size:13px;font-weight:600;cursor:pointer;color:#14110F;background:#FFC52E">{{ n.cta }}</button></sc-if>
+          <sc-if value="{{ n.plain }}"><button onClick="{{ n.act }}" style="align-self:flex-start;margin-top:6px;height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">{{ n.cta }}</button></sc-if>
+        </span>
+      </div>
+    </sc-for>
+  </section>
+  <span style="font-size:13px;color:#5A5A57">Reading a notice here marks it read in the app too.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ del }}">
+  <div onClick="{{ closeDel }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:460px;background:#fff;border-radius:{{ ui.radius }};padding:24px;display:flex;flex-direction:column;gap:12px;animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <b style="font-size:18px;font-weight:600">Delete your account?</b>
+      <span style="font-size:14px;color:#14110F;line-height:1.5">Your storefront goes offline now for every branch. Everything is deleted after 30 days. Sign in before then to cancel.</span>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button onClick="{{ closeDel }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">Keep account</button><button onClick="{{ confirmDel }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Delete account</button></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const N0 = [
+  { icon: "receipt", title: "Hamra: payment due on 1 Dec", body: "$37.00 for Hamra. Billed through Dinelabs sales.", when: "Yesterday", cta: "Talk to sales", unread: true, ib: "#F4F4F3", ii: "#14110F" },
+  { icon: "receipt", title: "Achrafieh: payment due on 4 Dec", body: "$37.00 for Achrafieh. Billed through Dinelabs sales.", when: "Yesterday", cta: "Talk to sales", unread: true, ib: "#F4F4F3", ii: "#14110F" },
+  { icon: "sparkles", title: "Premium is on for Achrafieh", body: "Delivery, dine-in, promotions and full branding are now available for this branch.", when: "28 Oct", unread: false, ib: "#D5EEDD", ii: "#1F7A4D" },
+];
+const TRIAL_N = { icon: "gift", title: "Your 30-day Premium trial has started", body: "Premium is on for every branch, free. No card needed. We'll remind you 7 days and 1 day before it ends.", when: "Today", ib: "#FFF0C2", ii: "#7A5300" };
+const BILL_N = {
+  "Trial ends in 7 days": { icon: "gem", title: "Your Premium trial ends in 7 days", body: "Then every branch moves to Free unless a payment is made. Nothing is deleted.", cta: "Talk to sales", ib: "#FFF0C2", ii: "#7A5300" },
+  "Trial ends tomorrow": { icon: "gem", title: "Your Premium trial ends tomorrow", body: "Then every branch moves to Free unless a payment is made. Nothing is deleted.", cta: "Talk to sales", ib: "#FFF0C2", ii: "#7A5300" },
+  "Free, over 50 products": { icon: "eye-off", title: "Hamra moved to Free", body: "Free shows up to 50 products, so customers now see the first 50 in menu order. Choose which 50 to keep in Products. Nothing is deleted.", cta: "Talk to sales", ib: "#FFF0C2", ii: "#7A5300" },
+  "Payment late": { icon: "clock-alert", title: "Payment for Hamra is late", body: "Premium stays on until 15 Dec. After that, Premium features turn off until payment.", cta: "Talk to sales", ib: "#FFF0C2", ii: "#7A5300" },
+  "Suspended": { icon: "circle-pause", title: "Premium is off for Hamra until payment", body: "Your storefront stays open and works like Free. Premium comes back once you pay.", cta: "Talk to sales", ib: "#FDE3DB", ii: "#C2300B" },
+};
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { notes: N0, lang: 0, motion: false, del: false, trialRead: false };
+  t(m) { this.props.toast && this.props.toast(m); }
+  componentDidMount() { if (this.props.screen === "inbox") this.props.onRead && this.props.onRead(); }
+  componentDidUpdate(pp) { if (this.props.screen === "inbox" && pp.screen !== "inbox") this.props.onRead && this.props.onRead(); }
+  renderVals() {
+    const langIdx = this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : this.state.lang;
+    const st = this.state, scr = this.props.screen;
+    const read = (i) => this.setState(s => ({ notes: s.notes.map((n, j) => j === i ? { ...n, unread: false } : n) }));
+    return {
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
+      isAccount: scr === "account", isInbox: scr === "inbox",
+      changePw: () => this.t("We sent a reset link to karim@blockparty.lb"),
+      langs: ["English", "العربية"].map((label, i) => ({ label, pick: () => { this.setState({ lang: i }); this.props.setLang && this.props.setLang(i === 1 ? "ar" : "en"); }, bg: langIdx === i ? "#fff" : "transparent", color: langIdx === i ? "#14110F" : "#14110F" })),
+      motionSw: st.motion ? "#14110F" : "#DADAD7", motionJ: st.motion ? "flex-end" : "flex-start", toggleMotion: () => this.setState({ motion: !st.motion }),
+      signOut: () => this.props.signOut && this.props.signOut(),
+      ...(() => { const L = window.DL_LANGS || [{ name: "English", native: "English" }, { name: "Arabic", native: "العربية" }];
+        return { langOpts: L.map(l => ({ value: l.name, label: l.name, meta: l.native })), mgrLang: this.props.lang === "ar" ? "Arabic" : (st.mgrLang && st.mgrLang !== "Arabic" ? st.mgrLang : "English"),
+          setMgrLang: (e) => { const v = e.target.value; this.setState({ mgrLang: v }); this.props.setLang && this.props.setLang(v === "Arabic" ? "ar" : "en"); if (v !== "Arabic" && v !== "English") this.t("Manager is now in " + v); } }; })(),
+      del: st.del, openDelete: () => this.setState({ del: true }), closeDel: () => this.setState({ del: false }), stop: (e) => e.stopPropagation(),
+      confirmDel: () => { this.setState({ del: false }); this.t("Account set to be deleted in 30 days. Sign in before then to cancel."); },
+      markAll: () => { this.setState(s => ({ trialRead: true, notes: s.notes.map(n => ({ ...n, unread: false })) })); this.t("All marked as read"); },
+      notes: [...(BILL_N[this.props.bill] ? [{ ...BILL_N[this.props.bill], when: "Today", unread: !st.trialRead, trial: true }] : this.props.trial ? [{ ...TRIAL_N, unread: !st.trialRead, trial: true }] : []), ...st.notes].map((n, i) => ({ ...n, bg: n.unread ? "#FAFAFA" : "#fff", weight: n.unread ? 600 : 500, iconBg: n.ib, iconInk: n.ii,
+        gold: !!(n.cta && n.gold), plain: !!(n.cta && !n.gold), read: () => n.trial ? this.setState({ trialRead: true }) : read(i - (BILL_N[this.props.bill] || this.props.trial ? 1 : 0)),
+        act: (e) => { e.stopPropagation(); read(i - (BILL_N[this.props.bill] || this.props.trial ? 1 : 0)); this.t("Opening WhatsApp with Dinelabs sales"); } })),
+    };
+  }
+}
+</script>
+</body>
+</html>

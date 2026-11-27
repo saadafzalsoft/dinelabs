@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<sc-if value="{{ isPromotions }}">
+<div data-screen-label="Promotions" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Promotions</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Discounts and promo codes for your storefront.</p></div>
+    <button onClick="{{ newPromo }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-plus" style="font-size:16px"></i>New promotion</button>
+  </div>
+  <sc-if value="{{ hasPromos }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+    <div role="tablist" style="display:flex;gap:2px;padding:3px;background:#F4F4F3;border-radius:12px">
+      <sc-for list="{{ pTabs }}" as="tb" hint-placeholder-count="3"><button role="tab" onClick="{{ tb.pick }}" aria-selected="{{ tb.on }}" style="height:34px;padding:0 14px;border-radius:10px;border:0;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;background:{{ tb.bg }};color:#14110F;box-shadow:{{ tb.shadow }}">{{ tb.label }}<span style="font-size:12px;font-weight:500;color:#5A5A57">{{ tb.n }}</span></button></sc-for>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px">
+    <sc-for list="{{ promos }}" as="p" hint-placeholder-count="3">
+      <article style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column;min-width:0">
+        <div style="padding:18px 20px 16px;display:flex;flex-direction:column;gap:14px;flex:1;opacity:{{ p.op }}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ p.icon }}" style="font-size:17px"></i></span>
+            <span style="flex:1;min-width:0;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">{{ p.kind }}</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:{{ p.stBg }};color:{{ p.stInk }}"><span style="width:6px;height:6px;border-radius:99px;background:{{ p.stDot }}"></span>{{ p.status }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <b style="font-size:26px;font-weight:600;letter-spacing:-0.02em;line-height:1.15">{{ p.value }}</b>
+            <span style="font-size:14px;color:#5A5A57">{{ p.name }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ p.conds }}" as="c" hint-placeholder-count="2"><span style="display:flex;align-items:center;gap:8px;font-size:13px"><i class="icon-{{ c.icon }}" style="font-size:14px;color:#5A5A57"></i>{{ c.label }}</span></sc-for>
+          </div>
+          <sc-if value="{{ p.code }}">
+            <button onClick="{{ p.copy }}" data-tip="Copy code" style="align-self:flex-start;height:36px;padding-block:0 0;padding-inline:14px 10px;border:1.5px dashed #C9C9C5;border-radius:10px;background:#FAFAFA;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;letter-spacing:.08em;color:#14110F" style-hover="border-color:#14110F">{{ p.code }}<i class="icon-copy" style="font-size:14px;color:#5A5A57"></i></button>
+          </sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding-block:12px 12px;padding-inline:20px 12px;border-top:1px solid #EAEAE8">
+          <span style="flex:1;min-width:0;font-size:13px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b style="color:#14110F;font-weight:600">{{ p.used }}</b> {{ p.usedLabel }}<sc-if value="{{ p.sales }}"> · <b style="color:#14110F;font-weight:600">{{ p.sales }}</b> in orders</sc-if></span>
+          <sc-if value="{{ p.canToggle }}"><button onClick="{{ p.toggle }}" role="switch" aria-checked="{{ p.on }}" aria-label="{{ p.toggleLabel }}" data-tip="{{ p.toggleLabel }}" style="width:44px;height:26px;border-radius:99px;border:0;padding:2px;cursor:pointer;background:{{ p.swBg }};display:flex;justify-content:{{ p.swJ }}"><span style="width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></button></sc-if>
+          <span style="position:relative">
+            <button onClick="{{ p.menu }}" aria-label="More" style="width:32px;height:32px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-ellipsis" style="font-size:18px"></i></button>
+            <sc-if value="{{ p.menuOpen }}"><div style="position:absolute;inset-inline-end:0;bottom:38px;z-index:20;width:180px;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:6px;display:flex;flex-direction:column;animation:fadein .12s both">
+              <button onClick="{{ p.dup }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;text-align:start" style-hover="background:#F4F4F3"><i class="icon-copy-plus" style="font-size:15px"></i>{{ p.dupLabel }}</button>
+              <button onClick="{{ p.del }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;color:#C2300B;text-align:start" style-hover="background:#FFE6DE"><i class="icon-trash-2" style="font-size:15px"></i>Delete</button>
+            </div></sc-if>
+          </span>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+  <sc-if value="{{ tabEmpty }}"><div style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:32px 40px 40px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font-size:14px;color:#5A5A57"><img src="assets/bill/sleepy.webp" alt="" style="width:80px;height:80px;opacity:.4">{{ tabEmptyText }}</div></sc-if>
+  </sc-if>
+  <sc-if value="{{ noPromos }}">
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+    <img src="assets/bill/waving.webp" alt="" style="width:112px;height:112px;opacity:.7;margin-bottom:6px">
+    <b style="font-size:17px;font-weight:600">No promotions yet</b>
+    <span style="font-size:14px;color:#5A5A57;max-width:360px;text-wrap:pretty">Bring customers back with a discount, a promo code or free delivery. Pick one below to start.</span>
+  </section>
+  </sc-if>
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <b style="font-size:15px;font-weight:600">Start from an idea</b>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:12px">
+      <sc-for list="{{ kinds }}" as="k" hint-placeholder-count="6"><button onClick="{{ k.pick }}" style="display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid #EAEAE8;border-radius:14px;background:#fff;cursor:pointer;text-align:start;font:inherit;color:#14110F;transition:border-color .12s,box-shadow .12s" style-hover="border-color:#DADAD7;box-shadow:0 1px 2px rgba(20,17,15,.06),0 4px 12px rgba(20,17,15,.06)"><span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ k.icon }}" style="font-size:17px"></i></span><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-size:14px;font-weight:600">{{ k.label }}</b><span style="font-size:13px;color:#5A5A57;text-wrap:pretty">{{ k.desc }}</span></span></button></sc-for>
+    </div>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCustomers }}">
+<div data-screen-label="Customers" style="display:flex;flex-direction:column;gap:16px">
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Customers</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Everyone who ordered from this branch.</p></div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;border-bottom:1px solid #EAEAE8">
+      <label style="flex:1;min-width:220px;display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;background:#F4F4F3"><i class="icon-search" style="font-size:16px;color:#5A5A57"></i><input value="{{ cq }}" onInput="{{ onCq }}" placeholder="Search by name or phone" style="flex:1;border:0;background:none;font-size:{{ ui.fs }};box-shadow:none !important"></label>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;min-width:640px;border-collapse:collapse;font-size:14px">
+      <thead><tr style="background:#F4F4F3;height:40px;text-align:start"><sc-for list="{{ custCols }}" as="c" hint-placeholder-count="4"><th aria-sort="{{ c.aria }}" style="padding-block:0 0;padding-inline:{{ c.padL }} {{ c.padR }};text-align:{{ c.align }};font-weight:500"><button onClick="{{ c.sort }}" style="display:inline-flex;align-items:center;gap:4px;height:28px;margin:0 -6px;padding:0 6px;border:0;border-radius:8px;background:none;cursor:pointer;font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:{{ c.ink }};flex-direction:{{ c.dir }}" style-hover="background:#EAEAE8;color:#14110F">{{ c.label }}<i class="icon-{{ c.icon }}" style="font-size:13px;opacity:{{ c.iconOp }}"></i></button></th></sc-for></tr></thead>
+      <tbody><sc-for list="{{ customers }}" as="c" hint-placeholder-count="8"><tr onClick="{{ c.open }}" style="border-top:1px solid #EAEAE8;height:56px;cursor:pointer" style-hover="background:#FAFAFA"><td style="padding:0 16px"><span style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:32px;border-radius:99px;background:#F4F4F3;font-size:12px;font-weight:600;display:grid;place-items:center">{{ c.ini }}</span><b style="font-weight:500">{{ c.name }}</b></span></td><td style="padding:0 12px;color:#5A5A57;white-space:nowrap;font-variant-numeric:tabular-nums">{{ c.phone }}</td><td style="padding:0 12px;text-align:end">{{ c.orders }}</td><td style="padding:0 12px;text-align:end;color:#14110F;font-weight:600">{{ c.spent }}</td><td style="padding-block:0 0;padding-inline:12px 16px;color:#5A5A57">{{ c.last }}</td></tr></sc-for></tbody>
+    </table></div>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAnalysis }}">
+<div data-screen-label="Menu analysis" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Menu analysis</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">What sells, what gets skipped, and what to do about it.</p></div>
+    <div style="display:flex;gap:4px;background:#F4F4F3;border-radius:14px;padding:4px">
+      <sc-for list="{{ aPeriods }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.pick }}" style="height:36px;padding:0 16px;border-radius:12px;border:0;font-size:14px;cursor:pointer;color:#14110F;background:{{ p.bg }};font-weight:{{ p.weight }};box-shadow:{{ p.shadow }}">{{ p.label }}</button></sc-for>
+    </div>
+  </div>
+
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:18px 20px">
+      <span style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><b style="font-size:17px;font-weight:600;letter-spacing:-0.01em">What to do next</b><span style="font-size:13px;color:#5A5A57">{{ todoSub }}</span></span>
+    </div>
+    <sc-if value="{{ hasTodo }}">
+    <sc-for list="{{ todos }}" as="d" hint-placeholder-count="4">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:14px 20px;border-top:1px solid #EAEAE8;animation:fadein .2s both">
+        <sc-if value="{{ d.pair }}"><span style="display:flex;align-items:center;flex-shrink:0;width:72px"><span style="width:40px;height:40px;border-radius:10px;background:{{ d.imgA }};box-shadow:0 0 0 2px #fff"></span><span style="width:40px;height:40px;margin-inline-start:-8px;border-radius:10px;background:{{ d.imgB }};box-shadow:0 0 0 2px #fff"></span></span></sc-if>
+        <sc-if value="{{ d.photo }}"><span style="width:48px;height:48px;flex-shrink:0;border-radius:12px;margin-inline-end:24px;background:{{ d.imgA }}"></span></sc-if>
+        <sc-if value="{{ d.glyph }}"><span style="width:48px;height:48px;flex-shrink:0;border-radius:12px;margin-inline-end:24px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ d.icon }}" style="font-size:20px"></i></span></sc-if>
+        <span style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:3px"><b style="font-size:15px;font-weight:600;text-wrap:pretty">{{ d.title }}</b><span style="font-size:13px;color:#5A5A57;text-wrap:pretty">{{ d.why }}</span></span>
+        <span style="display:flex;align-items:center;gap:6px;margin-inline-start:auto">
+          <button onClick="{{ d.act }}" style="height:40px;padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;color:#14110F" style-hover="background:#F4F4F3">{{ d.cta }}<i class="icon-arrow-right" style="font-size:15px"></i></button>
+          <button onClick="{{ d.dismiss }}" data-tip="Hide" aria-label="Hide suggestion" style="width:40px;height:40px;border-radius:12px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:#5A5A57" style-hover="background:#F4F4F3;color:#14110F"><i class="icon-x" style="font-size:16px"></i></button>
+        </span>
+      </div>
+    </sc-for>
+    <sc-if value="{{ moreTodo }}"><button onClick="{{ toggleTodo }}" style="width:100%;height:48px;border:0;border-top:1px solid #EAEAE8;background:#fff;cursor:pointer;font-size:14px;font-weight:600;color:#14110F;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#FAFAFA">{{ moreTodo }}<i class="icon-{{ moreTodoIcon }}" style="font-size:15px"></i></button></sc-if>
+    </sc-if>
+    <sc-if value="{{ noTodo }}"><div style="padding:24px 20px 32px;border-top:1px solid #EAEAE8;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font-size:14px;color:#5A5A57"><img src="assets/bill/waving.webp" alt="" style="width:88px;height:88px;opacity:.5">You're all caught up. New suggestions show up as orders come in.<button onClick="{{ resetTodo }}" style="border:0;background:none;padding:4px 8px;font-size:13px;font-weight:600;color:#14110F;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Show hidden suggestions</button></div></sc-if>
+  </section>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:16px;align-items:start">
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1">Sales by category</b><b style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ catTotal }}</b></div>
+      <div style="padding:8px 20px 12px;display:flex;flex-direction:column">
+        <sc-for list="{{ catBars }}" as="c" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:{{ c.borderTop }}">
+          <div style="display:flex;align-items:baseline;gap:8px;font-size:14px"><b style="font-weight:600;flex:1">{{ c.name }}</b><span style="font-size:13px;color:#5A5A57">{{ c.items }}</span><b style="font-weight:600;min-width:72px;text-align:end;font-variant-numeric:tabular-nums">{{ c.money }}</b></div>
+          <div style="display:flex;align-items:center;gap:10px"><span style="flex:1;height:8px;border-radius:9px;background:#F4F4F3;overflow:hidden"><span style="display:block;height:100%;border-radius:9px;background:{{ c.color }};width:{{ c.w }}%"></span></span><span style="font-size:13px;color:#5A5A57;min-width:36px;text-align:end;font-variant-numeric:tabular-nums">{{ c.share }}</span></div>
+        </div></sc-for>
+      </div>
+    </section>
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1 1 auto">Often ordered together</b><span style="font-size:13px;color:#5A5A57">Ideas for combo deals</span></div>
+      <div style="padding:8px 20px 12px;display:flex;flex-direction:column">
+        <sc-for list="{{ pairs }}" as="p" hint-placeholder-count="3"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 0;border-top:{{ p.borderTop }}">
+          <span style="display:flex;align-items:center;flex-shrink:0"><span style="width:44px;height:44px;border-radius:12px;background:{{ p.imgA }}"></span><span style="width:20px;height:20px;margin:0 -6px;z-index:1;border-radius:99px;background:#fff;border:1px solid #EAEAE8;display:grid;place-items:center"><i class="icon-plus" style="font-size:12px"></i></span><span style="width:44px;height:44px;border-radius:12px;background:{{ p.imgB }}"></span></span>
+          <span style="flex:1 1 160px;min-width:0;display:flex;flex-direction:column;gap:2px"><b style="font-size:14px;font-weight:600;text-wrap:pretty">{{ p.a }} + {{ p.b }}</b><span style="font-size:13px;color:#5A5A57">Together in {{ p.n }} orders · {{ p.share }} of {{ p.aShort }} orders</span></span>
+          <button onClick="{{ p.promo }}" style="height:36px;padding:0 14px;margin-inline-start:auto;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap" style-hover="background:#F4F4F3">Make a deal</button>
+        </div></sc-for>
+      </div>
+    </section>
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1">{{ busyTitle }}</b><div role="tablist" style="display:flex;gap:2px;padding:3px;background:#F4F4F3;border-radius:10px"><sc-for list="{{ busyModes }}" as="m" hint-placeholder-count="2"><button role="tab" aria-selected="{{ m.on }}" onClick="{{ m.pick }}" style="height:28px;padding:0 12px;border-radius:8px;border:0;cursor:pointer;font-size:12px;font-weight:600;color:#14110F;background:{{ m.bg }};box-shadow:{{ m.shadow }}">{{ m.label }}</button></sc-for></div></div>
+      <div style="padding:16px 20px 12px;display:flex;flex-direction:column;gap:6px">
+        <div onMouseLeave="{{ hrLeave }}" style="height:88px;display:flex;align-items:flex-end;gap:4px">
+          <sc-for list="{{ hrBars }}" as="h" hint-placeholder-count="13"><span onMouseEnter="{{ h.enter }}" style="flex:1;height:{{ h.h }}%;border-radius:4px 4px 2px 2px;background:{{ h.bg }}"></span></sc-for>
+        </div>
+        <div style="display:flex;gap:4px"><sc-for list="{{ hrBars }}" as="h" hint-placeholder-count="13"><span style="flex:1;text-align:center;font-size:11px;color:#5A5A57">{{ h.label }}</span></sc-for></div>
+        <span style="font-size:13px;color:#5A5A57;min-height:20px">{{ hrInfo }}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 20px;border-top:1px solid #EAEAE8;font-size:13px"><span style="flex:1;min-width:180px">Quietest: <b style="font-weight:600;white-space:nowrap">{{ heatQuiet }}</b></span><button onClick="{{ quietPromo }}" style="height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap" style-hover="background:#F4F4F3">Fill it with a deal</button></div>
+    </section>
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1 1 auto">Menu quality</b><span style="font-size:13px;color:#5A5A57">{{ qDone }} of {{ qTotal }} complete</span><span style="width:96px;height:6px;border-radius:9px;background:#F4F4F3;overflow:hidden"><span style="display:block;height:100%;border-radius:9px;background:#1F7A4D;width:{{ qPct }}%"></span></span></div>
+      <sc-for list="{{ quality }}" as="q" hint-placeholder-count="3"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 20px;border-top:{{ q.borderTop }}"><span style="width:36px;height:36px;border-radius:10px;background:#FFF0C2;color:#7A5300;display:grid;place-items:center;flex-shrink:0"><i class="icon-{{ q.icon }}" style="font-size:17px"></i></span><span style="flex:1;min-width:160px"><b style="display:block;font-size:14px;font-weight:600">{{ q.label }}</b><span style="font-size:13px;color:#5A5A57">{{ q.names }}</span></span><button onClick="{{ goProducts }}" style="height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap" style-hover="background:#F4F4F3">{{ q.cta }}</button></div></sc-for>
+    </section>
+  </div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #EAEAE8">
+      <b style="font-size:15px;font-weight:600;flex:1;min-width:120px">Products</b>
+      <div role="tablist" style="display:flex;gap:2px;padding:3px;background:#F4F4F3;border-radius:12px;max-width:100%;overflow-x:auto;scrollbar-width:none">
+        <sc-for list="{{ catTabs }}" as="c" hint-placeholder-count="4"><button role="tab" onClick="{{ c.pick }}" aria-selected="{{ c.on }}" style="height:34px;padding:0 12px;border-radius:10px;border:0;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px;color:#14110F;background:{{ c.bg }};box-shadow:{{ c.shadow }}">{{ c.label }}<span style="font-weight:500;color:#5A5A57;font-variant-numeric:tabular-nums">{{ c.money }}</span></button></sc-for>
+      </div>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;min-width:640px;border-collapse:collapse;font-size:14px">
+      <thead><tr style="background:#F4F4F3;height:40px;text-align:start"><sc-for list="{{ perfCols }}" as="c" hint-placeholder-count="5"><th aria-sort="{{ c.aria }}" style="padding-block:0 0;padding-inline:{{ c.padL }} {{ c.padR }};text-align:{{ c.align }};font-weight:500"><button onClick="{{ c.sort }}" style="display:inline-flex;align-items:center;gap:4px;height:28px;margin:0 -6px;padding:0 6px;border:0;border-radius:8px;background:none;cursor:pointer;font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:{{ c.ink }};flex-direction:{{ c.dir }}" style-hover="background:#EAEAE8;color:#14110F">{{ c.label }}<i class="icon-{{ c.icon }}" style="font-size:13px;opacity:{{ c.iconOp }}"></i></button></th></sc-for></tr></thead>
+      <tbody><sc-for list="{{ perf }}" as="r" hint-placeholder-count="8"><tr style="border-top:1px solid #EAEAE8;height:60px">
+        <td style="padding-block:0 0;padding-inline:20px 12px"><span style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;flex-shrink:0;border-radius:10px;background:{{ r.img }}"></span><span style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:500;white-space:nowrap">{{ r.name }}</span><span style="font-size:12px;color:#5A5A57">{{ r.cat }}</span></span></span></td>
+        <td style="padding:0 12px;text-align:end;font-variant-numeric:tabular-nums">{{ r.views }}</td>
+        <td style="padding:0 12px;text-align:end;font-variant-numeric:tabular-nums"><span style="display:inline-flex;align-items:center;gap:6px;color:{{ r.pctInk }};font-weight:{{ r.pctW }}"><sc-if value="{{ r.low }}"><i class="icon-triangle-alert" style="font-size:13px"></i></sc-if>{{ r.pct }}</span></td>
+        <td style="padding:0 12px;text-align:end;font-variant-numeric:tabular-nums">{{ r.sold }}</td>
+        <td style="padding-block:0 0;padding-inline:12px 20px;text-align:end;font-variant-numeric:tabular-nums;font-weight:600">{{ r.revenue }}</td>
+      </tr></sc-for></tbody>
+    </table></div>
+  </section>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ promo }}">
+  <div onClick="{{ closePromo }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" onKeyDown="{{ promo.key }}" style="width:100%;max-width:560px;display:flex;flex-direction:column;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow:hidden;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px 0">
+        <sc-if value="{{ promo.canBack }}"><button onClick="{{ promo.back }}" aria-label="Back" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-arrow-left" style="font-size:16px"></i></button></sc-if>
+        <span style="flex:1;display:flex;gap:4px"><sc-for list="{{ promo.dots }}" as="d" hint-placeholder-count="3"><span style="flex:1;max-width:48px;height:4px;border-radius:9px;background:{{ d.c }};transition:background-color .3s ease"></span></sc-for></span>
+        <button onClick="{{ closePromo }}" aria-label="Close" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-x" style="font-size:16px"></i></button>
+      </div>
+      <div key="{{ promo.stepKey }}" style="flex:1;min-height:0;display:flex;flex-direction:column;animation:{{ promo.stepAnim }}">
+      <div style="padding:16px 20px 4px"><h2 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.02em">{{ promo.title }}</h2></div>
+      <div style="flex:1;min-height:0;overflow:auto;padding:12px 20px 20px;display:flex;flex-direction:column;gap:20px">
+        <sc-if value="{{ promo.s0 }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ promo.kinds }}" as="k" hint-placeholder-count="5"><button onClick="{{ k.pick }}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;cursor:pointer;text-align:start;font:inherit;color:#14110F;border:1px solid {{ k.border }};background:{{ k.bg }};box-shadow:{{ k.ring }}" style-hover="border-color:#14110F"><span style="width:44px;height:44px;flex-shrink:0;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ k.icon }}" style="font-size:20px"></i></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><b style="font-size:15px;font-weight:600">{{ k.label }}</b><span style="font-size:13px;color:#5A5A57">{{ k.eg }}</span></span><i class="icon-chevron-right" style="font-size:18px;color:#5A5A57"></i></button></sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ promo.s1 }}">
+          <div style="border:1px solid #DADAD7;border-radius:14px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:8px;padding:0 14px;height:48px;border-bottom:1px solid #EAEAE8"><i class="icon-search" style="font-size:16px;color:#5A5A57"></i><input data-bare="" value="{{ promo.pq }}" onInput="{{ promo.onPq }}" placeholder="Search products" style="flex:1;min-width:0;height:100%;border:0;outline:none;background:none;font-size:15px"></div>
+            <button onClick="{{ promo.allPick }}" role="checkbox" aria-checked="{{ promo.allOn }}" style="width:100%;display:flex;align-items:center;gap:12px;height:52px;padding:0 14px;border:0;border-bottom:1px solid #EAEAE8;background:#FAFAFA;cursor:pointer;text-align:start;font:inherit;color:#14110F"><span style="width:20px;height:20px;flex-shrink:0;border-radius:6px;border:1.5px solid {{ promo.allBorder }};background:{{ promo.allBg }};display:grid;place-items:center"><i class="icon-{{ promo.allIcon }}" style="font-size:13px;color:#fff"></i></span><b style="flex:1;font-size:14px;font-weight:600">All products</b><span style="font-size:13px;color:#5A5A57">{{ promo.selCount }}</span></button>
+            <div style="max-height:min(360px,46dvh);overflow-y:auto">
+              <sc-for list="{{ promo.groups }}" as="g" hint-placeholder-count="3">
+                <button onClick="{{ g.pick }}" role="checkbox" aria-checked="{{ g.on }}" style="width:100%;display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;border:0;border-top:{{ g.borderTop }};background:#fff;cursor:pointer;text-align:start;font:inherit;color:#14110F" style-hover="background:#FAFAFA"><span style="width:20px;height:20px;flex-shrink:0;border-radius:6px;border:1.5px solid {{ g.border }};background:{{ g.bg }};display:grid;place-items:center"><i class="icon-{{ g.icon }}" style="font-size:13px;color:#fff"></i></span><span style="flex:1;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">{{ g.name }}</span><span style="font-size:12px;color:#5A5A57">{{ g.count }}</span></button>
+                <sc-for list="{{ g.items }}" as="pr" hint-placeholder-count="3"><button onClick="{{ pr.pick }}" role="checkbox" aria-checked="{{ pr.on }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:48px;padding-block:0 0;padding-inline:46px 14px;border:0;background:#fff;cursor:pointer;text-align:start;font:inherit;color:#14110F" style-hover="background:#FAFAFA"><span style="width:20px;height:20px;flex-shrink:0;border-radius:6px;border:1.5px solid {{ pr.border }};background:{{ pr.bg }};display:grid;place-items:center"><i class="icon-{{ pr.icon }}" style="font-size:13px;color:#fff"></i></span><span style="flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ pr.name }}</span><span style="font-size:13px;color:#5A5A57;font-variant-numeric:tabular-nums">{{ pr.price }}</span></button></sc-for>
+              </sc-for>
+              <sc-if value="{{ promo.noProds }}"><div style="padding:20px;text-align:center;font-size:14px;color:#5A5A57">No products match “{{ promo.pq }}”</div></sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ promo.s2 }}">
+          <sc-if value="{{ promo.hasValue }}">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:14px;font-weight:600">{{ promo.valueLabel }}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ promo.quick }}" as="q" hint-placeholder-count="4"><button onClick="{{ q.pick }}" aria-pressed="{{ q.on }}" style="height:40px;padding:0 16px;border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;border:1px solid {{ q.border }};background:{{ q.bg }};color:#14110F"><sc-if value="{{ q.icon }}"><i class="icon-{{ q.icon }}" style="font-size:15px;color:{{ q.iconInk }}"></i></sc-if>{{ q.label }}</button></sc-for><span style="position:relative;display:flex;align-items:center;width:110px"><sc-if value="{{ promo.isAmount }}"><span style="position:absolute;inset-inline-start:14px;font-weight:600;color:#5A5A57;pointer-events:none">$</span></sc-if><input inputMode="decimal" value="{{ promo.value }}" onInput="{{ promo.onValue }}" aria-label="Custom amount" placeholder="Other" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff;height:40px;border-radius:99px;width:100%;padding-block:0 0;padding-inline:{{ promo.padL }} {{ promo.padR }}"><sc-if value="{{ promo.isPct }}"><span style="position:absolute;inset-inline-end:14px;font-weight:600;color:#5A5A57;pointer-events:none">%</span></sc-if></span></div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ promo.isDelivery }}">
+          <label style="display:flex;flex-direction:column;gap:10px;font-size:14px;font-weight:600">Free on orders over<span style="position:relative;display:flex;align-items:center;width:160px"><span style="position:absolute;inset-inline-start:14px;font-weight:600;color:#5A5A57;pointer-events:none">$</span><input inputMode="decimal" value="{{ promo.min }}" onInput="{{ promo.onMin }}" placeholder="0" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff;width:100%;padding-inline-start:28px"></span></label>
+          </sc-if>
+          <sc-if value="{{ promo.isCode }}">
+          <label style="display:flex;flex-direction:column;gap:10px;font-size:14px;font-weight:600">The code customers type<span style="display:flex;gap:8px"><input value="{{ promo.code }}" onInput="{{ promo.onCode }}" placeholder="e.g. PIZZA20" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff;flex:1;text-transform:uppercase;letter-spacing:.08em;font-weight:700"><button onClick="{{ promo.genCode }}" style="height:48px;padding:0 14px;flex-shrink:0;border-radius:12px;border:1px solid #DADAD7;background:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600" style-hover="background:#F4F4F3"><i class="icon-dices" style="font-size:16px"></i>New code</button></span></label>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:14px;font-weight:600">When</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ promo.whens }}" as="w" hint-placeholder-count="4"><button onClick="{{ w.pick }}" aria-pressed="{{ w.on }}" style="height:40px;padding:0 16px;border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;border:1px solid {{ w.border }};background:{{ w.bg }};color:#14110F"><sc-if value="{{ w.icon }}"><i class="icon-{{ w.icon }}" style="font-size:15px;color:{{ w.iconInk }}"></i></sc-if>{{ w.label }}</button></sc-for></div>
+            <sc-if value="{{ promo.pickDates }}"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#5A5A57">Starts<input type="date" value="{{ promo.from }}" onInput="{{ promo.onFrom }}" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff"></label><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:#5A5A57">Ends<input type="date" value="{{ promo.to }}" onInput="{{ promo.onTo }}" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff"></label></div></sc-if>
+          </div>
+          <div style="border:1px solid #EAEAE8;border-radius:14px">
+            <button onClick="{{ promo.toggleMore }}" aria-expanded="{{ promo.moreAria }}" style="width:100%;display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border:0;background:none;cursor:pointer;text-align:start;font:inherit;color:#14110F"><b style="flex:1;font-size:14px;font-weight:600">More options</b><span style="font-size:13px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ promo.moreSummary }}</span><i class="icon-{{ promo.moreIcon }}" style="font-size:16px;color:#5A5A57"></i></button>
+            <sc-if value="{{ promo.more }}">
+            <div style="padding:4px 16px 16px;display:flex;flex-direction:column;gap:18px;border-top:1px solid #EAEAE8;padding-top:16px">
+              <sc-if value="{{ promo.showTypes }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Order types</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ promo.types }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="height:40px;padding:0 16px;border-radius:99px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;border:1px solid {{ o.border }};background:{{ o.bg }};color:#14110F"><sc-if value="{{ o.icon }}"><i class="icon-{{ o.icon }}" style="font-size:15px;color:{{ o.iconInk }}"></i></sc-if>{{ o.label }}</button></sc-for></div></div></sc-if>
+              <sc-if value="{{ promo.showMin }}"><label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">Minimum order<span style="position:relative;display:flex;align-items:center;width:160px"><span style="position:absolute;inset-inline-start:14px;font-weight:600;color:#5A5A57;pointer-events:none">$</span><input inputMode="decimal" value="{{ promo.min }}" onInput="{{ promo.onMin }}" placeholder="None" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff;width:100%;padding-inline-start:28px"></span></label></sc-if>
+              <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">Name <span style="font-weight:400;color:#5A5A57;margin-top:-4px">Only you see this</span><input value="{{ promo.name }}" onInput="{{ promo.onName }}" placeholder="{{ promo.autoName }}" style="height:48px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:{{ ui.fs }};font-weight:500;background:#fff"></label>
+            </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">Customers will see</span>
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#FFF0C2;color:#7A5300"><i class="icon-{{ promo.icon }}" style="font-size:18px;flex-shrink:0"></i><span style="display:flex;flex-direction:column;min-width:0;flex:1"><b style="font-size:14px;font-weight:700;color:#14110F">{{ promo.headline }}</b><span style="font-size:12px;color:#7A5300">{{ promo.fine }}</span></span><sc-if value="{{ promo.code }}"><span style="flex-shrink:0;height:28px;padding:0 10px;border:1.5px dashed #B98900;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;letter-spacing:.06em;color:#14110F">{{ promo.code }}</span></sc-if></div>
+          </div>
+        </sc-if>
+      </div>
+      </div>
+      <sc-if value="{{ promo.showFoot }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:1px solid #EAEAE8">
+        <span style="flex:1;min-width:0;font-size:13px;color:#7A5300">{{ promo.problem }}</span>
+        <button onClick="{{ promo.next }}" aria-disabled="{{ promo.blocked }}" style="height:48px;padding:0 24px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:15px;font-weight:600;cursor:pointer;opacity:{{ promo.saveOp }};display:flex;align-items:center;gap:8px">{{ promo.nextLabel }}</button>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ cust }}">
+  <div onClick="{{ closeCust }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:520px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><span style="width:36px;height:36px;border-radius:99px;background:#F4F4F3;font-size:13px;font-weight:600;display:grid;place-items:center">{{ cust.ini }}</span><span style="flex:1"><b style="display:block;font-size:15px;font-weight:600">{{ cust.name }}</b><span style="font-size:12px;color:#5A5A57">{{ cust.phone }}</span></span><button onClick="{{ closeCust }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #EAEAE8"><div style="padding:14px 20px"><span style="font-size:12px;color:#5A5A57">Orders</span><b style="display:block;font-size:20px;font-weight:600">{{ cust.orders }}</b></div><div style="padding:14px 20px;border-inline-start:1px solid #EAEAE8"><span style="font-size:12px;color:#5A5A57">Spent</span><b style="display:block;font-size:20px;font-weight:600;color:#14110F">{{ cust.spent }}</b></div><div style="padding:14px 20px;border-inline-start:1px solid #EAEAE8"><span style="font-size:12px;color:#5A5A57">First order</span><b style="display:block;font-size:15px;font-weight:600;margin-top:4px">{{ cust.first }}</b></div></div>
+      <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px"><b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Recent orders</b><sc-for list="{{ cust.recent }}" as="r" hint-placeholder-count="3"><div style="display:flex;font-size:14px;gap:10px"><b style="font-weight:600">#{{ r.id }}</b><span style="flex:1;color:#5A5A57">{{ r.when }}</span><span style="color:#14110F;font-weight:600">{{ r.total }}</span></div></sc-for><button onClick="{{ goHistory }}" style="align-self:flex-start;margin-top:4px;height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;gap:6px;align-items:center">Open in Order history<i class="icon-arrow-right" style="font-size:14px"></i></button></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KINDS = [["percent", "% off everything", "A store-wide discount for a quiet day"], ["tag", "% off products", "Push a category or a few dishes"], ["banknote", "Amount off the order", "Like $5 off orders over $25"], ["bike", "Free delivery", "On delivery orders above a minimum"], ["gift", "Buy one get one free", "Great for moving a new dish"], ["ticket", "Promo code", "Share with students, staff or partners"]];
+const MK = [["percent", "Percent off"], ["banknote", "Amount off the order"], ["bike", "Free delivery"], ["gift", "Buy one get one free"], ["ticket", "Promo code"]];
+const MPRODS = [["Pepperoni Party", "Pizzas", 14], ["Philly Steak", "Pizzas", 15], ["Margherita", "Pizzas", 11], ["BBQ Chicken", "Pizzas", 14.5], ["Four Cheese Melt", "Pizzas", 13], ["Veggie Supreme", "Pizzas", 12.5], ["Nutella Crêpe", "Crêpes", 7], ["Strawberry Dream Crêpe", "Crêpes", 8], ["Banana Caramel Crêpe", "Crêpes", 7.5], ["Fresh Lemonade", "Drinks", 3.5], ["Coca-Cola", "Drinks", 2], ["Water", "Drinks", 1]];
+const P0 = [
+  { name: "Crêpe Tuesdays", kind: "% off products", icon: "tag", value: "20% off", conds: [["tag", "Crêpes"], ["calendar", "Every Tuesday"], ["shopping-bag", "All order types"]], code: "", used: 38, sales: 612, on: true },
+  { name: "Free delivery over $30", kind: "Free delivery", icon: "bike", value: "Free delivery", conds: [["bike", "Delivery orders over $30"], ["calendar", "Always on"]], code: "", used: 112, sales: 4280, on: true },
+  { name: "Students", kind: "Promo code", icon: "ticket", value: "15% off", conds: [["calendar", "Always on"], ["shopping-bag", "Pickup only"]], code: "AUB15", used: 64, sales: 1150, on: true },
+  { name: "World Cup weekend", kind: "% off everything", icon: "percent", value: "10% off", conds: [["calendar", "Ended 2 Nov"]], code: "", used: 201, sales: 5940, on: false, ended: true },
+];
+const SORTCOLS = (COLS, sort, dir, set, edge) => COLS.map(([k, label, align, first], i) => { const on = sort === k; return { label, align: align === "right" ? "end" : "start", padL: i === 0 ? edge : "12px", padR: i === COLS.length - 1 ? edge : "12px", dir: align === "right" ? "row-reverse" : "row",
+  ink: on ? "#14110F" : "#5A5A57", icon: on ? (dir === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down", iconOp: on ? 1 : 0.45, aria: on ? (dir === "asc" ? "ascending" : "descending") : "none",
+  sort: () => set(k, on ? (dir === "asc" ? "desc" : "asc") : (first || "desc")) }; });
+const SORTBY = (list, key, dir) => [...list].sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * (dir === "asc" ? 1 : -1); });
+const DAYNUM = (s) => { if (s === "Today") return 1113; const [d, m] = s.split(" "); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(m) * 100 + 100 + +d; };
+const CUST = [["Lina Saad","+961 3 412 908",14,312.5,"Today",  "12 Mar"],["Rami Khoury","+961 70 555 214",22,486.2,"Today","3 Feb"],["Maya Rizk","+961 71 323 482",9,214.0,"Today","20 Jun"],["Joelle Abi Nader","+961 76 766 246",17,401.8,"4 Nov","8 Jan"],["Tarek Mansour","+961 75 979 769",11,268.4,"4 Nov","1 Apr"],["Yara Nassar","+961 70 106 991",8,173.3,"2 Nov","14 Jul"],["Fadi Chamoun","+961 72 139 341",6,122.6,"1 Nov","2 Aug"],["Rita Gemayel","+961 78 313 492",5,148.9,"30 Oct","9 Sep"],["Hadi Salem","+961 73 433 109",4,96.0,"28 Oct","12 Sep"],["Omar Aoun","+961 75 766 248",3,64.4,"Today","1 Oct"]];
+const money = (v) => "$" + v.toFixed(2);
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { promos: P0, pTab: "all", pMenu: null, tip1: true, promo: null, cq: "", sort: "spent", sdir: "desc", vSort: "views", vDir: "desc", cust: null };
+  t(m) { this.props.toast && this.props.toast(m); }
+  componentDidMount() { const prods = window.__dlPendingPromo; if (prods && this.props.screen === "promotions") { window.__dlPendingPromo = null; this.setState({ promo: { ...this.blankPromo("Percent off", 2), prods, dir: "fwd" } }); } }
+  analysisVals(st, go) {
+    const IMG = (k) => k < 0 ? "#F4F4F3" : `url(assets/dishes.jpg) ${(k * 100 / 9).toFixed(2)}% 0/1000% 100%`;
+    const per = st.aPer || "30", f = { "7": 0.24, "30": 1, "90": 3.1 }[per];
+    const AP = [["Pepperoni Party", "Pizzas", 1640, 264, 10, 1], ["Tomato & Cheese", "Pizzas", 1210, 198, 14, 3], ["BBQ Chicken", "Pizzas", 1050, 171, 12, 5], ["Strawberry Dream Crêpe", "Crêpes", 960, 140, 12, 8], ["Four Cheese Melt", "Pizzas", 880, 122, 14, 6], ["Chocolate Hazelnut Crêpe", "Crêpes", 902, 97, 10, 7], ["Philly Steak", "Pizzas", 1488, 58, 15, 2], ["Buffalo Ranch", "Pizzas", 980, 61, 14, 4], ["Margherita", "Pizzas", 611, 55, 11, 9], ["Fresh Lemonade", "Drinks", 420, 88, 3.5, -1]]
+      .map(([name, cat, views, sold, price, img], i) => { const v = Math.round(views * f), s = Math.round(sold * f);
+        const seed = (k) => { const x = Math.sin((i + 1) * 9301 + k * 49297 + per.length * 233) * 10000; return x - Math.floor(x); };
+        const slope = [0.18, 0.06, 0.1, 0.22, -0.04, 0.03, -0.2, -0.12, 0.02, 0.15][i];
+        const pts = Array.from({ length: 8 }, (_, k) => 1 + slope * (k / 7) + (seed(k) - 0.5) * 0.18);
+        const ch = (pts[7] - pts[0]) / pts[0] * 100;
+        return { name, cat, v, s, pct: s / v * 100, rev: s * price, img: IMG(img), pts, ch }; });
+    const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
+    const openPromo = (prods) => { window.__dlPendingPromo = prods; this.props.go && this.props.go("promotions"); };
+    const low = AP.filter(p => p.pct < 7 && p.v > 300).sort((a, b) => b.v - a.v).slice(0, 2);
+    const TIPS = { "Philly Steak": "People open it and leave. Show what's inside in the photo and description.", "Buffalo Ranch": "Curious but not convinced. A week-long discount can get people to try it." };
+    const sortK = st.pfSort || "rev", dir = st.pfDir || "desc";
+    const catF = st.aCat || "All";
+    const rows = SORTBY(AP.filter(p => catF === "All" || p.cat === catF), { name: x => x.name.toLowerCase(), views: x => x.v, pct: x => x.pct, sold: x => x.s, trend: x => x.ch, rev: x => x.rev }[sortK], dir);
+    const cats = {}; AP.forEach(p => cats[p.cat] = (cats[p.cat] || 0) + p.rev); const total = Object.values(cats).reduce((a, b) => a + b, 0);
+    const CC = ["#FF4A1C", "#14110F", "#B98900", "#9A9A96"];
+    const Q = [["image-off", "No photo", ["Coca-Cola", "Still Water"], "Add photos"], ["text", "No description", ["Margherita", "Buffalo Ranch", "Still Water"], "Write descriptions"], ["languages", "No Arabic name", ["Margherita", "Still Water"], "Add Arabic names"]];
+    const missing = new Set(Q.flatMap(q => q[2])), qTotal = 14;
+    return {
+      aPeriods: [["7", "7 days"], ["30", "30 days"], ["90", "90 days"]].map(([k, label]) => ({ label, pick: () => this.setState({ aPer: k }), bg: per === k ? "#fff" : "transparent", weight: per === k ? 600 : 500, shadow: per === k ? "0 1px 2px rgba(20,17,15,.08)" : "none" })),
+      hasAttention: low.length > 0, noAttention: !low.length,
+      avgPct: Math.round(AP.reduce((a, p) => a + p.s, 0) / AP.reduce((a, p) => a + p.v, 0) * 100) + "%", avgW: Math.min(100, AP.reduce((a, p) => a + p.s, 0) / AP.reduce((a, p) => a + p.v, 0) * 100 / 25 * 100).toFixed(1),
+      attention: low.map((p, i) => ({ name: p.name, img: p.img, views: p.v.toLocaleString("en-US"), pct: Math.round(p.pct) + "%", w: Math.min(100, p.pct / 25 * 100).toFixed(1), borderTop: i ? "1px solid #EAEAE8" : "0", tip: TIPS[p.name] || "People look but don't order. Check the photo, description and price.", promo: () => openPromo([p.name]) })),
+      catTabs: ["All", ...Object.keys(cats)].map(c => ({ label: c, money: usd(c === "All" ? total : cats[c]), on: catF === c ? "true" : "false", bg: catF === c ? "#fff" : "transparent", shadow: catF === c ? "0 1px 2px rgba(20,17,15,.08)" : "none", pick: () => this.setState({ aCat: c }) })),
+      ...(() => {
+        const hid = st.todoHidden || [];
+        const L = [
+          ...low.map(p => ({ id: "low-" + p.name, photo: true, imgA: p.img, title: p.name === "Philly Steak" ? `Fix the photo and description of ${p.name}` : `Give ${p.name} a push`, why: `${p.v.toLocaleString("en-US")} people opened it, only ${Math.round(p.pct)}% ordered. Your menu average is ${Math.round(AP.reduce((a, x) => a + x.s, 0) / AP.reduce((a, x) => a + x.v, 0) * 100)}%.`, cta: p.name === "Philly Steak" ? "Edit product" : "Create a deal", act: p.name === "Philly Steak" ? go("products") : () => openPromo([p.name]) })),
+          { id: "pair", pair: true, imgA: IMG(1), imgB: IMG(-1), title: "Bundle Pepperoni Party with Fresh Lemonade", why: `They're ordered together in ${Math.round(82 * f)} orders. A small combo discount can make it a habit.`, cta: "Make a combo", act: () => openPromo(["Pepperoni Party", "Fresh Lemonade"]) },
+          { id: "quiet", glyph: true, icon: "clock-3", title: "Fill your quietest hours", why: "Tuesday 15:00–17:00 is your slowest time. A happy-hour deal brings in orders when the kitchen is free.", cta: "Create happy hour", act: () => { window.__dlPendingPromo = MPRODS.map(x => x[0]); this.props.go && this.props.go("promotions"); } },
+          { id: "photo", glyph: true, icon: "image-plus", title: "Add photos to 2 products", why: "Coca-Cola and Still Water have no photo. Products with photos get ordered more.", cta: "Add photos", act: go("products") },
+          { id: "desc", glyph: true, icon: "text", title: "Write 3 missing descriptions", why: "Margherita, Buffalo Ranch and Still Water have none.", cta: "Write them", act: go("products") },
+          { id: "ar", glyph: true, icon: "languages", title: "Add 2 Arabic names", why: "Margherita and Still Water show in English to Arabic readers.", cta: "Add names", act: go("products") },
+        ].filter(x => !hid.includes(x.id)).map(x => ({ pair: false, photo: false, glyph: false, ...x, dismiss: () => { this.setState(s => ({ todoHidden: [...(s.todoHidden || []), x.id] })); this.t("Suggestion hidden"); } }));
+        const open = !!st.todoAll, shown = open ? L : L.slice(0, 4);
+        return { todos: shown, hasTodo: L.length > 0, noTodo: !L.length, todoSub: L.length ? `${L.length} suggestion${L.length > 1 ? "s" : ""} based on the last ${per} days` : "Nothing for now",
+          moreTodo: L.length > 4 ? (open ? "Show less" : `Show ${L.length - 4} more`) : "", moreTodoIcon: open ? "chevron-up" : "chevron-down",
+          toggleTodo: () => this.setState({ todoAll: !open }), resetTodo: () => this.setState({ todoHidden: [] }) };
+      })(),
+      perfCols: SORTCOLS([["name", "Product", "left", "asc"], ["views", "Views", "right"], ["pct", "Ordered", "right"], ["sold", "Sold", "right"], ["rev", "Revenue", "right"]], sortK, dir, (pfSort, pfDir) => this.setState({ pfSort, pfDir }), "20px"),
+      perf: rows.map(p => { const lo = p.pct < 7; return { name: p.name, cat: p.cat, img: p.img, views: p.v.toLocaleString("en-US"), pct: Math.round(p.pct) + "%", low: lo, pctInk: lo ? "#7A5300" : "#14110F", pctW: lo ? 600 : 400, sold: p.s.toLocaleString("en-US"), revenue: usd(p.rev),
+        trend: (p.ch >= 0 ? "▲ " : "▼ ") + Math.abs(Math.round(p.ch)) + "%", trendInk: Math.abs(p.ch) < 3 ? "#5A5A57" : p.ch > 0 ? "#1F7A4D" : "#7A5300",
+        spark: (() => { const mn = Math.min(...p.pts), mx = Math.max(...p.pts), r = mx - mn || 1; return p.pts.map((y, k) => `${(k / 7 * 64).toFixed(1)},${(22 - (y - mn) / r * 20).toFixed(1)}`).join(" "); })() }; }),
+      prodFoot: "Ordered = share of views that became an order",
+      ...(() => { const F = [["Visited your menu", 12480], ["Opened a product", 6920], ["Added to cart", 2310], ["Placed an order", 1184]].map(([label, n]) => [label, Math.round(n * f)]);
+        const worst = [1, 2, 3].reduce((w, k) => (1 - F[k][1] / F[k - 1][1]) > (1 - F[w][1] / F[w - 1][1]) ? k : w, 1);
+        const TIP = { 1: "Most visitors leave before opening a product. Better photos on your top categories make people tap in.", 2: "People open products but don't add them. Check prices and descriptions on your most-viewed dishes.", 3: "People fill carts but don't check out. A minimum order or delivery fee might be scaring them off." };
+        return { fnConv: (F[3][1] / F[0][1] * 100).toFixed(1) + "%", fnTip: TIP[worst],
+          funnel: F.map(([label, n], k) => { const drop = k ? Math.round((1 - n / F[k - 1][1]) * 100) : 0; return { label, n: n.toLocaleString("en-US"), h: Math.max(4, n / F[0][1] * 100).toFixed(1), color: k === 3 ? "#FF4A1C" : "#14110F", borderL: k ? "1px solid #EAEAE8" : "0", drop: k ? `${drop}% left here` : "", dropInk: k === worst ? "#7A5300" : "#5A5A57", dropW: k === worst ? 600 : 400 }; }) }; })(),
+      ...(() => { const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], HRS = Array.from({ length: 13 }, (_, k) => 11 + k);
+        const DF = [0.8, 0.7, 0.85, 0.95, 1.35, 1.4, 1.1];
+        const grid = DAYS.map((d, di) => HRS.map((h, hi) => { const lunch = Math.exp(-Math.pow(h - 13, 2) / 2.2) * 0.75, dinner = Math.exp(-Math.pow(h - 20.3, 2) / 3) * 1.15; const x = Math.sin((di + 1) * 31 + hi * 7) * 0.08; return Math.max(0, Math.round((0.12 + lunch + dinner + x) * DF[di] * 26 * f)); }));
+        const mx = Math.max(...grid.flat()); const SH = ["#F4F4F3", "#FFD9CC", "#FFAE96", "#FF7A55", "#C2300B"];
+        const lv = (n) => n === 0 ? 0 : Math.min(4, 1 + Math.floor(n / mx * 3.999));
+        let pk = [0, 0], qt = [0, 0]; grid.forEach((r, di) => r.forEach((n, hi) => { if (n > grid[pk[0]][pk[1]]) pk = [di, hi]; if (HRS[hi] >= 12 && HRS[hi] <= 22 && n < grid[qt[0]][qt[1]] || (qt[0] === 0 && qt[1] === 0 && HRS[hi] >= 12)) qt = [di, hi]; }));
+        const full = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], hh = (h) => `${h}:00`;
+        const hv = st.heatHover;
+        const byDay = (st.busyMode || "hours") === "days";
+        const tot = byDay ? grid.map(r => r.reduce((a, b) => a + b, 0)) : HRS.map((_, hi) => grid.reduce((a, r) => a + r[hi], 0)), tmax = Math.max(...tot), tmin = Math.min(...tot), hrv = st.hrHover;
+        const lab = (k) => byDay ? full[k] : `${hh(HRS[k])}–${hh(HRS[k] + 1)}`;
+        const hrStuff = { busyTitle: byDay ? "Busiest days" : "Busiest hours",
+          busyModes: [["hours", "Hours"], ["days", "Days"]].map(([k, label]) => { const on = (st.busyMode || "hours") === k; return { label, on: on ? "true" : "false", bg: on ? "#fff" : "transparent", shadow: on ? "0 1px 2px rgba(20,17,15,.08)" : "none", pick: () => this.setState({ busyMode: k, hrHover: null }) }; }),
+          hrBars: tot.map((n, k) => ({ label: byDay ? DAYS[k] : (k % 3 === 0 ? String(HRS[k]) : ""), h: Math.max(4, n / tmax * 100).toFixed(1), bg: n === tmax ? "#FF4A1C" : hrv === k ? "#14110F" : "#DADAD7", enter: () => this.setState({ hrHover: k }) })),
+          hrInfo: hrv != null && hrv < tot.length ? `${lab(hrv)} · ${tot[hrv].toLocaleString("en-US")} orders` : `Peak: ${lab(tot.indexOf(tmax))} · ${tmax.toLocaleString("en-US")} orders`,
+          hrLeave: () => st.hrHover != null && this.setState({ hrHover: null }),
+          busyQuiet: byDay ? `${full[tot.indexOf(tmin)]}` : null };
+        return { ...hrStuff, heatHours: HRS.map(h => h % 2 ? String(h) : ""), heatLegend: SH,
+          heatRows: DAYS.map((day, di) => ({ day, cells: HRS.map((h, hi) => { const on = hv && hv[0] === di && hv[1] === hi; return { bg: SH[lv(grid[di][hi])], ring: on ? "inset 0 0 0 2px #14110F" : "none", enter: () => this.setState({ heatHover: [di, hi] }) }; }) })),
+          heatInfo: hv ? `${full[hv[0]]}, ${hh(HRS[hv[1]])}–${hh(HRS[hv[1]] + 1)} · ${grid[hv[0]][hv[1]]} orders` : "Hover a square to see the orders in that hour",
+          heatLeave: () => st.heatHover && this.setState({ heatHover: null }),
+          heatPeak: `${full[pk[0]]} ${hh(HRS[pk[1]])}–${hh(HRS[pk[1]] + 1)}`, heatQuiet: hrStuff.busyQuiet || `${full[qt[0]]} ${hh(HRS[qt[1]])}–${hh(HRS[qt[1]] + 1)}`,
+          quietPromo: () => { window.__dlPendingPromo = MPRODS.map(x => x[0]); this.props.go && this.props.go("promotions"); } }; })(),
+      catTotal: usd(total),
+      catBars: Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([name, v], i, arr) => { const n = AP.filter(p => p.cat === name).length; return { name, items: n + (n === 1 ? " item" : " items"), w: (v / arr[0][1] * 100).toFixed(2), share: Math.round(v / total * 100) + "%", money: usd(v), color: i === 0 ? "#FF4A1C" : "#14110F", borderTop: i ? "1px solid #EAEAE8" : "0" }; }),
+      pairs: [["Pepperoni Party", "Fresh Lemonade", 82, 1, -1], ["Strawberry Dream Crêpe", "Fresh Lemonade", 41, 8, -1], ["BBQ Chicken", "Tomato & Cheese", 33, 5, 3]].map(([a, b, n, ia, ib], i) => ({ a, b, n: Math.round(n * f), imgA: IMG(ia), imgB: IMG(ib), aShort: a.replace(/ Crêpe$/, ""), share: Math.round(n / ((AP.find(x => x.name === a) || { s: n * 4 / f }).s / f) * 100) + "%", borderTop: i ? "1px solid #EAEAE8" : "0", promo: () => openPromo([a, b]) })),
+      qTotal, qDone: qTotal - missing.size, qPct: Math.round((qTotal - missing.size) / qTotal * 100),
+      quality: Q.map(([icon, label, names, cta], i) => ({ icon, label, names: names.join(", "), cta, borderTop: i ? "1px solid #EAEAE8" : "0" })),
+    };
+  }
+  blankPromo(idea, step) { const kind = idea === "% off everything" || idea === "% off products" ? "Percent off" : idea; const scoped = ["Percent off", "Promo code", "Buy one get one free"].includes(kind);
+    return { kind, step: step != null ? step : scoped ? 1 : 2, more: false, pq: "", prods: idea === "% off everything" ? MPRODS.map(x => x[0]) : idea === "% off products" ? MPRODS.filter(x => x[1] === "Pizzas").map(x => x[0]) : [], value: kind === "Amount off the order" ? "5" : kind === "Free delivery" || kind === "Buy one get one free" ? "" : kind === "Promo code" ? "15" : "10", when: 0, from: "", to: "", types: ["Delivery", "Pickup", "Dine-in"], min: kind === "Free delivery" ? "30" : "", code: kind === "Promo code" ? this.genCode() : "", name: "" }; }
+  genCode() { const w = ["PIZZA", "CREPE", "HELLO", "TREAT", "YUM", "BLOCK"][Math.floor(Math.random() * 6)]; return w + (10 + Math.floor(Math.random() * 15)); }
+  promoVals(p, setP) {
+    const K = p.kind, step = p.step || 0, isPct = ["Percent off", "Promo code"].includes(K), isAmount = K === "Amount off the order", hasValue = isPct || isAmount;
+    const scoped = ["Percent off", "Promo code", "Buy one get one free"].includes(K), steps = scoped ? [0, 1, 2] : [0, 2], si = steps.indexOf(step);
+    const v = parseFloat(p.value) || 0, min = parseFloat(p.min) || 0, icon = (MK.find(k => k[1] === K) || ["percent"])[0];
+    const WH = ["Always on", "Today", "This weekend", "Next 7 days", "Pick dates"];
+    const all = p.prods.length === MPRODS.length, nSel = p.prods.length;
+    const cats = [...new Set(MPRODS.map(x => x[1]))], fullCats = cats.filter(c => MPRODS.filter(x => x[1] === c).every(x => p.prods.includes(x[0])));
+    const scope = !scoped ? "" : all ? "everything" : fullCats.length && fullCats.length === cats.filter(c => MPRODS.some(x => x[1] === c && p.prods.includes(x[0]))).length ? fullCats.join(", ") : nSel === 1 ? p.prods[0] : nSel ? `${nSel} items` : "selected items";
+    const offer = K === "Free delivery" ? "Free delivery" : K === "Buy one get one free" ? "Buy 1, get 1 free" : isAmount ? `$${v || 0} off` : `${v || 0}% off`;
+    const headline = K === "Free delivery" ? (min ? `Free delivery over $${min}` : "Free delivery") : K === "Buy one get one free" ? `Buy 1, get 1 free on ${scope}` : isAmount ? `$${v || 0} off your order` : `${v || 0}% off ${scope}`;
+    const whenTxt = p.when === 4 ? (p.from && p.to ? `${p.from} → ${p.to}` : "Pick dates") : WH[p.when];
+    const delOnly = K === "Free delivery", allTypes = !delOnly && p.types.length === 3, typesTxt = delOnly ? "Delivery only" : allTypes ? "All order types" : p.types.length ? p.types.join(" & ") + " only" : "No order types";
+    const fine = [isAmount && min ? `Orders over $${min}` : "", p.when ? whenTxt : "", allTypes ? "" : typesTxt, p.code ? "Use the code at checkout" : ""].filter(x => x && x !== "Delivery only").join(" · ") || "Applied automatically at checkout";
+    const problem = step === 1 ? (!nSel ? "Pick at least one product" : "")
+      : step === 2 ? (hasValue && !v ? "Pick how much off" : isPct && v > 90 ? "Keep it at 90% or less" : K === "Free delivery" && !min && false ? "" : K === "Promo code" && !p.code.trim() ? "Add a code" : !delOnly && !p.types.length ? "Choose at least one order type" : p.when === 4 && !(p.from && p.to) ? "Pick start and end dates" : "") : "";
+    const autoName = headline;
+    const chip = (on) => ({ border: on ? "#14110F" : "#DADAD7", bg: on ? "#F4F4F3" : "#fff", on: on ? "true" : "false" });
+    const cb = (state) => ({ icon: state === "all" ? "check" : state === "some" ? "minus" : "x", border: state === "none" ? "#C9C9C5" : "#14110F", bg: state === "none" ? "#fff" : "#14110F", on: state === "all" ? "true" : state === "some" ? "mixed" : "false" });
+    const CH = { Delivery: ["bike", "#C2410C"], Pickup: ["shopping-bag", "#1D4E89"], "Dine-in": ["utensils", "#1F7A4D"] };
+    const EG = { "Percent off": "Like 20% off pizzas", "Amount off the order": "Like $5 off the whole order", "Free delivery": "Like free delivery on orders over $30", "Buy one get one free": "Like 2 crêpes for the price of 1", "Promo code": "A discount only people with the code get" };
+    const save = () => {
+      const conds = [...(scoped && !all ? [["tag", scope]] : []), ...(min ? [["receipt", `Orders over $${min}`]] : []), ["calendar", whenTxt === "Pick dates" ? "Custom dates" : whenTxt], ...(allTypes || delOnly ? [] : [["shopping-bag", typesTxt]])];
+      this.setState(s => ({ promo: null, pTab: "all", promos: [{ name: p.name.trim() || autoName, kind: K, icon, value: offer, conds, code: p.code.trim(), used: 0, sales: 0, on: true }, ...s.promos] })); this.t(`${p.name.trim() || autoName} is running`); };
+    const q = (p.pq || "").toLowerCase(), vis = MPRODS.filter(x => !q || x[0].toLowerCase().includes(q));
+    const moreBits = [allTypes || delOnly ? "" : typesTxt, K !== "Free delivery" && min ? `Over $${min}` : ""].filter(Boolean);
+    return {
+      title: step === 0 ? "What kind of offer?" : step === 1 ? (K === "Buy one get one free" ? "Which products are buy 1, get 1?" : "Which products get the discount?") : "Set the details",
+      stepKey: "step" + step, stepAnim: p.dir === "back" ? "stepBack .32s cubic-bezier(.16,1,.3,1) both" : p.dir === "fwd" ? "stepFwd .32s cubic-bezier(.16,1,.3,1) both" : "none",
+      s0: step === 0, s1: step === 1, s2: step === 2, showFoot: step !== 0, canBack: step !== 0,
+      dots: steps.map((_, k) => ({ c: k <= si ? "#14110F" : "#EAEAE8" })),
+      back: () => setP({ step: steps[si - 1], dir: "back" }),
+      kinds: MK.map(([ic, label]) => { const on = K === label && step !== 0; return { icon: ic, label, eg: EG[label], border: on ? "#14110F" : "#EAEAE8", bg: "#fff", ring: on ? "inset 0 0 0 1px #14110F" : "none",
+        pick: () => { const b = this.blankPromo(label); setP({ ...b, prods: p.prods.length ? p.prods : b.prods, step: ["Percent off", "Promo code", "Buy one get one free"].includes(label) ? 1 : 2, dir: "fwd" }); } }; }),
+      pq: p.pq, onPq: (e) => setP({ pq: e.target.value }), selCount: `${nSel} of ${MPRODS.length}`,
+      ...Object.fromEntries(Object.entries(cb(all ? "all" : nSel ? "some" : "none")).map(([k2, v2]) => ["all" + k2[0].toUpperCase() + k2.slice(1), v2])),
+      allPick: () => setP({ prods: all ? [] : MPRODS.map(x => x[0]) }),
+      groups: cats.map((c, gi) => { const items = vis.filter(x => x[1] === c); const inCat = MPRODS.filter(x => x[1] === c).map(x => x[0]); const n = inCat.filter(x => p.prods.includes(x)).length;
+        return { name: c, count: n ? `${n} of ${inCat.length}` : `${inCat.length}`, borderTop: gi ? "1px solid #EAEAE8" : "0", ...cb(n === inCat.length ? "all" : n ? "some" : "none"), hide: !items.length,
+          pick: () => setP({ prods: n === inCat.length ? p.prods.filter(x => !inCat.includes(x)) : [...new Set([...p.prods, ...inCat])] }),
+          items: items.map(([name, , pr]) => { const on = p.prods.includes(name); return { name, price: "$" + pr.toFixed(2), ...cb(on ? "all" : "none"), pick: () => setP({ prods: on ? p.prods.filter(x => x !== name) : [...p.prods, name] }) }; }) }; }).filter(g => !g.hide),
+      noProds: !vis.length,
+      icon, headline, fine, code: p.code, value: p.value, min: p.min, name: p.name, autoName, from: p.from, to: p.to,
+      hasValue, isPct, isAmount, isDelivery: K === "Free delivery", isCode: K === "Promo code", showMin: K !== "Free delivery", showTypes: !delOnly,
+      padL: isAmount ? "28px" : "16px", padR: isPct ? "30px" : "16px", valueLabel: isAmount ? "How much off the order?" : "How much off?",
+      quick: (isAmount ? ["3", "5", "10"] : ["10", "15", "20", "25"]).map(qq => ({ label: isAmount ? "$" + qq : qq + "%", pick: () => setP({ value: qq }), ...chip(p.value === qq) })),
+      whens: WH.map((label, k) => ({ label, pick: () => setP({ when: k }), ...chip(p.when === k) })), pickDates: p.when === 4,
+      more: !!p.more, moreAria: p.more ? "true" : "false", moreIcon: p.more ? "chevron-up" : "chevron-down", toggleMore: () => setP({ more: !p.more }), moreSummary: p.more ? "" : moreBits.join(" · "),
+      types: ["Delivery", "Pickup", "Dine-in"].map(o => ({ label: o, icon: CH[o][0], iconInk: CH[o][1], pick: () => setP({ types: p.types.includes(o) ? p.types.filter(x => x !== o) : [...p.types, o] }), ...chip(p.types.includes(o)) })),
+      problem, blocked: problem ? "true" : "false", saveOp: problem ? 0.5 : 1,
+      nextLabel: step === 1 ? "Next" : p.when === 0 || p.when === 1 ? "Start promotion" : "Schedule promotion",
+      next: () => { if (problem) { this.t(problem); return; } if (step === 1) setP({ step: 2, dir: "fwd" }); else save(); },
+      onValue: (e) => setP({ value: e.target.value.replace(/[^0-9.]/g, "") }), onMin: (e) => setP({ min: e.target.value.replace(/[^0-9.]/g, "") }),
+      onCode: (e) => setP({ code: e.target.value.toUpperCase().replace(/\s/g, "") }), onName: (e) => setP({ name: e.target.value }),
+      onFrom: (e) => setP({ from: e.target.value }), onTo: (e) => setP({ to: e.target.value }),
+      genCode: (e) => { e.preventDefault(); setP({ code: this.genCode() }); },
+      key: (e) => { if (e.key === "Escape") this.setState({ promo: null }); } };
+  }
+
+  renderVals() {
+    const st = this.state, scr = this.props.screen;
+    const go = (s) => () => this.props.go && this.props.go(s);
+    const p = st.promo, setP = (x) => this.setState(s => ({ promo: { ...s.promo, ...x } }));
+    let cs = CUST.filter(c => !st.cq || (c[0] + c[1]).toLowerCase().includes(st.cq.toLowerCase()));
+    cs = SORTBY(cs, { name: x => x[0].toLowerCase(), phone: x => x[1], orders: x => x[2], spent: x => x[3], last: x => DAYNUM(x[4]) }[st.sort] || (x => x[3]), st.sdir || "desc");
+    const c = CUST.find(x => x[0] === st.cust);
+    const ini = (n) => n.split(" ").map(w => w[0]).slice(0, 2).join("");
+    return {
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
+      isPromotions: scr === "promotions", isCustomers: scr === "customers", isAnalysis: scr === "analysis",
+      tip1: st.tip1, hideTip1: () => this.setState({ tip1: false }),
+      kinds: KINDS.map(([icon, label, desc]) => ({ icon, label, desc, pick: () => this.setState({ promo: this.blankPromo(label) }) })),
+      newPromo: () => this.setState({ promo: this.blankPromo("Percent off", 0) }),
+      runningCount: st.promos.filter(x => x.on).length,
+      hasPromos: st.promos.length > 0, noPromos: st.promos.length === 0,
+      pTabs: [["all", "All", st.promos.length], ["on", "Running", st.promos.filter(x => x.on).length], ["off", "Paused & ended", st.promos.filter(x => !x.on).length]].map(([k, label, n]) => ({ label, n, on: st.pTab === k ? "true" : "false", bg: st.pTab === k ? "#fff" : "transparent", shadow: st.pTab === k ? "0 1px 2px rgba(20,17,15,.08)" : "none", pick: () => this.setState({ pTab: k }) })),
+      tabEmpty: st.promos.length > 0 && !st.promos.some(x => st.pTab === "all" || (st.pTab === "on") === !!x.on),
+      tabEmptyText: st.pTab === "on" ? "Nothing running right now. Switch a promotion on, or start a new one." : "No paused or ended promotions.",
+      promos: st.promos.map((x, i) => ({ x, i })).filter(({ x }) => st.pTab === "all" || (st.pTab === "on") === !!x.on).map(({ x, i }) => ({ ...x, op: x.on ? 1 : 0.6,
+        status: x.on ? "Running" : x.ended ? "Ended" : "Paused", stBg: x.on ? "#D5EEDD" : x.ended ? "#F4F4F3" : "#FFF0C2", stInk: x.on ? "#1F7A4D" : x.ended ? "#5A5A57" : "#7A5300", stDot: x.on ? "#1F7A4D" : x.ended ? "#9A9A96" : "#B98900",
+        conds: x.conds.map(([icon, label]) => ({ icon, label })),
+        used: x.used.toLocaleString("en-US"), usedLabel: x.used === 1 ? "use" : "uses", sales: x.sales ? "$" + Math.round(x.sales).toLocaleString("en-US") : "",
+        canToggle: !x.ended, on: x.on ? "true" : "false", toggleLabel: x.on ? "Pause" : "Resume",
+        swBg: x.on ? "#14110F" : "#DADAD7", swJ: x.on ? "flex-end" : "flex-start",
+        toggle: () => { this.setState(s => ({ promos: s.promos.map((y, j) => j === i ? { ...y, on: !y.on } : y) })); this.t(x.on ? `${x.name} paused` : `${x.name} is running`); },
+        copy: () => { try { navigator.clipboard.writeText(x.code); } catch (e) {} this.t(`${x.code} copied`); },
+        menu: () => this.setState({ pMenu: st.pMenu === i ? null : i }), menuOpen: st.pMenu === i, dupLabel: x.ended ? "Run again" : "Duplicate",
+        dup: () => { this.setState(s => ({ pMenu: null, promos: [...s.promos.slice(0, i + 1), { ...x, name: x.ended ? x.name : x.name + " (copy)", conds: x.ended ? [["calendar", "Always on"]] : x.conds, used: 0, sales: 0, on: !!x.ended, ended: false }, ...s.promos.slice(i + 1)] })); this.t(x.ended ? `${x.name} is running again` : "Promotion duplicated"); },
+        del: () => { this.setState(s => ({ pMenu: null, promos: s.promos.filter((_, j) => j !== i) })); this.t("Promotion deleted"); } })),
+      promo: p ? this.promoVals(p, setP) : null,
+      closePromo: () => this.setState({ promo: null }), stop: (e) => e.stopPropagation(),
+      cq: st.cq, onCq: (e) => this.setState({ cq: e.target.value }), custCols: SORTCOLS([["name", "Customer", "left", "asc"], ["phone", "Phone", "left", "asc"], ["orders", "Orders", "right"], ["spent", "Spent", "right"], ["last", "Last order", "left"]], st.sort, st.sdir || "desc", (sort, sdir) => this.setState({ sort, sdir }), "16px"),
+      viewCols: SORTCOLS([["name", "Product", "left", "asc"], ["views", "Views", "right"], ["pct", "Ordered", "right"]], st.vSort, st.vDir, (vSort, vDir) => this.setState({ vSort, vDir }), "20px"),
+      customers: cs.map(x => ({ name: x[0], phone: x[1], ini: ini(x[0]), orders: x[2], spent: money(x[3]), last: x[4], open: () => this.setState({ cust: x[0] }) })),
+      cust: c ? { name: c[0], phone: c[1], ini: ini(c[0]), orders: c[2], spent: money(c[3]), first: c[5], recent: [[1047, c[4] + " · 19:12", 52], [1019, "28 Oct · 13:40", 27.5], [988, "13 Oct · 20:05", 36]].map(([id, when, t]) => ({ id, when, total: money(t) })) } : null,
+      closeCust: () => this.setState({ cust: null }), goHistory: go("history"), goProducts: go("products"),
+      ...this.analysisVals(st, go),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<div data-screen-label="Home" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">{{ greeting }}</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57;text-wrap:pretty">{{ subline }}</p></div>
+    <sc-if value="{{ showPeriods }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:4px;background:#F4F4F3;border-radius:14px;padding:4px">
+        <sc-for list="{{ periods }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.pick }}" style="height:36px;padding:0 16px;border-radius:12px;border:0;font-size:14px;cursor:pointer;background:{{ p.bg }};color:#14110F;font-weight:{{ p.weight }};box-shadow:{{ p.shadow }}">{{ p.label }}</button></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showSince }}"><span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:99px;background:#F4F4F3;font-size:13px;font-weight:600"><i class="icon-calendar" style="font-size:14px"></i>{{ sinceLabel }}</span></sc-if>
+  </div>
+
+  <sc-if value="{{ trial }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 16px;border-radius:14px;background:#FFF0C2;border:1px solid #FFC52E">
+    <span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#FFC52E;color:#14110F;display:grid;place-items:center"><i class="icon-gem" style="font-size:18px"></i></span>
+    <span style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><span style="display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline"><b style="font-size:15px;font-weight:700">Premium trial</b><span style="font-size:13px;font-weight:600;color:#7A5300">{{ trialLeft }}</span></span><span style="font-size:13px;color:#14110F;display:flex;flex-wrap:wrap;gap:4px"><span>Free for every branch until</span><span>{{ trialEnds }}</span></span></span>
+    <button onClick="{{ goPlan }}" style="height:40px;padding:0 16px;border-radius:12px;border:1px solid #14110F;background:transparent;color:#14110F;font-size:14px;font-weight:600;cursor:pointer">See plan</button>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ showSetup }}">
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:12px 20px;border-bottom:1px solid #EAEAE8">
+      <img src="assets/bill/waving.webp" alt="" style="width:56px;height:56px;opacity:.8;margin-block:-4px -4px;margin-inline:-8px -4px;flex-shrink:0">
+      <span style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:2px"><b style="font-size:17px;font-weight:700;letter-spacing:-0.01em">Get your store ready</b><span style="font-size:13px;color:#5A5A57">{{ doneCount }} of {{ stepTotal }} done. Each step ticks itself off when it's done.</span></span>
+      <span style="display:flex;gap:4px"><sc-for list="{{ progress }}" as="b" hint-placeholder-count="7"><span style="width:20px;height:4px;border-radius:9px;background:{{ b.c }}"></span></sc-for></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))">
+      <sc-for list="{{ steps }}" as="st" hint-placeholder-count="7">
+        <div style="display:flex;gap:12px;padding:16px 20px;border-inline-end:1px solid #EAEAE8;border-bottom:1px solid #EAEAE8">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:99px;display:grid;place-items:center;background:{{ st.dotBg }};border:{{ st.dotBorder }};color:#fff"><i class="icon-check" style="font-size:12px;opacity:{{ st.checkOp }}"></i></span>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
+            <b style="font-size:14px;font-weight:600;color:{{ st.titleColor }};text-decoration:{{ st.deco }}">{{ st.title }}</b>
+            <span style="font-size:13px;color:#5A5A57">{{ st.sub }}</span>
+            <sc-if value="{{ st.cta }}"><button onClick="{{ st.act }}" style="margin-top:6px;height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="border-color:#5A5A57">{{ st.cta }}<i class="icon-arrow-right" style="font-size:14px"></i></button></sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  </sc-if>
+
+  <div style="display:flex;flex-wrap:wrap;gap:16px">
+    <section style="flex:1 1 260px;min-width:0;background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-store" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Store status</b></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:6px;flex:1">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:10px;height:10px;border-radius:99px;background:{{ stDot }};box-shadow:0 0 0 4px {{ stHalo }}"></span><b style="font-size:22px;font-weight:600">{{ stTitle }}</b></div>
+        <span style="font-size:13px;color:#5A5A57">{{ stSub }}</span>
+        <div style="margin-top:auto;padding-top:12px;display:flex;flex-wrap:wrap;gap:8px"><button onClick="{{ openPause }}" style="height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap" style-hover="border-color:#5A5A57"><i class="icon-{{ stBtnIcon }}" style="font-size:14px"></i>{{ stBtn }}</button><button onClick="{{ goHours }}" style="height:36px;padding:0 14px;border-radius:12px;border:0;background:#F4F4F3;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap" style-hover="background:#EAEAE8"><i class="icon-clock" style="font-size:14px"></i>Hours</button></div>
+      </div>
+    </section>
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden;flex:2 1 400px;min-width:0">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-list-todo" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Needs you</b><sc-if value="{{ needsCount }}"><span style="min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:#14110F;color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">{{ needsCount }}</span></sc-if></div>
+      <sc-for list="{{ needs }}" as="n" hint-placeholder-count="3">
+        <button onClick="{{ n.go }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 20px;border:0;border-bottom:1px solid #EAEAE8;background:#fff;cursor:pointer;text-align:start" style-hover="background:#FAFAFA">
+          <span style="width:32px;height:32px;flex-shrink:0;border-radius:10px;background:{{ n.bg }};color:{{ n.ink }};display:grid;place-items:center"><i class="icon-{{ n.icon }}" style="font-size:16px"></i></span>
+          <span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:600">{{ n.title }}</b><span style="display:block;font-size:12px;color:#5A5A57;margin-top:1px">{{ n.sub }}</span></span>
+          <span style="font-size:13px;font-weight:600;white-space:nowrap">{{ n.cta }}</span><i class="icon-chevron-right" style="font-size:16px;color:#5A5A57"></i>
+        </button>
+      </sc-for>
+      <sc-if value="{{ needsEmpty }}"><div style="padding:24px 20px;display:flex;align-items:center;gap:12px"><span style="width:32px;height:32px;border-radius:10px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-circle-check" style="font-size:16px"></i></span><span><b style="display:block;font-size:14px;font-weight:600">All clear</b><span style="font-size:12px;color:#5A5A57">Nothing needs you right now.</span></span></div></sc-if>
+    </section>
+  </div>
+
+  <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:{{ kpiGap }}">
+    <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+      <button onClick="{{ k.go }}" style="grid-column:{{ k.span }};background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:{{ kpiPad }};text-align:start;cursor:pointer;display:flex;flex-direction:column;transition:border-color .12s,box-shadow .12s" style-hover="border-color:#DADAD7;box-shadow:0 1px 2px rgba(20,17,15,.06),0 4px 12px rgba(20,17,15,.06)">
+        <span style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;font-size:13px;font-weight:500">{{ k.label }}<span style="width:28px;height:28px;border-radius:10px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ k.icon }}" style="font-size:15px"></i></span></span>
+        <span style="margin-top:12px;font-size:{{ kpiFs }}px;font-weight:600;letter-spacing:-0.02em;color:{{ k.color }}">{{ k.value }}</span>
+        <sc-if value="{{ k.hasDelta }}"><span style="margin-top:4px;font-size:12px;color:#5A5A57;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden"><i class="icon-{{ k.dIcon }}" style="font-size:13px;color:{{ k.dInk }}"></i><b style="color:{{ k.dInk }};font-weight:600">{{ k.delta }}</b><span style="overflow:hidden;text-overflow:ellipsis">{{ k.vs }}</span></span></sc-if>
+        <sc-if value="{{ k.note }}"><span style="margin-top:4px;font-size:12px;color:#5A5A57">{{ k.note }}</span></sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:16px">
+    <section style="flex:2 1 420px;min-width:0;background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-chart-line" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Sales</b><span style="font-size:13px;color:#5A5A57">{{ salesCaption }}</span><button onClick="{{ goHistory }}" style="border:0;background:none;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:0;margin-inline-start:auto">Order history<i class="icon-arrow-right" style="font-size:14px"></i></button></div>
+      <sc-if value="{{ chartReady }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:20px 20px 16px">
+        <div dir="ltr" style="position:relative;height:240px;padding-block:8px 28px;padding-inline:52px 8px">
+          <sc-for list="{{ yTicks }}" as="t" hint-placeholder-count="5">
+            <div style="position:absolute;inset-inline-start:52px;inset-inline-end:8px;top:calc(8px + (100% - 36px) * {{ t.f }});border-top:1px solid #EAEAE8"></div>
+            <span style="position:absolute;inset-inline-start:0;width:44px;text-align:end;top:calc(8px + (100% - 36px) * {{ t.f }} - 8px);font-size:12px;line-height:16px;color:#5A5A57">{{ t.label }}</span>
+          </sc-for>
+          <div style="position:absolute;inset-inline-start:52px;inset-inline-end:8px;bottom:28px;border-top:1px solid #14110F"></div>
+          <sc-for list="{{ xTicks }}" as="t" hint-placeholder-count="7">
+            <span style="position:absolute;bottom:0;left:calc(52px + (100% - 60px) * {{ t.f }});transform:translateX(-50%);font-size:12px;line-height:20px;color:#5A5A57;white-space:nowrap">{{ t.label }}</span>
+          </sc-for>
+          <div onMouseLeave="{{ clearHi }}" style="position:relative;width:100%;height:100%">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+              <defs><linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF4A1C" stop-opacity=".14"></stop><stop offset="1" stop-color="#FF4A1C" stop-opacity="0"></stop></linearGradient></defs>
+              <path d="{{ areaPath }}" fill="url(#sf)"></path>
+              <path d="{{ linePath }}" fill="none" stroke="#FF4A1C" stroke-width="2.5" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+            </svg>
+            <sc-if value="{{ hi }}">
+              <div style="position:absolute;top:0;bottom:0;left:{{ hi.x }}%;border-inline-start:1px dashed #DADAD7;pointer-events:none"></div>
+              <span style="position:absolute;left:{{ hi.x }}%;top:{{ hi.y }}%;width:10px;height:10px;margin-block:-5px 0;margin-inline:-5px 0;border-radius:99px;background:#fff;border:2.5px solid #FF4A1C;pointer-events:none"></span>
+              <div style="position:absolute;left:{{ hi.x }}%;top:{{ hi.y }}%;transform:translate({{ hi.tx }},calc(-100% - 14px));background:#fff;border:1px solid #EAEAE8;border-radius:10px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:8px 12px;white-space:nowrap;pointer-events:none;display:flex;flex-direction:column;gap:2px">
+                <span style="font-size:12px;color:#5A5A57">{{ hi.label }}</span>
+                <b style="font-size:15px;font-weight:700">{{ hi.value }}</b>
+                <span style="font-size:12px;color:{{ hi.dColor }}">{{ hi.delta }}</span>
+              </div>
+            </sc-if>
+            <sc-for list="{{ zones }}" as="z" hint-placeholder-count="7">
+              <div onMouseEnter="{{ z.enter }}" style="position:absolute;top:0;bottom:0;left:{{ z.l }}%;width:{{ z.w }}%;cursor:crosshair"></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ chartE }}">
+        <div style="min-height:276px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center">
+          <span style="width:48px;height:48px;border-radius:14px;background:#F4F4F3;display:grid;place-items:center;margin-bottom:4px"><i class="icon-{{ chartE.icon }}" style="font-size:22px"></i></span>
+          <b style="font-size:16px;font-weight:600">{{ chartE.title }}</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:320px;line-height:1.5;text-wrap:pretty">{{ chartE.sub }}</span>
+          <sc-if value="{{ chartE.prog }}"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px"><div style="width:200px;height:6px;border-radius:99px;background:#EAEAE8;overflow:hidden"><span style="display:block;height:100%;width:{{ chartE.progW }};background:#14110F;border-radius:99px"></span></div><span style="font-size:12px;font-weight:600">{{ chartE.progLabel }}</span></div></sc-if>
+          <sc-if value="{{ chartE.cta }}"><button onClick="{{ chartE.act }}" style="margin-top:8px;height:40px;padding:0 16px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-send" style="font-size:15px"></i>{{ chartE.cta }}</button></sc-if>
+        </div>
+      </sc-if>
+    </section>
+    <section style="flex:1 1 260px;min-width:0;background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-chart-pie" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Order types</b><span style="font-size:13px;color:#5A5A57">{{ orderCountLabel }}</span></div>
+      <sc-if value="{{ splitReady }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+        <div onMouseMove="{{ donutMove }}" onMouseLeave="{{ donutLeave }}" style="position:relative;align-self:center;width:156px;height:156px;border-radius:99px;background:{{ donut }};display:grid;place-items:center;cursor:crosshair">
+          <sc-if value="{{ chTip }}"><div style="position:absolute;left:{{ chTip.x }}px;top:{{ chTip.y }}px;transform:translate(-50%,calc(-100% - 12px));z-index:2;background:#fff;border:1px solid #EAEAE8;border-radius:10px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:8px 12px;white-space:nowrap;pointer-events:none;display:flex;flex-direction:column;gap:2px"><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5A57"><span style="width:8px;height:8px;border-radius:2px;background:{{ chTip.color }}"></span>{{ chTip.label }}</span><b style="font-size:15px;font-weight:700">{{ chTip.money }}</b><span style="font-size:12px;color:#5A5A57">{{ chTip.sub }}</span></div></sc-if>
+          <div style="width:116px;height:116px;border-radius:99px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none"><b style="font-size:22px;font-weight:600">{{ salesShort }}</b><span style="font-size:10px;font-weight:600;letter-spacing:.06em;color:#5A5A57">TOTAL SALES</span></div></div>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ channels }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #EAEAE8"><span style="width:10px;height:10px;flex-shrink:0;border-radius:3px;background:{{ c.color }}"></span><b style="flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap">{{ c.label }}</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap">{{ c.pc }}</span><b style="min-width:72px;text-align:end;font-size:14px;font-weight:600;white-space:nowrap">{{ c.money }}</b></div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ splitE }}">
+        <div style="min-height:276px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center">
+          <span style="width:120px;height:120px;border-radius:99px;border:14px solid #F4F4F3;margin-bottom:8px"></span>
+          <b style="font-size:15px;font-weight:600">{{ splitE.title }}</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:240px;line-height:1.5;text-wrap:pretty">{{ splitE.sub }}</span>
+        </div>
+      </sc-if>
+    </section>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px">
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-bell-ring" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Live orders</b></div>
+      <sc-for list="{{ live }}" as="o" hint-placeholder-count="4">
+        <button onClick="{{ goOrders }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 20px;border:0;border-bottom:1px solid #EAEAE8;background:#fff;cursor:pointer;text-align:start" style-hover="background:#FAFAFA">
+          <span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:{{ o.bg }};color:{{ o.ink }};display:grid;place-items:center"><i class="icon-{{ o.icon }}" style="font-size:17px"></i></span>
+          <span style="flex:1;min-width:0"><span style="display:flex;align-items:center;gap:6px"><b style="font-size:14px;font-weight:600">#{{ o.id }}</b><span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:99px;background:#F4F4F3;font-size:11px;font-weight:600"><span style="width:6px;height:6px;border-radius:99px;background:{{ o.dot }}"></span>{{ o.status }}</span></span><span style="display:block;font-size:12px;color:#5A5A57;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.sub }}</span></span>
+          <span style="text-align:end"><b style="display:block;font-size:14px;font-weight:600">{{ o.total }}</b><span style="font-size:12px;color:#5A5A57">{{ o.ago }}</span></span>
+        </button>
+      </sc-for>
+      <sc-if value="{{ liveE }}">
+        <div style="flex:1;padding:24px 20px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center">
+          <img src="{{ liveE.img }}" alt="" style="width:96px;height:96px;opacity:.75;margin-bottom:4px">
+          <b style="font-size:15px;font-weight:600">{{ liveE.title }}</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:260px;line-height:1.5;text-wrap:pretty">{{ liveE.sub }}</span>
+          <sc-if value="{{ liveE.ctas }}"><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px"><button onClick="{{ share }}" style="height:40px;padding:0 16px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-send" style="font-size:15px"></i>Share storefront</button><button onClick="{{ testOrder }}" style="height:40px;padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Place a test order</button></div></sc-if>
+        </div>
+      </sc-if>
+      <button onClick="{{ goOrders }}" style="margin-top:auto;height:48px;border:0;border-top:1px solid #EAEAE8;margin-bottom:0;position:relative;top:-1px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#FAFAFA">Orders board<i class="icon-arrow-right" style="font-size:14px"></i></button>
+    </section>
+
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding-block:12px 12px;padding-inline:20px 16px;border-bottom:1px solid #EAEAE8;min-height:57px"><i class="icon-utensils-crossed" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Your menu</b><div style="display:flex;gap:2px;background:#F4F4F3;border-radius:10px;padding:3px"><sc-for list="{{ menuTabs }}" as="m" hint-placeholder-count="2"><button onClick="{{ m.pick }}" style="height:28px;padding:0 10px;border-radius:8px;border:0;font-size:12px;font-weight:600;cursor:pointer;color:#14110F;background:{{ m.bg }};box-shadow:{{ m.sh }}">{{ m.label }}</button></sc-for></div></div>
+      <sc-for list="{{ menuRows }}" as="t" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #EAEAE8"><span style="width:16px;font-size:13px;color:#5A5A57">{{ t.rank }}</span><span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:url(assets/dishes.jpg) {{ t.pos }} 0/1000% 100%"></span><span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</b><sc-if value="{{ t.sub }}"><span style="font-size:12px;color:#5A5A57">{{ t.sub }}</span></sc-if></span><span style="text-align:end"><b style="display:block;font-size:14px;font-weight:600">{{ t.n }}</b><span style="font-size:12px;color:#5A5A57">{{ t.unit }}</span></span></div>
+      </sc-for>
+      <sc-if value="{{ menuE }}">
+        <div style="flex:1;padding:28px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center">
+          <span style="width:44px;height:44px;border-radius:14px;background:#F4F4F3;display:grid;place-items:center;margin-bottom:4px"><i class="icon-{{ menuE.icon }}" style="font-size:20px"></i></span>
+          <b style="font-size:15px;font-weight:600">{{ menuE.title }}</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:260px;line-height:1.5;text-wrap:pretty">{{ menuE.sub }}</span>
+          <sc-if value="{{ menuE.prog }}"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px"><div style="width:160px;height:6px;border-radius:99px;background:#EAEAE8;overflow:hidden"><span style="display:block;height:100%;width:{{ menuE.progW }};background:#14110F;border-radius:99px"></span></div><span style="font-size:12px;font-weight:600">{{ menuE.progLabel }}</span></div></sc-if>
+        </div>
+      </sc-if>
+      <button onClick="{{ goAnalysis }}" style="margin-top:auto;height:48px;border:0;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#FAFAFA">Menu analysis<i class="icon-arrow-right" style="font-size:14px"></i></button>
+    </section>
+
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-users" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Customers</b><span style="font-size:13px;color:#5A5A57">{{ periodLabel }}</span></div>
+      <sc-if value="{{ custReady }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+          <div><b style="font-size:28px;font-weight:600;letter-spacing:-0.02em">{{ cust.total }}</b><span style="display:block;font-size:13px;color:#5A5A57;margin-top:2px">{{ cust.caption }}</span></div>
+          <div style="display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px"><span style="width:{{ cust.retW }};background:#FF4A1C"></span><span style="flex:1;background:#FFC4B0"></span></div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #EAEAE8"><span style="width:10px;height:10px;flex-shrink:0;border-radius:3px;background:#FF4A1C"></span><b style="flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap">Came back</b><b style="font-size:14px;font-weight:600">{{ cust.ret }}</b></div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #EAEAE8"><span style="width:10px;height:10px;flex-shrink:0;border-radius:3px;background:#FFC4B0"></span><b style="flex:1;min-width:0;font-size:14px;font-weight:500;white-space:nowrap">First order</b><b style="font-size:14px;font-weight:600">{{ cust.fresh }}</b></div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ custE }}">
+        <div style="flex:1;padding:28px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center">
+          <span style="width:44px;height:44px;border-radius:14px;background:#F4F4F3;display:grid;place-items:center;margin-bottom:4px"><i class="icon-user-round-plus" style="font-size:20px"></i></span>
+          <b style="font-size:15px;font-weight:600">{{ custE.title }}</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:260px;line-height:1.5;text-wrap:pretty">{{ custE.sub }}</span>
+        </div>
+      </sc-if>
+      <button onClick="{{ goCustomers }}" style="margin-top:auto;height:48px;border:0;border-top:1px solid #EAEAE8;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="background:#FAFAFA">All customers<i class="icon-arrow-right" style="font-size:14px"></i></button>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const P = {
+  today: { label: "Today", word: "today", sales: 486.5, orders: 31, avg: 15.69, prep: 16, views: 342, d: [8.2, 6.0, 2, -1, 9], vs: "vs last Thursday",
+    pts: [0,0,12,48,96,64,38,52,88,124,96,40], x: ["11","13","15","17","19","21"], split: [44,33,23], cust: [27, 18] },
+  week: { label: "This week", word: "this week", sales: 3142.4, orders: 184, avg: 17.08, prep: 17, views: 2148, d: [12.4, 9.1, 3, -2, 11], vs: "vs last week",
+    pts: [380,410,500,470,520,690,610], x: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], split: [46,26,28], cust: [146, 88] },
+  month: { label: "This month", word: "this month", sales: 12904.8, orders: 772, avg: 16.72, prep: 18, views: 9311, d: [6.8, 5.2, 1, -1, 14], vs: "vs last month",
+    pts: [2600,2900,3300,4100], x: ["Week 1","Week 2","Week 3","Week 4"], split: [43,30,27], cust: [512, 309] },
+};
+const FEW = { sales: 68.5, orders: 3, avg: 22.83, prep: 14, views: 96 };
+const NEED = 10;
+const money = (v) => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const STEPS = [
+  ["Add your logo", "It shows on your storefront and receipts.", "Add logo", "branding"],
+  ["Add your menu", "Add products or let us import your menu.", "Add products", "products"],
+  ["Set your address", "Delivery distances are measured from your pin.", "Set address", "profile"],
+  ["Set your opening hours", "Customers can order only while you're open.", "Set hours", "hours"],
+  ["Choose your order types", "Pickup, delivery, dine-in, or all three.", "Order types", "pickup"],
+  ["Place a test order", "See how a new order lands on your board.", "Place test order", "test"],
+  ["Share your link", "Send your storefront to customers.", "Share", "share"],
+  ["Get the mobile app", "Get an alert on your phone for every new order.", "Get the app", "app"],
+];
+const DONE = { established: [1,1,1,1,1,1,1,1], few: [1,1,1,1,1,1,0,0], none: [0,0,1,0,0,0,0,0] };
+const SEV = { red: ["#FFE6DE", "#C2300B"], amber: ["#FFF0C2", "#7A5300"], grey: ["#F4F4F3", "#14110F"] };
+class Component extends DCLogic {
+  state = { period: "week", test: false, shared: false, menuTab: "top" };
+  renderVals() {
+    const st = this.state, mob = !!this.props.mobile;
+    const ds = ["few", "none"].includes(this.props.dataState) ? this.props.dataState : "established";
+    const est = ds === "established", few = ds === "few", none = ds === "none";
+    const p = P[st.period];
+    const go = (s) => () => this.props.go && this.props.go(s);
+    const toast = (m) => this.props.toast && this.props.toast(m);
+    const share = () => { this.setState({ shared: true }); this.props.openShare && this.props.openShare(); };
+    const testOrder = () => { this.setState({ test: true }); toast("Test order #1001 sent to your Orders board"); };
+    const nOrders = est ? p.orders : few ? FEW.orders : 0;
+
+    const top = Math.max(...p.pts) * 1.15 || 1;
+    const stepV = Math.pow(10, Math.floor(Math.log10(top / 4))), nice = [1, 2, 2.5, 5, 10].map(m => m * stepV).find(s => s * 4 >= top);
+    const max = nice * 4, n = p.pts.length;
+    const xy = p.pts.map((v, i) => [(100 * i) / (n - 1), 100 - (v / max) * 100]);
+    const hiI = st.hi;
+    const hi = est && hiI != null && hiI < n ? (() => {
+      const v = p.pts[hiI], prev = hiI > 0 ? p.pts[hiI - 1] : null, ch = prev ? ((v - prev) / prev) * 100 : null;
+      return { x: xy[hiI][0], y: xy[hiI][1], label: p.x[hiI], value: money(v), delta: ch == null ? "First point" : `${ch >= 0 ? "▲" : "▼"} ${Math.abs(ch).toFixed(1)}% vs ${p.x[hiI - 1]}`,
+        dColor: ch != null && ch >= 0 ? "#1F7A4D" : "#5A5A57", tx: hiI === 0 ? "-12px" : hiI === n - 1 ? "calc(-100% + 12px)" : "-50%" };
+    })() : null;
+    const zw = 100 / (n - 1);
+    let d = `M${xy[0][0]},${xy[0][1]}`;
+    for (let i = 1; i < xy.length; i++) { const [ax, ay] = xy[i - 1], [bx, by] = xy[i], mx = (ax + bx) / 2; d += ` C${mx},${ay} ${mx},${by} ${bx},${by}`; }
+
+    const done = DONE[ds].map((x, i) => !!x || (i === 5 && st.test) || (i === 6 && st.shared) || (i === 7 && st.gotApp));
+    const nDone = done.filter(Boolean).length;
+    const [a, b] = p.split;
+    const channels = [["Delivery", "#FF4A1C", a], ["Pickup", "#FFC52E", b], ["Dine-in", "#1F7A4D", 100 - a - b]].map(([label, color, pc]) => ({ label, color, pc: pc + "%", sub: `${Math.round((p.orders * pc) / 100)} orders · ${pc}%`, money: money((p.sales * pc) / 100) }));
+    const paused = this.props.paused;
+    const prog = (k) => ({ prog: true, progW: Math.min(100, (k / NEED) * 100) + "%", progLabel: `${k} of ${NEED} orders` });
+
+    const KD = [["Total sales", "banknote", "history", money(est ? p.sales : few ? FEW.sales : 0), "Your first sale shows here"], ["Orders", "receipt-text", "history", String(nOrders), "Waiting for your first order"],
+      ["Average order", "tag", "analysis", est ? money(p.avg) : few ? money(FEW.avg) : "—", "Shows after your first order"], ["Average prep time", "timer", "orders", est ? p.prep + " min" : few ? FEW.prep + " min" : "—", "Shows after your first order"],
+      ["Menu views", "eye", "analysis", (est ? p.views : few ? FEW.views : 0).toLocaleString("en-US"), "Share your link to get views"]];
+    const kpis = KD.map(([label, icon, to, value, emptyNote], i) => {
+      const dv = p.d[i], good = i === 3 ? dv < 0 : dv > 0;
+      return { label, icon, value, go: go(to), color: none && value !== "—" && (value === "0" || value === "$0.00") ? "#5A5A57" : "#14110F",
+        hasDelta: est, dIcon: dv >= 0 ? "trending-up" : "trending-down", dInk: good ? "#1F7A4D" : "#C2300B",
+        delta: i === 3 ? `${dv > 0 ? "+" : "−"}${Math.abs(dv)} min` : `${dv > 0 ? "+" : "−"}${Math.abs(dv)}%`, vs: p.vs,
+        note: est ? "" : few ? "Too early to compare" : emptyNote };
+    });
+
+    const needs = est ? [["red", "circle-alert", "1 order is running late", "#1044 · Delivery · 12 min over", "Open", "orders"], ["amber", "package-x", "2 products are out of stock", "BBQ Chicken, Lotus Crêpe", "Restock", "products"], ["grey", "calendar-clock", "Special hours on 22 Nov", "Independence Day. Are you open?", "Check", "hours"]]
+      : few ? [["amber", "image-plus", "6 products have no photo", "Customers order more when they can see it", "Add", "products"], ["grey", "badge-percent", "Bring your first customers back", "Create a promotion in a minute", "Create", "promotions"]]
+      : [["grey", "send", "Share your storefront", "Customers can't order until they have your link", "Share", "share"]];
+
+    const mtop = [["Pepperoni Party", 64, 1], ["Tomato & Cheese", 51, 3], ["BBQ Chicken", 43, 4], ["Strawberry Dream Crêpe", 38, 8]];
+    const mview = few ? [["Pepperoni Party", 41, 1], ["Philly Steak", 27, 2], ["Tomato & Cheese", 16, 3], ["BBQ Chicken", 12, 4]] : [["Pepperoni Party", 412, 1, 16], ["Philly Steak", 388, 2, 11], ["Tomato & Cheese", 301, 3, 17], ["Chocolate Hazelnut Crêpe", 266, 8, 12]];
+    const isTop = st.menuTab === "top";
+    const menuReady = est || (few && !isTop);
+    const menuRows = !menuReady ? [] : isTop ? mtop.map(([name, n, ph], i) => ({ rank: i + 1, name, n, unit: "sold", sub: "", pos: (ph / 9) * 100 + "%" }))
+      : mview.map(([name, n, ph, c], i) => ({ rank: i + 1, name, n, unit: "views", sub: c ? c + "% ordered it" : "", pos: (ph / 9) * 100 + "%" }));
+    const [cTot, cRet] = p.cust;
+
+    return {
+      ui: null, mobile: mob, lay12: mob ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(0,2fr)", lay21: mob ? "minmax(0,1fr)" : "minmax(0,2fr) minmax(0,1fr)", kpiFs: mob ? 22 : 28, kpiPad: mob ? "14px" : "16px 20px",
+      greeting: (new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening") + ", Karim",
+      subline: est ? `Here's how Block Party · Hamra is doing ${p.word}.` : few ? "Your first few orders are in. Numbers get more useful as more come through." : "Welcome to Dinelabs. Let's get your first order in.",
+      showPeriods: est, showSince: !est, sinceLabel: few ? "Since you opened · Nov 12" : "Opened today",
+      periodLabel: est ? p.label : "Since you opened",
+      periods: Object.entries(P).map(([k]) => { const on = k === st.period; return { label: k === "week" ? "Week" : k === "month" ? "Month" : "Today", pick: () => this.setState({ period: k, hi: null }), bg: on ? "#fff" : "transparent", weight: on ? 600 : 500, shadow: on ? "0 1px 3px rgba(0,0,0,.08)" : "none" }; }),
+      trial: !!this.props.trial, trialLeft: this.props.trial ? this.props.trial.left : "", trialEnds: this.props.trial ? this.props.trial.ends : "", goPlan: go("plan"),
+      showSetup: nDone < STEPS.length, stepTotal: STEPS.length, doneCount: nDone, progress: done.map(x => ({ c: x ? "#FF4A1C" : "#EAEAE8" })),
+      steps: STEPS.map(([title, sub, cta, to], i) => ({ title, sub, cta: done[i] ? "" : cta, dotBg: done[i] ? "#FF4A1C" : "#fff", dotBorder: done[i] ? "0" : "1.5px solid #DADAD7", checkOp: done[i] ? 1 : 0,
+        titleColor: done[i] ? "#5A5A57" : "#14110F", deco: done[i] ? "line-through" : "none", act: to === "test" ? testOrder : to === "share" ? share : to === "app" ? () => { this.setState({ gotApp: true }); this.props.openApp && this.props.openApp(); } : go(to) })),
+      stTitle: paused ? "Paused" : "Open", stSub: paused ? `New orders paused · ${paused}` : "Today 11:00 – 22:00", stDot: paused ? "#FFC52E" : "#1F7A4D", stHalo: paused ? "#FFF0C2" : "#D5EEDD",
+      stBtn: paused ? "Resume orders" : "Pause orders", stBtnIcon: paused ? "play" : "pause", openPause: () => this.props.openPause && this.props.openPause(),
+      needs: needs.map(([sev, icon, title, sub, cta, to]) => ({ icon, title, sub, cta: this.props.lang === "ar" && cta === "Open" ? "فتح" : cta, bg: SEV[sev][0], ink: SEV[sev][1], go: to === "share" ? share : go(to) })),
+      needsCount: needs.length, needsEmpty: needs.length === 0,
+      kpiCols: mob ? "repeat(2,minmax(0,1fr))" : "repeat(auto-fit,minmax(min(170px,100%),1fr))", kpiGap: mob ? "12px" : "16px",
+      kpis: kpis.map((k, i) => ({ ...k, span: mob && kpis.length % 2 && i === kpis.length - 1 ? "1 / -1" : "auto" })),
+      goHours: go("hours"), goOrders: go("orders"), goHistory: go("history"), goAnalysis: go("analysis"), goCustomers: go("customers"), share, testOrder,
+      salesCaption: est ? p.label + " · " + money(p.sales) : few ? money(FEW.sales) + " so far" : "",
+      chartReady: est,
+      chartE: est ? null : few ? { icon: "chart-line", title: "Your sales chart is warming up", sub: `It fills in once you have ${NEED} orders, so the trend means something. Come back after a few more.`, ...prog(FEW.orders) }
+        : { icon: "chart-line", title: "Your first sale will show up here", sub: "Once orders come in, you'll see how sales move day by day.", cta: "Share your storefront", act: share },
+      linePath: d, areaPath: d + ` L100,100 L0,100 Z`,
+      yTicks: [4, 3, 2, 1, 0].map(i => ({ f: (4 - i) / 4, label: "$" + Math.round((max * i) / 4).toLocaleString("en-US") })),
+      xTicks: p.x.map((label, i) => ({ label, f: i / (p.x.length - 1) })),
+      hi, zones: p.pts.map((_, i) => ({ l: Math.max(0, xy[i][0] - zw / 2), w: i === 0 || i === n - 1 ? zw / 2 : zw, enter: () => st.hi !== i && this.setState({ hi: i }) })),
+      clearHi: () => st.hi != null && this.setState({ hi: null }),
+      orderCountLabel: nOrders === 1 ? "1 order" : nOrders + " orders", salesShort: "$" + Math.round(p.sales).toLocaleString("en-US"),
+      splitReady: est, splitE: est ? null : few ? { title: "Not enough orders yet", sub: `After ${NEED} orders you'll see which order types bring in the most.` } : { title: "No orders yet", sub: "You'll see how customers like to order: delivery, pickup or dine-in." },
+      donut: `conic-gradient(#FF4A1C 0 ${a}%, #FFC52E ${a}% ${a + b}%, #1F7A4D ${a + b}% 100%)`, channels,
+      chTip: st.ch ? { ...channels[st.ch.i], x: st.ch.x, y: st.ch.y } : null,
+      donutMove: (e) => {
+        const r = e.currentTarget.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, dx = x - r.width / 2, dy = y - r.height / 2;
+        if (Math.hypot(dx, dy) < 58) { if (st.ch) this.setState({ ch: null }); return; }
+        const pct = (((Math.atan2(dx, -dy) * 180) / Math.PI + 360) % 360) / 3.6;
+        this.setState({ ch: { i: pct < a ? 0 : pct < a + b ? 1 : 2, x: Math.round(x), y: Math.round(y) } });
+      },
+      donutLeave: () => st.ch && this.setState({ ch: null }),
+      live: est ? [
+        { id: 1048, status: "New", dot: "#FF4A1C", sub: "Rami K. · 3 items · Pickup", total: "$30.00", ago: "now", icon: "shopping-bag", bg: "#FFF0C2", ink: "#7A5300" },
+        { id: 1047, status: "New", dot: "#FF4A1C", sub: "Lina S. · 4 items · Delivery", total: "$52.00", ago: "2m ago", icon: "bike", bg: "#D5EEDD", ink: "#1F7A4D" },
+        { id: 1046, status: "New", dot: "#FF4A1C", sub: "Table 6 · 2 items · Dine-in", total: "$24.00", ago: "4m ago", icon: "utensils", bg: "#F4F4F3", ink: "#14110F" },
+        { id: 1045, status: "Preparing", dot: "#14110F", sub: "Maya R. · 3 items · Delivery", total: "$42.00", ago: "11m ago", icon: "bike", bg: "#D5EEDD", ink: "#1F7A4D" },
+      ] : [],
+      liveE: est ? null : few ? { img: "assets/bill/sleepy.webp", title: "No live orders right now", sub: "New orders show up here and on your Orders board the moment they arrive.", ctas: false }
+        : { img: "assets/bill/waving.webp", title: "No orders yet", sub: "Share your link to get your first order, or place a test order to see how it works.", ctas: true },
+      menuTabs: [["top", "Top sellers"], ["viewed", "Most viewed"]].map(([k, label]) => ({ label, bg: st.menuTab === k ? "#fff" : "transparent", sh: st.menuTab === k ? "0 1px 2px rgba(20,17,15,.12)" : "none", pick: () => this.setState({ menuTab: k }) })),
+      menuRows, menuE: menuReady ? null : isTop ? { icon: "flame", title: few ? "Best sellers need a few more orders" : "No best sellers yet", sub: few ? "Come back after a few more orders to see what customers love." : `Your best sellers appear after ${NEED} orders.`, ...(few ? prog(FEW.orders) : {}) }
+        : { icon: "eye", title: "No views yet", sub: "Once customers open your storefront, you'll see which items catch their eye." },
+      custReady: est, cust: { total: cTot.toLocaleString("en-US"), caption: `customers ordered ${p.word}`, ret: cRet + " · " + Math.round((cRet / cTot) * 100) + "%", fresh: (cTot - cRet) + " · " + Math.round(((cTot - cRet) / cTot) * 100) + "%", retW: (cRet / cTot) * 100 + "%" },
+      custE: est ? null : few ? { title: "3 customers, all new", sub: "You'll see who comes back once someone orders a second time." } : { title: "No customers yet", sub: "Everyone who orders shows up here, with how often they come back." },
+    };
+  }
+}
+</script>
+</body>
+</html>

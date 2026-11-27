@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<sc-if value="{{ isHours }}">
+<div data-screen-label="Opening hours" style="display:flex;flex-direction:column;gap:16px">
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Opening hours</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">When your storefront takes orders. Beirut time.</p></div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+    <div style="display:{{ hHeadD }};grid-template-columns:{{ hCols }};gap:12px 16px;align-items:center;padding:12px 20px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">
+      <span>Day</span><span>From</span><span>To</span><span></span><span style="text-align:end">Open</span>
+    </div>
+    <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+      <div style="display:grid;grid-template-columns:{{ hCols }};gap:12px 16px;align-items:center;min-height:68px;padding:10px 20px;border-top:1px solid #EAEAE8">
+        <b style="font-size:14px;font-weight:600;color:{{ d.ink }}">{{ d.name }}</b>
+        <sc-if value="{{ d.showTimes }}"><div style="display:{{ tWrapD }};grid-column:1 / -1;order:5;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+          <dc-import name="Dropdown" options="{{ timeOpts }}" value="{{ d.from }}" on-change="{{ d.onFrom }}" height="{{ 44 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import>
+          <dc-import name="Dropdown" options="{{ timeOpts }}" value="{{ d.to }}" on-change="{{ d.onTo }}" height="{{ 44 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import>
+        </div></sc-if>
+        <sc-if value="{{ d.is24 }}"><span style="grid-column:{{ tSpan }};order:{{ tOrder }};font-size:14px;color:#14110F">Open all day and night</span></sc-if>
+        <sc-if value="{{ d.isClosed }}"><span style="grid-column:{{ tSpan }};order:{{ tOrder }};font-size:14px;color:#5A5A57">Closed</span></sc-if>
+        <sc-if value="{{ d.canAll }}"><button onClick="{{ d.toggle24 }}" role="checkbox" aria-checked="{{ d.allAria }}" style="display:flex;align-items:center;gap:8px;height:44px;padding:0;border:0;background:none;cursor:pointer;font:inherit;font-size:14px;color:#14110F;white-space:nowrap"><span style="width:20px;height:20px;border-radius:6px;border:1.5px solid {{ d.allBd }};background:{{ d.allBg }};display:grid;place-items:center"><i class="icon-check" style="font-size:13px;color:#fff"></i></span>{{ allLabel }}</button></sc-if>
+        <sc-if value="{{ d.isClosed }}"><span></span></sc-if>
+        <span style="justify-self:end"><button onClick="{{ d.toggle }}" role="switch" aria-checked="{{ d.onAria }}" aria-label="Open" style="width:44px;height:26px;flex-shrink:0;border-radius:99px;border:0;padding:2px;cursor:pointer;background:{{ d.swBg }};display:flex;justify-content:{{ d.swJ }}"><span style="width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></button></span>
+      </div>
+    </sc-for>
+  </section>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:16px 20px"><span style="flex:1;min-width:200px"><b style="display:block;font-size:15px;font-weight:600">Special dates</b><span style="font-size:13px;color:#5A5A57">Close or change your hours on any day</span></span><button onClick="{{ addSpecial }}" style="height:40px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#F4F4F3"><i class="icon-plus" style="font-size:14px"></i>Add date</button></div>
+    <sc-for list="{{ specials }}" as="s" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:14px;padding:12px 20px;border-top:1px solid #EAEAE8"><span style="width:48px;height:52px;flex-shrink:0;background:#F4F4F3;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center"><b style="font-size:17px;font-weight:600;line-height:1">{{ s.d }}</b><span style="font-size:11px;font-weight:600;color:#5A5A57">{{ s.m }}</span></span><span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:600">{{ s.title }}</b><span style="font-size:13px;color:#5A5A57">{{ s.sub }}</span></span><button onClick="{{ s.edit }}" aria-label="Edit" data-tip="Edit" style="width:36px;height:36px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:#5A5A57" style-hover="background:#F4F4F3;color:#14110F"><i class="icon-pencil" style="font-size:15px"></i></button><button onClick="{{ s.del }}" aria-label="Remove" data-tip="Remove" style="width:36px;height:36px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:#5A5A57" style-hover="background:#F4F4F3;color:#14110F"><i class="icon-trash-2" style="font-size:15px"></i></button></div></sc-for>
+    <sc-if value="{{ noSpecials }}"><div style="padding:20px;border-top:1px solid #EAEAE8;font-size:14px;color:#5A5A57;text-align:center">No special dates. Your weekly hours apply every day.</div></sc-if>
+  </section>
+</div>
+<sc-if value="{{ sp }}">
+  <div onClick="{{ spClose }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:440px;display:flex;flex-direction:column;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1">{{ sp.title }}</b><button onClick="{{ spClose }}" aria-label="Close" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+        <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">Date<input type="date" value="{{ sp.date }}" onInput="{{ sp.onDate }}" style="height:44px;border:1px solid #DADAD7;border-radius:12px;padding:0 12px;font-size:{{ ui.fs }};font-weight:500"></label>
+        <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600"><span>Note <span style="font-weight:400;color:#5A5A57">optional, only you see it</span></span><input value="{{ sp.name }}" onInput="{{ sp.onName }}" placeholder="e.g. Staff day off" style="height:44px;border:1px solid #DADAD7;border-radius:12px;padding:0 12px;font-size:{{ ui.fs }};font-weight:500"></label>
+        <div role="radiogroup" style="display:flex;gap:2px;padding:3px;background:#F4F4F3;border-radius:12px">
+          <sc-for list="{{ sp.modes }}" as="m" hint-placeholder-count="2"><button role="radio" aria-checked="{{ m.on }}" onClick="{{ m.pick }}" style="flex:1;height:38px;border-radius:10px;border:0;cursor:pointer;font-size:14px;font-weight:600;color:#14110F;background:{{ m.bg }};box-shadow:{{ m.shadow }}">{{ m.label }}</button></sc-for>
+        </div>
+        <sc-if value="{{ sp.custom }}"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px"><div style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">From<dc-import name="Dropdown" options="{{ timeOpts }}" value="{{ sp.from }}" on-change="{{ sp.onFrom }}" height="{{ 44 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import></div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600">To<dc-import name="Dropdown" options="{{ timeOpts }}" value="{{ sp.to }}" on-change="{{ sp.onTo }}" height="{{ 44 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import></div></div></sc-if>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #EAEAE8"><button onClick="{{ spClose }}" style="height:44px;padding:0 18px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F3">Cancel</button><button onClick="{{ sp.save }}" style="height:44px;padding:0 22px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;opacity:{{ sp.op }}">Save</button></div>
+    </div>
+  </div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isDelivery }}">
+<div data-screen-label="Delivery" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px">
+    <div style="flex:1 1 260px;min-width:0"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Delivery</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57;text-wrap:pretty">How far you deliver, what it costs and how long it takes.</p></div>
+    <button onClick="{{ toggleDel }}" role="switch" aria-checked="{{ delOn }}" style="display:flex;align-items:center;gap:12px;height:48px;padding-block:0 0;padding-inline:14px 8px;border-radius:14px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;text-align:start" style-hover="border-color:#DADAD7">
+      <span style="display:flex;flex-direction:column;gap:1px"><b style="font-size:13px;font-weight:600;white-space:nowrap">Delivery orders</b><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5A57;white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ delDot }}"></span>{{ delLive }}</span></span>
+      <span style="width:40px;height:24px;flex-shrink:0;border-radius:99px;padding:2px;background:{{ delSw }};display:flex;justify-content:{{ delJ }};transition:background .15s"><span style="width:20px;height:20px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span>
+    </button>
+  </div>
+  <sc-if value="{{ needLoc }}">
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden;display:flex;flex-wrap:wrap;align-items:stretch">
+    <div style="flex:1 1 280px;min-height:240px;background:url(assets/beirut-map.jpg) center/cover;position:relative"><div style="position:absolute;inset:0;background:rgba(250,250,250,.6);backdrop-filter:grayscale(1)"></div><span style="position:absolute;left:50%;top:50%;width:64px;height:64px;margin-block:-32px 0;margin-inline:-32px 0;border-radius:99px;border:2px dashed #5A5A57;display:grid;place-items:center;background:rgba(255,255,255,.7)"><i class="icon-map-pin-off" style="font-size:22px;color:#5A5A57"></i></span></div>
+    <div style="flex:1.2 1 320px;padding:28px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px">
+      <span style="display:inline-flex;align-self:flex-start;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;background:#F4F4F3;font-size:12px;font-weight:600">Step 1 of 2</span>
+      <b style="font-size:20px;font-weight:600;letter-spacing:-0.01em">Add your store location first</b>
+      <span style="font-size:14px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Delivery zones are rings around your store, so we need to know where it is. Paste your Google Maps link in Store profile, then come back to set your zones.</span>
+      <button onClick="{{ goProfile }}" style="align-self:flex-start;margin-top:6px;height:44px;padding:0 18px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-map-pin" style="font-size:16px"></i>Add location in Store profile</button>
+    </div>
+  </section>
+  </sc-if>
+  <sc-if value="{{ hasLoc }}">
+  <div style="position:relative">
+  <sc-if value="{{ delOff }}">
+    <div style="position:absolute;inset:0;z-index:20;border-radius:14px;display:flex;align-items:flex-start;justify-content:center;padding-top:32px;animation:fadein .25s both">
+      <div style="position:sticky;top:88px;width:min(360px,calc(100% - 32px));background:#fff;border:1px solid #EAEAE8;border-radius:16px;box-shadow:0 12px 32px rgba(20,17,15,.12);padding:20px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+        <img src="assets/bill/sleepy.webp" alt="" style="width:80px;height:80px">
+        <b style="font-size:17px;font-weight:600">Delivery is off</b>
+        <span style="font-size:14px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Customers can't pick delivery right now. Your zones are saved for when you turn it back on.</span>
+        <button onClick="{{ toggleDel }}" style="margin-top:8px;height:44px;padding:0 20px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-bike" style="font-size:16px"></i>Turn on delivery</button>
+      </div>
+    </div>
+  </sc-if>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:grid;grid-template-columns:{{ delCols }};filter:{{ offFilter }};opacity:{{ offOp }};pointer-events:{{ offPe }};user-select:{{ offPe }};transition:filter .3s,opacity .3s" aria-hidden="{{ delOff }}">
+    <div style="position:{{ mapPos }};top:{{ mapTop }};align-self:start;height:{{ mapMinH }};background:url(assets/beirut-map.jpg) center/cover;border-bottom:{{ mapBorderB }};border-radius:{{ mapRadius }};overflow:hidden">
+      <sc-if value="{{ noZones }}"><div style="position:absolute;inset:0;z-index:1;background:rgba(244,244,243,.55);backdrop-filter:grayscale(1);-webkit-backdrop-filter:grayscale(1);pointer-events:none;animation:fadein .25s both"></div></sc-if>
+      <div style="position:absolute;z-index:2;left:50%;top:50%;width:{{ ringBox }};aspect-ratio:1;transform:translate(-50%,-50%)">
+        <sc-if value="{{ noZones }}"><span style="position:absolute;left:50%;top:50%;width:50%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed rgba(20,17,15,.35);background:rgba(255,255,255,.35)"></span></sc-if>
+        <sc-for list="{{ rings }}" as="r" hint-placeholder-count="3"><span style="position:absolute;left:50%;top:50%;width:{{ r.size }}%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:2px solid {{ r.stroke }};background:{{ r.fill }};z-index:{{ r.z }};transition:width .35s cubic-bezier(.32,.72,0,1),border-color .2s"></span><span style="position:absolute;left:50%;top:{{ r.labelTop }}%;z-index:11;transform:translate(-50%,-50%);height:22px;padding:0 8px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(20,17,15,.18);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:top .35s cubic-bezier(.32,.72,0,1)"><span style="width:6px;height:6px;border-radius:99px;background:{{ r.dot }}"></span>{{ r.km }} km</span></sc-for>
+        <span style="position:absolute;left:50%;top:50%;z-index:10;box-sizing:border-box;width:32px;height:32px;margin-block:-38.6px 0;margin-inline:-16px 0;border-radius:99px 99px 99px 0;transform:rotate(-45deg);background:#FF4A1C;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.25);display:grid;place-items:center"><span style="width:10px;height:10px;border-radius:99px;background:#fff"></span></span>
+      </div>
+      <div style="position:absolute;inset-inline-start:12px;inset-inline-end:12px;bottom:12px;z-index:12;display:flex;align-items:center;gap:10px;padding-block:8px 8px;padding-inline:12px 8px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(20,17,15,.15)">
+        <i class="icon-map-pin" style="font-size:16px;color:#FF4A1C;flex-shrink:0"></i>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hamra Street, Beirut</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Zones are measured from this pin</span></span>
+        <button onClick="{{ goProfile }}" style="height:32px;padding:0 12px;border-radius:9px;border:1px solid #DADAD7;background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="border-color:#5A5A57">Change</button>
+      </div>
+    </div>
+    <div style="min-width:0;display:flex;flex-direction:column;border-inline-start:{{ mapBorderR }};min-height:{{ mapMinH }}">
+      <div style="display:flex;align-items:center;gap:10px;padding-block:16px 16px;padding-inline:20px 16px;border-bottom:1px solid #EAEAE8"><span style="flex:1;display:flex;align-items:baseline;gap:8px"><b style="font-size:15px;font-weight:600">Zones</b><span style="font-size:13px;color:#5A5A57">{{ zCount }}</span></span><sc-if value="{{ hasZones }}"><button onClick="{{ addZone }}" disabled="{{ zFull }}" style="height:36px;padding:0 14px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;opacity:{{ zAddOp }}" style-hover="border-color:#5A5A57"><i class="icon-plus" style="font-size:14px"></i>Add zone</button></sc-if></div>
+      <sc-if value="{{ zIssue }}"><div role="alert" style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:#FFE6DE;color:#C2300B;font-size:13px;font-weight:500"><i class="icon-circle-alert" style="font-size:15px;flex-shrink:0"></i>{{ zIssue }}</div></sc-if>
+      <sc-if value="{{ noZones }}">
+        <div style="flex:1;padding:28px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center">
+          <img src="assets/bill/curious.webp" alt="" style="width:104px;height:104px;margin-bottom:2px">
+          <b style="font-size:16px;font-weight:600">Set where you deliver</b>
+          <span style="font-size:13px;color:#5A5A57;max-width:300px;line-height:1.5;text-wrap:pretty">Zones are rings around your store. Each one gets its own fee and delivery time, so far-away orders cost a bit more.</span>
+          <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;margin-top:8px">
+            <button onClick="{{ useStarter }}" style="height:44px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="icon-sparkles" style="font-size:16px"></i>Use 3 suggested zones</button>
+            <button onClick="{{ addZone }}" style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Start from scratch</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-for list="{{ zones }}" as="z" hint-placeholder-count="2">
+        <div style="border-bottom:1px solid #EAEAE8;background:{{ z.bg }};transition:background .15s">
+          <button onClick="{{ z.toggle }}" aria-expanded="{{ z.open }}" style="width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding-block:14px 14px;padding-inline:20px 16px;border:0;background:none;cursor:pointer;text-align:start" style-hover="background:#FAFAFA">
+            <span style="width:16px;height:32px;flex-shrink:0;display:grid;place-items:center"><span style="width:10px;height:10px;border-radius:99px;background:{{ z.color }}"></span></span>
+            <span style="min-width:0;display:flex;flex-direction:column;gap:6px">
+              <span style="display:flex;align-items:baseline;gap:6px"><b style="font-size:15px;font-weight:600;white-space:nowrap">Up to {{ z.km }} km</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap">from {{ z.from }} km</span></span>
+              <span style="display:flex;flex-wrap:wrap;gap:6px">
+                <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:7px;background:#F4F4F3;font-size:12px;font-weight:600;white-space:nowrap"><i class="icon-banknote" style="font-size:13px;color:#5A5A57"></i>{{ z.feeTxt }}</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:7px;background:#F4F4F3;font-size:12px;font-weight:600;white-space:nowrap"><i class="icon-timer" style="font-size:13px;color:#5A5A57"></i>{{ z.time }}</span>
+                <span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:7px;background:#F4F4F3;font-size:12px;font-weight:600;white-space:nowrap;color:{{ z.minInk }}"><i class="icon-shopping-basket" style="font-size:13px;color:#5A5A57"></i>{{ z.minTxt }}</span>
+              </span>
+            </span>
+            <span style="width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:#5A5A57"><i class="icon-{{ z.chevIcon }}" style="font-size:16px"></i></span>
+          </button>
+          <sc-if value="{{ z.open }}">
+            <div style="padding-block:0 18px;padding-inline:66px 20px;display:flex;flex-direction:column;gap:12px;animation:fadein .15s both">
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;min-width:0">Reaches up to<span style="display:flex;align-items:center;gap:2px;height:40px;padding:0 10px;border:1px solid #DADAD7;border-radius:10px;background:#fff"><input data-bare="" value="{{ z.km }}" onChange="{{ z.onKm }}" inputmode="decimal" style="flex:1;min-width:0;width:100%;height:100%;border:0;background:none;font-size:{{ ui.fs }};font-weight:400"><span style="color:#5A5A57;font-size:14px">km</span></span></label>
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;min-width:0">Delivery fee<span style="display:flex;align-items:center;gap:2px;height:40px;padding:0 10px;border:1px solid #DADAD7;border-radius:10px;background:#fff"><span style="color:#5A5A57;font-size:14px">$</span><input data-bare="" value="{{ z.fee }}" onChange="{{ z.onFee }}" inputmode="decimal" style="flex:1;min-width:0;width:100%;height:100%;border:0;background:none;font-size:{{ ui.fs }};font-weight:400"></span></label>
+                <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;min-width:0">Delivery time<dc-import name="Dropdown" options="{{ zTimeOpts }}" value="{{ z.time }}" on-change="{{ z.onTime }}" height="{{ 40 }}" weight="{{ 400 }}" font-size="14px" block="{{ true }}" hint-size="100%,40px"></dc-import></div>
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;min-width:0">Minimum order<span style="display:flex;align-items:center;gap:2px;height:40px;padding:0 10px;border:1px solid #DADAD7;border-radius:10px;background:#fff"><span style="color:#5A5A57;font-size:14px">$</span><input data-bare="" value="{{ z.min }}" onChange="{{ z.onMin }}" inputmode="decimal" placeholder="None" style="flex:1;min-width:0;width:100%;height:100%;border:0;background:none;font-size:{{ ui.fs }};font-weight:400"></span></label>
+              </div>
+              <sc-if value="{{ z.canDel }}"><button onClick="{{ z.del }}" style="align-self:flex-start;height:32px;padding:0 10px;margin-inline-start:-10px;border-radius:8px;border:0;background:none;color:#C2300B;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#FFE6DE"><i class="icon-trash-2" style="font-size:14px"></i>Remove zone</button></sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ hasZones }}"><div style="margin-top:auto;display:flex;align-items:flex-start;gap:8px;padding:14px 20px;background:#FAFAFA;font-size:13px;color:#5A5A57;line-height:1.45"><i class="icon-info" style="font-size:15px;flex-shrink:0;margin-top:1px"></i><span style="text-wrap:pretty">{{ beyond }}</span></div></sc-if>
+    </div>
+  </section>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPickup }}">
+<div data-screen-label="Pickup" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px">
+    <div style="flex:1 1 260px;min-width:0"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Pickup</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57;text-wrap:pretty">Customers order ahead and collect from your counter.</p></div>
+    <button onClick="{{ togglePick }}" role="switch" aria-checked="{{ pickOn }}" style="display:flex;align-items:center;gap:12px;height:48px;padding-block:0 0;padding-inline:14px 8px;border-radius:14px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;text-align:start" style-hover="border-color:#DADAD7">
+      <span style="display:flex;flex-direction:column;gap:1px"><b style="font-size:13px;font-weight:600;white-space:nowrap">Pickup orders</b><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5A57;white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ pickDot }}"></span>{{ pickLive }}</span></span>
+      <span style="width:40px;height:24px;flex-shrink:0;border-radius:99px;padding:2px;background:{{ pickOnBg }};display:flex;justify-content:{{ pickOnJ }};transition:background .15s"><span style="width:20px;height:20px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span>
+    </button>
+  </div>
+  <div style="position:relative">
+  <sc-if value="{{ pickOff }}">
+    <div style="position:absolute;inset:0;z-index:20;border-radius:14px;display:flex;align-items:flex-start;justify-content:center;padding:32px 0;animation:fadein .25s both">
+      <div style="position:sticky;top:88px;width:min(360px,calc(100% - 32px));background:#fff;border:1px solid #EAEAE8;border-radius:16px;box-shadow:0 12px 32px rgba(20,17,15,.12);padding:20px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+        <img src="assets/bill/sleepy.webp" alt="" style="width:80px;height:80px">
+        <b style="font-size:17px;font-weight:600">Pickup is off</b>
+        <span style="font-size:14px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Customers can't order ahead for pickup right now. Your settings are saved.</span>
+        <button onClick="{{ togglePick }}" style="margin-top:8px;height:44px;padding:0 20px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-shopping-bag" style="font-size:16px"></i>Turn on pickup</button>
+      </div>
+    </div>
+  </sc-if>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:grid;grid-template-columns:{{ pickCols }};filter:{{ pickG.filter }};opacity:{{ pickG.op }};pointer-events:{{ pickG.pe }};user-select:{{ pickG.pe }};transition:filter .3s,opacity .3s" aria-hidden="{{ pickOff }}">
+    <div style="position:relative;height:{{ pickMapH }};background:url(assets/beirut-map.jpg) center/cover;border-radius:{{ pickMapR }};border-bottom:{{ pickBorderT }};overflow:hidden">
+      <span style="position:absolute;left:50%;top:50%;z-index:2;box-sizing:border-box;width:32px;height:32px;margin-block:-38.6px 0;margin-inline:-16px 0;border-radius:99px 99px 99px 0;transform:rotate(-45deg);background:#FF4A1C;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.25);display:grid;place-items:center"><span style="width:10px;height:10px;border-radius:99px;background:#fff"></span></span>
+      <div style="position:absolute;inset-inline-start:12px;inset-inline-end:12px;bottom:12px;z-index:3;display:flex;align-items:center;gap:10px;padding-block:8px 8px;padding-inline:12px 8px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(20,17,15,.15)">
+        <i class="icon-map-pin" style="font-size:16px;color:#FF4A1C;flex-shrink:0"></i>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hamra Street, Beirut</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Customers collect their order here</span></span>
+        <button onClick="{{ goProfile }}" style="height:32px;padding:0 12px;border-radius:9px;border:1px solid #DADAD7;background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="border-color:#5A5A57">Change</button>
+      </div>
+    </div>
+    <div style="min-width:0;display:flex;flex-direction:column;border-inline-start:{{ pickBorderL }}">
+      <div style="display:flex;flex-direction:column;gap:2px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600">Preparation time</b><span style="font-size:13px;color:#5A5A57">How long until an order is ready to collect. Shown at checkout.</span></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+        <label style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:500">Ready in
+          <span style="display:flex;align-items:center;gap:8px;width:160px;height:52px;padding:0 14px;border:1px solid #DADAD7;border-radius:12px;background:#fff"><input data-bare="" value="{{ pickFrom }}" onChange="{{ onPickFrom }}" inputmode="numeric" placeholder="15" aria-label="Preparation time in minutes" style="flex:1;min-width:0;width:100%;height:100%;border:0;background:none;font-size:22px;font-weight:600"><span style="font-size:15px;color:#5A5A57;font-weight:500">min</span></span>
+        </label>
+        <sc-if value="{{ pickIssue }}"><div role="alert" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:#FFE6DE;color:#C2300B;font-size:13px;font-weight:500"><i class="icon-circle-alert" style="font-size:15px;flex-shrink:0"></i>{{ pickIssue }}</div></sc-if>
+        <sc-if value="{{ pickOk }}"><span style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5A5A57"><i class="icon-shopping-bag" style="font-size:15px"></i>Customers see: <b style="color:#14110F;font-weight:600">Ready in about {{ pickFrom }} min</b></span></sc-if>
+      </div>
+    </div>
+  </section>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDinein }}">
+<div data-screen-label="Dine-in" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px">
+    <div style="flex:1 1 260px;min-width:0"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Dine-in</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57;text-wrap:pretty">Guests scan the QR code on their table and order from their phone.</p></div>
+    <button onClick="{{ toggleDine }}" role="switch" aria-checked="{{ dineOn }}" style="display:flex;align-items:center;gap:12px;height:48px;padding-block:0 0;padding-inline:14px 8px;border-radius:14px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;text-align:start" style-hover="border-color:#DADAD7">
+      <span style="display:flex;flex-direction:column;gap:1px"><b style="font-size:13px;font-weight:600;white-space:nowrap">Dine-in orders</b><span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5A57;white-space:nowrap"><span style="width:6px;height:6px;border-radius:99px;background:{{ dineDot }}"></span>{{ dineLive }}</span></span>
+      <span style="width:40px;height:24px;flex-shrink:0;border-radius:99px;padding:2px;background:{{ dineOnBg }};display:flex;justify-content:{{ dineOnJ }};transition:background .15s"><span style="width:20px;height:20px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span>
+    </button>
+  </div>
+  <div style="position:relative">
+  <sc-if value="{{ dineOff }}">
+    <div style="position:absolute;inset:0;z-index:20;border-radius:14px;display:flex;align-items:flex-start;justify-content:center;padding:32px 0;animation:fadein .25s both">
+      <div style="position:sticky;top:88px;width:min(360px,calc(100% - 32px));background:#fff;border:1px solid #EAEAE8;border-radius:16px;box-shadow:0 12px 32px rgba(20,17,15,.12);padding:20px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+        <img src="assets/bill/sleepy.webp" alt="" style="width:80px;height:80px">
+        <b style="font-size:17px;font-weight:600">Dine-in is off</b>
+        <span style="font-size:14px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Guests can't order from their table right now. Your tables and QR codes still work once you turn it back on.</span>
+        <button onClick="{{ toggleDine }}" style="margin-top:8px;height:44px;padding:0 20px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-utensils" style="font-size:16px"></i>Turn on dine-in</button>
+      </div>
+    </div>
+  </sc-if>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;filter:{{ dineG.filter }};opacity:{{ dineG.op }};pointer-events:{{ dineG.pe }};user-select:{{ dineG.pe }};transition:filter .3s,opacity .3s" aria-hidden="{{ dineOff }}">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-block:14px 14px;padding-inline:20px 16px;border-bottom:1px solid #EAEAE8">
+      <span style="flex:1;display:flex;align-items:baseline;gap:8px"><b style="font-size:15px;font-weight:600">Tables</b><span style="font-size:13px;color:#5A5A57">{{ tableCountTxt }}</span></span>
+      <sc-if value="{{ hasTables }}">
+        <button onClick="{{ printAll }}" style="height:36px;padding:0 14px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="border-color:#5A5A57"><i class="icon-printer" style="font-size:14px"></i>Print all QR codes</button>
+        <button onClick="{{ addTable }}" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#14110F;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="icon-plus" style="font-size:14px"></i>Add table</button>
+      </sc-if>
+    </div>
+    <sc-if value="{{ hasTables }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(176px,100%),1fr));gap:12px">
+        <sc-for list="{{ tables }}" as="t" hint-placeholder-count="6">
+          <div style="border:1px solid #EAEAE8;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;animation:rise .25s cubic-bezier(.22,1,.36,1) both" style-hover="border-color:#DADAD7">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:#5A5A57">Table</span><b style="font-size:28px;font-weight:700;line-height:1;letter-spacing:-0.02em">{{ t.n }}</b></span>
+              <button onClick="{{ t.del }}" aria-label="Remove table {{ t.n }}" data-tip="Remove" style="width:32px;height:32px;border-radius:9px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:#5A5A57" style-hover="background:#FFE6DE;color:#C2300B"><i class="icon-trash-2" style="font-size:15px"></i></button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <button onClick="{{ t.qr }}" style="height:36px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap" style-hover="border-color:#5A5A57"><i class="icon-qr-code" style="font-size:14px"></i>QR</button>
+              <button onClick="{{ t.copy }}" style="height:36px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap" style-hover="border-color:#5A5A57"><i class="icon-link" style="font-size:14px"></i>Link</button>
+            </div>
+          </div>
+        </sc-for>
+        <button onClick="{{ addTable }}" style="min-height:124px;border:1.5px dashed #DADAD7;border-radius:14px;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:#5A5A57" style-hover="border-color:#14110F;color:#14110F"><i class="icon-plus" style="font-size:20px"></i>Add table</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noTables }}">
+      <div style="padding:36px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+        <img src="assets/bill/curious.webp" alt="" style="width:104px;height:104px;margin-bottom:2px">
+        <b style="font-size:16px;font-weight:600">Add your tables</b>
+        <span style="font-size:13px;color:#5A5A57;max-width:320px;line-height:1.5;text-wrap:pretty">Each table gets its own QR code. Guests scan it, order from their phone, and the order lands on your board with the table number.</span>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px">
+          <button onClick="{{ addSix }}" style="height:44px;padding:0 18px;border-radius:12px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-sparkles" style="font-size:16px"></i>Add 6 tables</button>
+          <button onClick="{{ addTable }}" style="height:44px;padding:0 18px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Add one table</button>
+        </div>
+      </div>
+    </sc-if>
+  </section>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ qr }}">
+  <div onClick="{{ closeQr }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" role="dialog" aria-modal="true" aria-label="Table QR code" style="position:relative;width:100%;max-width:380px;background:#fff;border-radius:{{ ui.radius }};padding:24px;display:flex;flex-direction:column;align-items:stretch;gap:16px;animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto">
+      <button onClick="{{ closeQr }}" aria-label="Close" style="position:absolute;top:14px;inset-inline-end:14px;width:36px;height:36px;border-radius:12px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-x" style="font-size:18px"></i></button>
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding-inline-end:40px"><b style="font-size:18px;font-weight:600;white-space:nowrap">Table {{ qr }}</b><span style="font-size:13px;color:#5A5A57">Print it and place it on the table.</span></div>
+      <div style="flex-shrink:0;align-self:center;padding:16px;border-radius:16px;border:1px solid #EAEAE8;background:#fff"><img src="assets/qr-code.svg" alt="QR code for table {{ qr }}" style="width:180px;height:180px;display:block"></div>
+      <span style="flex-shrink:0;align-self:center;font-size:13px;color:#5A5A57;white-space:nowrap">dinelabs.co/blockparty?table={{ qr }}</span>
+      <div style="flex-shrink:0;display:flex;gap:8px;width:100%"><button onClick="{{ printQr }}" style="flex:1;height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="border-color:#5A5A57"><i class="icon-printer" style="font-size:15px"></i>Print</button><button onClick="{{ dlQr }}" style="flex:1;height:44px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="icon-download" style="font-size:15px"></i>Download</button></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const H0 = [["open", [["11:00", "22:00"]]], ["open", [["11:00", "22:00"]]], ["open", [["11:00", "22:00"]]], ["open", [["11:00", "22:00"]]], ["open", [["11:00", "01:00"]]], ["24h", [["11:00", "23:00"]]], ["closed", [["11:00", "22:00"]]]].map(([mode, shifts]) => ({ mode, shifts }));
+const T12 = (m) => { m = ((m % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`; };
+const HM = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+const TIME_OPTS = Array.from({ length: 48 }, (_, k) => k * 30).map(m => `${HM(m)}=${T12(m)}`).join("|");
+const OPEN_OPTS = "closed=Closed|24h=Open 24 hours|" + Array.from({ length: 40 }, (_, k) => 300 + k * 30).map(m => `${HM(m)}=Opens ${T12(m)}`).join("|");
+const toM = (x) => { const [h, m] = x.split(":").map(Number); return h * 60 + m; };
+const hrs = (a, b) => { const [h1, m1] = a.split(":").map(Number), [h2, m2] = b.split(":").map(Number); let d = (h2 * 60 + m2 - h1 * 60 - m1) / 60; if (d < 0) d += 24; return d; };
+const TIMES = ["15–25 min","20–30 min","25–40 min","30–45 min","35–50 min","45–60 min","60–90 min"];
+const STARTER = [{ km: "3", fee: "2.00", min: "", time: "20–30 min" }, { km: "6", fee: "3.50", min: "15", time: "30–45 min" }, { km: "10", fee: "5.00", min: "25", time: "45–60 min" }];
+const SEATS = [2, 4, 4, 6, 2, 4, 8, 2];
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  delVals() {
+    const st = this.state, zs = st.zones;
+    const COL = ["#FF4A1C", "#FF7A52", "#FFA585", "#FFC4B0", "#FFDCCF"];
+    const upd = (i, k, v) => this.setState(s => ({ zones: s.zones.map((z, j) => j === i ? { ...z, [k]: v } : z) }));
+    const maxKm = Math.max(...zs.map(z => +z.km || 0), 1);
+    const sw = on => ({ on, bg: on ? "#14110F" : "#DADAD7", j: on ? "flex-end" : "flex-start" });
+    const f2 = v => "$" + (+v || 0).toFixed(2);
+    return {
+      zTimeOpts: TIMES.map(t => ({ value: t, label: t })),
+      rings: zs.map((z, i) => { const size = ((+z.km || 0) / maxKm) * 96; return { size, km: z.km, dot: COL[i], labelTop: 50 - size / 2, stroke: st.zOpen === i ? "#14110F" : COL[i], fill: COL[i] + "26", z: 9 - i }; }),
+      delCols: this.props.mobile ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(340px,1fr)", mapMinH: this.props.mobile ? "340px" : "480px", mapPos: this.props.mobile ? "relative" : "sticky", mapTop: this.props.mobile ? "0" : "72px", mapRadius: this.props.mobile ? "13px 13px 0 0" : "13px 0 0 13px", ringBox: this.props.mobile ? "min(78%,220px)" : "min(80%,340px)",
+      mapBorderR: this.props.mobile ? "0" : "1px solid #EAEAE8", mapBorderB: this.props.mobile ? "1px solid #EAEAE8" : "0",
+      zones: zs.map((z, i) => { const from = i ? zs[i - 1].km : 0, open = st.zOpen === i;
+        return { ...z, n: i + 1, from, color: COL[i], tint: COL[i] + "22", open, bg: open ? "#FAFAFA" : "#fff", chevIcon: open ? "chevron-up" : "pencil",
+          feeTxt: (+z.fee ? f2(z.fee) : "Free") + " fee", minTxt: +z.min ? "Min " + f2(z.min) : "No minimum", minInk: +z.min ? "#14110F" : "#5A5A57", range: `${from}–${z.km} km`,
+          summary: [f2(z.fee) + " fee", z.time, +z.min ? "min " + f2(z.min) : ""].filter(Boolean).join(" · "), canDel: true,
+          toggle: () => this.setState({ zOpen: open ? null : i }), onKm: e => upd(i, "km", e.target.value.replace(/[^\d.]/g, "")), onFee: e => upd(i, "fee", e.target.value.replace(/[^\d.]/g, "")),
+          onMin: e => upd(i, "min", e.target.value.replace(/[^\d.]/g, "")), onTime: e => upd(i, "time", e.target.value),
+          del: () => { this.setState(s => ({ zones: s.zones.filter((_, j) => j !== i), zOpen: null })); this.t("Zone removed"); } }; }),
+      zIssue: (() => { for (let i = 0; i < zs.length; i++) { const k = +zs[i].km || 0; if (!k) return `Zone ${i + 1} needs a distance.`; if (i && k <= (+zs[i - 1].km || 0)) return `Zone ${i + 1} must reach further than zone ${i} (${zs[i - 1].km} km).`; } return ""; })(),
+      noZones: zs.length === 0, hasZones: zs.length > 0,
+      useStarter: () => { this.setState({ zones: STARTER.map(z => ({ ...z })), zOpen: null, del: true }); this.t("3 zones added. Delivery is on."); },
+      zFull: zs.length >= 5, zAddOp: zs.length >= 5 ? 0.4 : 1,
+      addZone: () => { if (zs.length >= 5) return; const last = zs[zs.length - 1]; this.setState(s => ({ zones: [...s.zones, last ? { km: String((+last.km || 0) + 3), fee: ((+last.fee || 0) + 1.5).toFixed(2), min: last.min, time: TIMES[Math.min(TIMES.length - 1, TIMES.indexOf(last.time) + 1)] } : { km: "3", fee: "2.00", min: "", time: "20–30 min" }], zOpen: s.zones.length })); },
+      goPromos: () => this.props.go && this.props.go("promotions"), goProfile: () => this.props.go && this.props.go("profile"), zCount: zs.length ? `${zs.length} of 5` : "",
+      beyond: `Beyond ${maxKm} km, customers can only order pickup.`,
+    };
+  }
+  state = { hours: H0, specials: [{ id: 1, date: "2026-11-22", name: "Independence Day", closed: false, from: "14:00", to: "23:00" }, { id: 2, date: "2026-12-02", name: "", closed: true, from: "11:00", to: "22:00" }], sp: null,
+    del: true, zones: [{ km: "3", fee: "2.00", min: "", time: "20–30 min" }, { km: "6", fee: "3.50", min: "15", time: "30–45 min" }, { km: "10", fee: "5.00", min: "25", time: "45–60 min" }], zOpen: null,
+    pick: true, pf: "15", pt: "20", dine: true, tables: [1, 2, 3, 4, 5, 6], tab: 0, qr: null };
+  t(m) { this.props.toast && this.props.toast(m); }
+  componentDidMount() { if (this.props.newUser) this.setState({ zones: [], del: false }); }
+  componentDidUpdate(pp) { if (pp.newUser !== this.props.newUser) this.setState(this.props.newUser ? { zones: [], del: false, zOpen: null } : { zones: STARTER.map(z => ({ ...z })), del: true }); }
+  renderVals() {
+    const st = this.state, scr = this.props.screen;
+    const setH = (i, v) => this.setState(s => ({ hours: s.hours.map((h, j) => j === i ? v : h) }));
+    const dayHrs = (h) => h.mode === "24h" ? 24 : h.mode === "open" ? h.shifts.reduce((a, [f, to]) => a + hrs(f, to), 0) : 0;
+    const openDays = st.hours.filter(h => h.mode !== "closed").length, total = st.hours.reduce((a, h) => a + dayHrs(h), 0);
+    const now = new Date(), today = (now.getDay() + 6) % 7, nowM = now.getHours() * 60 + now.getMinutes();
+    const th = st.hours[today], openNow = th.mode === "24h" || (th.mode === "open" && th.shifts.some(([f, to]) => { const a = toM(f), b = toM(to); return b > a ? nowM >= a && nowM < b : nowM >= a || nowM < b; }));
+    const curShift = th.mode === "open" ? th.shifts.find(([f, to]) => { const a = toM(f), b = toM(to); return b > a ? nowM >= a && nowM < b : nowM >= a || nowM < b; }) : null;
+    const nextShift = th.mode === "open" ? th.shifts.find(([f]) => toM(f) > nowM) : null;
+    const sw = (on) => [on ? "#14110F" : "#DADAD7", on ? "flex-end" : "flex-start"];
+    return {
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile, dayW: this.props.mobile ? "100%" : "150px",
+      isHours: scr === "hours", isDelivery: scr === "delivery", isPickup: scr === "pickup", isDinein: scr === "dinein",
+      copyMonday: () => { const m0 = st.hours[0]; this.setState(s => ({ hours: s.hours.map(() => ({ mode: m0.mode, shifts: m0.shifts.map(p => [...p]) })) })); this.t("Monday's hours copied to every day"); },
+      weekSummary: `${openDays} of 7 days · ${Math.round(total)} hrs a week`,
+      nowLabel: openNow ? (th.mode === "24h" ? "Open now · 24 hours" : `Open now · until ${curShift[1]}`) : nextShift ? `Closed · opens ${nextShift[0]}` : "Closed now",
+      nowBg: openNow ? "#D5EEDD" : "#F4F4F3", nowInk: openNow ? "#1F7A4D" : "#5A5A57", nowDot: openNow ? "#1F7A4D" : "#9A9A96",
+      hrsCols: this.props.mobile ? "minmax(0,1fr) auto" : "110px auto minmax(0,1fr) 32px",
+      hCols: this.props.mobile ? "minmax(0,1fr) max-content 44px" : "120px minmax(0,200px) minmax(0,200px) minmax(max-content,1fr) 44px", hHeadD: this.props.mobile ? "none" : "grid", tWrapD: this.props.mobile ? "grid" : "contents", tSpan: this.props.mobile ? "1 / -1" : "span 2", tOrder: this.props.mobile ? 5 : 0, allLabel: this.props.mobile ? "24h" : "24 hours",
+      timeOpts: TIME_OPTS,
+      days: DAYS.map((name, i) => { const h = st.hours[i], sh = h.shifts[0] || ["11:00", "22:00"], open = h.mode !== "closed", all = h.mode === "24h";
+        return { name: this.props.mobile ? name.slice(0, 3) : name, ink: open ? "#14110F" : "#5A5A57", from: sh[0], to: sh[1],
+          showTimes: h.mode === "open", is24: all, isClosed: !open, canAll: open,
+          onFrom: (ev) => setH(i, { ...h, shifts: [[ev.target.value, sh[1]]] }), onTo: (ev) => setH(i, { ...h, shifts: [[sh[0], ev.target.value]] }),
+          allAria: all ? "true" : "false", allBg: all ? "#14110F" : "#fff", allBd: all ? "#14110F" : "#C9C9C5", toggle24: () => setH(i, { ...h, mode: all ? "open" : "24h" }),
+          onAria: open ? "true" : "false", swBg: open ? "#14110F" : "#DADAD7", swJ: open ? "flex-end" : "flex-start",
+          toggle: () => setH(i, { ...h, mode: open ? "closed" : (h.prev || "open"), prev: open ? h.mode : undefined }) }; }),
+      specials: [...st.specials].sort((a, b) => a.date < b.date ? -1 : 1).map(x => { const dt = new Date(x.date + "T12:00:00");
+        return { d: String(dt.getDate()), m: dt.toLocaleString("en-US", { month: "short" }).toUpperCase(), title: x.closed ? "Closed" : `${T12(toM(x.from))} – ${T12(toM(x.to))}`,
+          sub: [dt.toLocaleString("en-US", { weekday: "long", day: "numeric", month: "long" }), x.name].filter(Boolean).join(" · "),
+          edit: () => this.setState({ sp: { ...x } }), del: () => { this.setState(s => ({ specials: s.specials.filter(y => y.id !== x.id) })); this.t("Special date removed"); } }; }),
+      noSpecials: !st.specials.length,
+      addSpecial: () => this.setState({ sp: { id: null, date: "", name: "", closed: true, from: "11:00", to: "22:00" } }),
+      spClose: () => this.setState({ sp: null }), stop: (e) => e.stopPropagation(),
+      sp: st.sp ? (() => { const p = st.sp, setP = (x) => this.setState(s => ({ sp: { ...s.sp, ...x } }));
+        return { title: p.id ? "Edit special date" : "Add special date", date: p.date, name: p.name, from: p.from, to: p.to, custom: !p.closed, op: p.date ? 1 : 0.5,
+          onDate: (e) => setP({ date: e.target.value }), onName: (e) => setP({ name: e.target.value }), onFrom: (e) => setP({ from: e.target.value }), onTo: (e) => setP({ to: e.target.value }),
+          modes: [[true, "Closed all day"], [false, "Different hours"]].map(([v, label]) => ({ label, on: p.closed === v ? "true" : "false", bg: p.closed === v ? "#fff" : "transparent", shadow: p.closed === v ? "0 1px 2px rgba(20,17,15,.08)" : "none", pick: () => setP({ closed: v }) })),
+          save: () => { if (!p.date) return this.t("Pick a date"); this.setState(s => ({ sp: null, specials: p.id ? s.specials.map(y => y.id === p.id ? p : y) : [...s.specials, { ...p, id: Date.now() }] })); this.t(p.id ? "Special date saved" : "Special date added"); } }; })() : null,
+      ...this.delVals(),
+      needLoc: this.props.hasLocation === false, hasLoc: this.props.hasLocation !== false,
+      delOn: st.del && st.zones.length > 0 && this.props.hasLocation !== false,
+      delOff: !st.del && st.zones.length > 0 && this.props.hasLocation !== false,
+      offFilter: !st.del && st.zones.length > 0 ? "grayscale(1)" : "none", offOp: !st.del && st.zones.length > 0 ? 0.45 : 1, offPe: !st.del && st.zones.length > 0 ? "none" : "auto",
+      delSub: this.props.hasLocation === false ? "Add your store location, then set your zones." : st.zones.length ? "Customers inside your zones can choose delivery at checkout." : "Set up at least one zone below to start taking delivery orders.",
+      delLive: this.props.hasLocation === false ? "Needs location" : !st.zones.length ? "Needs a zone" : st.del ? "Live on storefront" : "Off", delDot: !st.zones.length ? "#C28A00" : st.del ? "#1F7A4D" : "#5A5A57", delSw: sw(st.del && st.zones.length > 0)[0], delJ: sw(st.del && st.zones.length > 0)[1],
+      toggleDel: () => { if (this.props.hasLocation === false) return this.t("Add your store location first"); if (!st.zones.length) return this.t("Add at least one zone to turn on delivery"); this.setState({ del: !st.del }); this.t(st.del ? "Delivery is off" : "Delivery is on"); },
+      ...(() => { const grey = (off) => ({ filter: off ? "grayscale(1)" : "none", op: off ? 0.45 : 1, pe: off ? "none" : "auto" }); const mob = !!this.props.mobile;
+        const pf = +st.pf || 0, pt = +st.pt || 0;
+        return {
+          pickOn: st.pick, pickOnBg: sw(st.pick)[0], pickOnJ: sw(st.pick)[1], pickDot: st.pick ? "#1F7A4D" : "#5A5A57", pickLive: st.pick ? "Live on storefront" : "Off", pickOff: !st.pick, pickG: grey(!st.pick),
+          togglePick: () => { this.setState({ pick: !st.pick }); this.t(st.pick ? "Pickup is off" : "Pickup is on"); },
+          pickCols: mob ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(340px,1fr)", pickMapH: mob ? "260px" : "100%", pickMapR: mob ? "13px 13px 0 0" : "13px 0 0 13px", pickBorderL: mob ? "0" : "1px solid #EAEAE8", pickBorderT: mob ? "1px solid #EAEAE8" : "0",
+          pickSideR: mob ? "0 0 13px 13px" : "0 13px 13px 0", pickFootR: mob ? "0" : "0 0 0 13px",
+          pickFrom: st.pf, onPickFrom: (e) => this.setState({ pf: e.target.value.replace(/\D/g, "").slice(0, 3) }),
+          pickIssue: !pf ? "Add how many minutes an order takes." : pf > 180 ? "Keep it under 3 hours." : "", pickOk: pf > 0 && pf <= 180,
+          dineOn: st.dine, dineOnBg: sw(st.dine)[0], dineOnJ: sw(st.dine)[1], dineDot: st.dine ? "#1F7A4D" : "#5A5A57", dineLive: st.dine ? "Live on storefront" : "Off", dineOff: !st.dine, dineG: grey(!st.dine),
+          toggleDine: () => { this.setState({ dine: !st.dine }); this.t(st.dine ? "Dine-in is off" : "Dine-in is on"); },
+          hasTables: st.tables.length > 0, noTables: st.tables.length === 0, tableCountTxt: st.tables.length ? st.tables.length + (st.tables.length === 1 ? " table" : " tables") : "",
+          addSix: () => { this.setState({ tables: [1, 2, 3, 4, 5, 6] }); this.t("6 tables added, each with its own QR code"); },
+          printAll: () => this.t(`Printing ${st.tables.length} QR codes`),
+        }; })(),
+      tableCount: st.tables.length,
+      dineTabs: ["Tables", "Floor plan"].map((label, i) => ({ label, pick: () => this.setState({ tab: i }), bg: st.tab === i ? "#fff" : "transparent", color: st.tab === i ? "#14110F" : "#14110F", shadow: st.tab === i ? "0 1px 3px rgba(0,0,0,.08)" : "none" })),
+      showList: true,
+      tables: st.tables.map((n, i) => ({ n, short: `?table=${n}`, seats: SEATS[(n - 1) % 8], shape: SEATS[(n - 1) % 8] > 4 ? "16px" : "99px", link: `dinelabs.co/blockparty?table=${n}`,
+        copy: () => this.t(`Table ${n} link copied`), qr: () => this.setState({ qr: n }), del: () => { this.setState(s => ({ tables: s.tables.filter(x => x !== n) })); this.t(`Table ${n} removed`); } })),
+      addTable: () => { const n = Math.max(0, ...st.tables) + 1; this.setState(s => ({ tables: [...s.tables, n] })); this.t(`Table ${n} added`); },
+      qr: st.qr, closeQr: () => this.setState({ qr: null }), printQr: () => { this.t(`Printing table ${st.qr} QR code`); this.setState({ qr: null }); }, dlQr: () => { this.t(`Table ${st.qr} QR code downloaded`); this.setState({ qr: null }); }, stop: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

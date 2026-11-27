@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Baloo+Bhaijaan+2:wght@400;600;700&family=Amiri:wght@400;700&family=Rubik:wght@400;600;800&display=swap">
+</helmet>
+<sc-if value="{{ isBranches }}">
+<div data-screen-label="Branches" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Branches</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Every Block Party location. Open one to manage it.</p></div>
+    <button onClick="{{ openRequest }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-plus" style="font-size:16px"></i>Add branch</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px">
+    <sc-for list="{{ branches }}" as="b" hint-placeholder-count="3">
+      <div onClick="{{ b.open }}" role="button" tabindex="0" style="background:#fff;border:1px solid {{ b.border }};border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;cursor:pointer;transition:border-color .12s,box-shadow .12s" style-hover="border-color:#DADAD7;box-shadow:0 1px 2px rgba(20,17,15,.06),0 4px 12px rgba(20,17,15,.06)">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:14px;background:url(assets/dishes.jpg) 0 0/1000% 100%;border:1px solid #EAEAE8"></span><span style="flex:1"><b style="display:block;font-size:16px;font-weight:600">{{ b.name }}</b><span style="font-size:13px;color:#5A5A57">{{ b.area }}</span></span><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:{{ b.stBg }};color:{{ b.stInk }}"><span style="width:6px;height:6px;border-radius:99px;background:{{ b.stDot }}"></span>{{ b.status }}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px"><div style="background:#FAFAFA;border-radius:10px;padding:10px 12px"><span style="color:#5A5A57">Orders today</span><b style="display:block;font-size:18px;font-weight:600">{{ b.orders }}</b></div><div style="background:#FAFAFA;border-radius:10px;padding:10px 12px"><span style="color:#5A5A57">Plan</span><b style="display:block;font-size:14px;font-weight:600;margin-top:3px;color:#7A5300">{{ b.plan }}</b></div></div>
+        <span style="height:40px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px">{{ b.cta }}<i class="icon-arrow-right" style="font-size:14px"></i></span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+
+<sc-if value="{{ isBranding }}">
+<div ref="{{ rootRef }}" data-screen-label="Branding" style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Branding</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57;text-wrap:pretty">How your storefront looks to customers. Applies to all 3 branches.</p><sc-if value="{{ mixedBrand }}"><p style="margin:6px 0 0;font-size:13px;color:#7A5300;display:flex;gap:6px;align-items:center"><i class="icon-info" style="font-size:14px"></i>Hamra is not on Premium, so it shows your logo only. Premium branches show full branding.</p></sc-if></div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+      <span style="display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;background:{{ stBg }};color:{{ stInk }}"><span style="width:6px;height:6px;border-radius:99px;background:{{ stDot }}"></span>{{ stLabel }}</span>
+      <sc-if value="{{ dirty }}"><button onClick="{{ discard }}" style="height:{{ discH }};padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Discard</button></sc-if>
+      <sc-if value="{{ wide }}"><button onClick="{{ publish }}" disabled="{{ clean }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:{{ pubBg }};color:{{ pubInk }};font-size:14px;font-weight:600;cursor:{{ pubCursor }};display:flex;align-items:center;gap:8px;transition:background .15s"><i class="icon-{{ pubIcon }}" style="font-size:16px"></i>{{ pubLabel }}</button></sc-if>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ cols }};gap:20px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:14px 20px;border-bottom:1px solid #EAEAE8;min-height:56px"><i class="icon-building-2" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Brand</b></div>
+        <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:14px">
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Brand name<input value="{{ brandName }}" onChange="{{ setBrandName }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Business type<dc-import name="Dropdown" options="{{ kindOpts }}" value="{{ kind }}" on-change="{{ setKind }}" height="{{ 44 }}" weight="{{ 400 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import></label>
+        </div>
+        <p style="margin:0;padding:0 20px 16px;font-size:12px;color:#5A5A57;text-wrap:pretty">Applies to every branch. Renaming the brand doesn't change your store links.</p>
+      </section>
+      <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:14px 20px;border-bottom:1px solid #EAEAE8;min-height:56px"><i class="icon-image" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Logo and cover</b></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid #EAEAE8">
+          <span style="width:56px;height:56px;flex-shrink:0;border-radius:14px;background:url(assets/dishes.jpg) 0 0/1000% 100%;box-shadow:inset 0 0 0 1px rgba(20,17,15,.08)"></span>
+          <span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:600">Logo</b><span style="font-size:13px;color:#5A5A57">Square PNG or JPG, at least 512 px.</span></span>
+          <button onClick="{{ changeLogo }}" style="height:36px;padding:0 14px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Replace</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 20px">
+          <span style="width:56px;height:56px;flex-shrink:0;border-radius:14px;background:url(assets/dishes.jpg) 35% 50%/320% auto;box-shadow:inset 0 0 0 1px rgba(20,17,15,.08);opacity:{{ coverOp }};transition:opacity .2s"></span>
+          <span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:600">Cover photo</b><span style="font-size:13px;color:#5A5A57">Wide banner above your logo.</span></span>
+          <sc-if value="{{ cover }}"><button onClick="{{ changeCover }}" style="height:36px;padding:0 14px;border-radius:10px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="border-color:#5A5A57">Replace</button></sc-if>
+          <button onClick="{{ toggleCover }}" role="switch" aria-checked="{{ cover }}" aria-label="Show cover photo" style="width:44px;height:26px;flex-shrink:0;border-radius:99px;border:0;padding:3px;cursor:pointer;background:{{ swBg }};transition:background .15s"><span style="display:block;width:20px;height:20px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(20,17,15,.25);transform:translateX({{ knobX }});transition:transform .2s cubic-bezier(.2,0,0,1)"></span></button>
+        </div>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:14px 20px;border-bottom:1px solid #EAEAE8;min-height:56px"><i class="icon-palette" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Colors</b><div style="display:flex;gap:2px;background:#F4F4F3;border-radius:10px;padding:3px"><sc-for list="{{ modes }}" as="m" hint-placeholder-count="2"><button onClick="{{ m.pick }}" style="height:30px;padding:0 14px;border-radius:8px;border:0;font-size:13px;font-weight:600;cursor:pointer;background:{{ m.bg }};color:#14110F;box-shadow:{{ m.sh }}">{{ m.label }}</button></sc-for></div></div>
+        <sc-if value="{{ isPreset }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:20px 20px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="width:22px;height:22px;border-radius:6px;background:url(assets/dishes.jpg) 0 0/1000% 100%;box-shadow:inset 0 0 0 1px rgba(20,17,15,.1)"></span><b style="font-size:13px;font-weight:600">From your logo</b><span style="font-size:13px;color:#5A5A57">Built from its colors</span></div>
+          <div style="padding:10px 20px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(128px,100%),1fr));gap:10px">
+            <sc-for list="{{ logoThemes }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.pick }}" aria-pressed="{{ t.on }}" style="padding:6px 6px 10px;border-radius:14px;border:2px solid {{ t.border }};background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:start;min-width:0" style-hover="border-color:{{ t.hover }}">
+                <span style="height:84px;border-radius:9px;background:{{ t.bg }};color:{{ t.ink }};box-shadow:inset 0 0 0 1px rgba(20,17,15,.08);padding:10px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                  <span style="font-family:{{ font }};font-size:28px;font-weight:{{ fw }};line-height:1;letter-spacing:-0.02em">Aa</span>
+                  <span style="display:flex;flex-direction:row-reverse"><span style="width:24px;height:24px;border-radius:99px;background:{{ t.accent }};box-shadow:0 0 0 2px {{ t.bg }}"></span><span style="width:24px;height:24px;margin-inline-end:-8px;border-radius:99px;background:{{ t.surface }};box-shadow:0 0 0 2px {{ t.bg }}"></span></span>
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;padding:0 4px"><b style="flex:1;font-size:13px;font-weight:600">{{ t.name }}</b><sc-if value="{{ t.on }}"><i class="icon-check" style="font-size:15px"></i></sc-if></span>
+              </button>
+            </sc-for>
+          </div>
+          <b style="display:block;padding:20px 20px 0;font-size:13px;font-weight:600">Presets</b>
+          <div style="padding:10px 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(128px,100%),1fr));gap:10px">
+            <sc-for list="{{ presets }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.pick }}" aria-pressed="{{ t.on }}" style="padding:6px 6px 10px;border-radius:14px;border:2px solid {{ t.border }};background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:start;min-width:0" style-hover="border-color:{{ t.hover }}">
+                <span style="height:84px;border-radius:9px;background:{{ t.bg }};color:{{ t.ink }};box-shadow:inset 0 0 0 1px rgba(20,17,15,.08);padding:10px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px">
+                  <span style="font-family:{{ font }};font-size:28px;font-weight:{{ fw }};line-height:1;letter-spacing:-0.02em">Aa</span>
+                  <span style="display:flex;flex-direction:row-reverse"><span style="width:24px;height:24px;border-radius:99px;background:{{ t.accent }};box-shadow:0 0 0 2px {{ t.bg }}"></span><span style="width:24px;height:24px;margin-inline-end:-8px;border-radius:99px;background:{{ t.surface }};box-shadow:0 0 0 2px {{ t.bg }}"></span></span>
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;padding:0 4px"><b style="flex:1;font-size:13px;font-weight:600">{{ t.name }}</b><sc-if value="{{ t.on }}"><i class="icon-check" style="font-size:15px"></i></sc-if></span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isCustom }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div role="tablist" aria-label="Color to edit" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+              <sc-for list="{{ roles }}" as="c" hint-placeholder-count="3">
+                <button onClick="{{ c.pick }}" role="tab" aria-selected="{{ c.on }}" style="padding:6px;border-radius:14px;border:2px solid {{ c.border }};background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:start;min-width:0" style-hover="border-color:{{ c.hover }}">
+                  <span style="height:52px;border-radius:9px;background:{{ c.val }};box-shadow:inset 0 0 0 1px rgba(20,17,15,.1);display:flex;align-items:flex-start;justify-content:flex-end;padding:6px;transition:background .15s"><sc-if value="{{ c.warn }}"><span style="width:22px;height:22px;border-radius:99px;background:#FFF0C2;color:#7A5300;display:grid;place-items:center"><i class="icon-triangle-alert" style="font-size:12px"></i></span></sc-if></span>
+                  <span style="padding:0 4px 2px;display:flex;flex-direction:column;gap:1px;min-width:0"><b style="font-size:13px;font-weight:600">{{ c.label }}</b><span style="font-size:12px;color:#5A5A57;font-family:ui-monospace,'SF Mono',Menlo,monospace">{{ c.val }}</span></span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:20px;padding:16px;border-radius:14px;background:#FAFAFA;border:1px solid #EAEAE8">
+              <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+                <div onPointerDown="{{ svDown }}" onPointerMove="{{ svMove }}" aria-label="Saturation and brightness" style="position:relative;height:148px;border-radius:10px;cursor:crosshair;touch-action:none;background:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,{{ hueColor }})"><span style="position:absolute;width:20px;height:20px;margin-block:-10px 0;margin-inline:-10px 0;border-radius:99px;border:3px solid #fff;box-shadow:0 0 0 1px rgba(20,17,15,.25),0 2px 6px rgba(20,17,15,.3);pointer-events:none;left:{{ svX }};top:{{ svY }};background:{{ roleVal }}"></span></div>
+                <div onPointerDown="{{ hueDown }}" onPointerMove="{{ hueMove }}" aria-label="Hue" style="position:relative;height:14px;margin:0 10px;border-radius:99px;cursor:pointer;touch-action:none;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"><span style="position:absolute;width:20px;height:20px;margin-block:-10px 0;margin-inline:-10px 0;border-radius:99px;border:3px solid #fff;box-shadow:0 0 0 1px rgba(20,17,15,.25),0 2px 6px rgba(20,17,15,.3);pointer-events:none;left:{{ hueX }};top:50%;background:{{ hueColor }}"></span></div>
+                <label style="display:flex;align-items:center;gap:10px;height:44px;padding-block:0 0;padding-inline:12px 6px;border:1px solid #DADAD7;border-radius:10px;background:#fff"><span style="font-size:13px;color:#5A5A57">Hex</span><input data-bare="" value="{{ roleText }}" onChange="{{ roleType }}" onBlur="{{ roleBlur }}" spellcheck="false" maxlength="7" aria-label="{{ roleLabel }} hex" style="flex:1;min-width:0;height:100%;border:0;background:none;font-size:14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;text-transform:uppercase"><span style="width:30px;height:30px;border-radius:7px;background:{{ roleVal }};box-shadow:inset 0 0 0 1px rgba(20,17,15,.12)"></span></label>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+                <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#5A5A57">From your logo</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ logoSw }}" as="s" hint-placeholder-count="6"><button onClick="{{ s.pick }}" aria-label="{{ s.hex }}" data-tip="{{ s.hex }}" style="width:32px;height:32px;border-radius:99px;border:0;padding:0;cursor:pointer;background:{{ s.hex }};box-shadow:{{ s.ring }};transition:box-shadow .12s"></button></sc-for></div></div>
+                <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:600;color:#5A5A57">{{ swTitle }}</span><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ roleSw }}" as="s" hint-placeholder-count="6"><button onClick="{{ s.pick }}" aria-label="{{ s.hex }}" data-tip="{{ s.hex }}" style="width:32px;height:32px;border-radius:99px;border:0;padding:0;cursor:pointer;background:{{ s.hex }};box-shadow:{{ s.ring }};transition:box-shadow .12s"></button></sc-for></div></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+              <sc-for list="{{ checks }}" as="k" hint-placeholder-count="2"><span style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:99px;background:{{ k.bg }};color:{{ k.color }};font-size:12px;font-weight:600"><i class="icon-{{ k.icon }}" style="font-size:14px"></i>{{ k.title }}<span style="font-weight:500;opacity:.7">{{ k.ratio }}</span></span></sc-for>
+              <span style="font-size:13px;color:#5A5A57;text-wrap:pretty;flex:1;min-width:200px">{{ hint }}</span>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+
+      <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:14px 20px;border-bottom:1px solid #EAEAE8;min-height:56px"><i class="icon-layout-grid" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Menu layout</b></div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+            <sc-for list="{{ layouts }}" as="l" hint-placeholder-count="3">
+              <button onClick="{{ l.pick }}" aria-pressed="{{ l.on }}" style="padding:6px 6px 10px;border-radius:14px;border:2px solid {{ l.border }};background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:10px;text-align:start;min-width:0" style-hover="border-color:{{ l.hover }}">
+                <span style="height:88px;border-radius:9px;background:#F4F4F3;padding:10px;display:flex;flex-direction:column;gap:6px;overflow:hidden">
+                  <sc-if value="{{ l.isList }}">
+                    <sc-for list="{{ three }}" as="x" hint-placeholder-count="3"><span style="display:flex;gap:6px;align-items:center"><span style="width:18px;height:18px;flex-shrink:0;border-radius:4px;background:#C9C9C5"></span><span style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="width:80%;height:4px;border-radius:2px;background:#A9A9A4"></span><span style="width:50%;height:3px;border-radius:2px;background:#D2D2CE"></span></span></span></sc-for>
+                  </sc-if>
+                  <sc-if value="{{ l.isGrid }}">
+                    <span style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px"><span style="border-radius:4px;background:#C9C9C5"></span><span style="border-radius:4px;background:#C9C9C5"></span><span style="border-radius:4px;background:#C9C9C5"></span><span style="border-radius:4px;background:#C9C9C5"></span></span>
+                  </sc-if>
+                  <sc-if value="{{ l.isText }}">
+                    <sc-for list="{{ four }}" as="x" hint-placeholder-count="4"><span style="display:flex;gap:6px;align-items:center;padding-bottom:5px;border-bottom:1px solid #E2E2DF"><span style="width:62%;height:4px;border-radius:2px;background:#A9A9A4"></span><span style="margin-inline-start:auto;width:14px;height:4px;border-radius:2px;background:#A9A9A4"></span></span></sc-for>
+                  </sc-if>
+                </span>
+                <span style="padding:0 4px;min-width:0"><b style="display:block;font-size:13px;font-weight:600">{{ l.name }}</b><span style="display:block;font-size:12px;color:#5A5A57;line-height:1.35;margin-top:2px">{{ l.sub }}</span></span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;font-size:13px;color:#5A5A57;line-height:1.45"><i class="icon-info" style="font-size:15px;margin-top:2px"></i><span style="text-wrap:pretty">{{ layoutNote }}</span></div>
+        </div>
+      </section>
+
+      
+
+      <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:14px 20px;border-bottom:1px solid #EAEAE8;min-height:56px"><i class="icon-type" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Font and corners</b><span style="font-size:13px;color:#5A5A57">Every font works in English and Arabic</span></div>
+        <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(108px,100%),1fr));gap:10px">
+          <sc-for list="{{ fonts }}" as="f" hint-placeholder-count="5">
+            <button onClick="{{ f.pick }}" aria-pressed="{{ f.on }}" style="padding:14px 12px 10px;border-radius:14px;border:2px solid {{ f.border }};background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:12px;text-align:start;min-width:0" style-hover="border-color:{{ f.hover }}">
+              <span style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-family:{{ f.family }};font-weight:{{ f.w }};line-height:1.2"><span style="font-size:28px">Aa</span><span style="font-size:22px">أب</span></span>
+              <b style="font-size:13px;font-weight:600">{{ f.name }}</b>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 20px;border-top:1px solid #EAEAE8">
+          <span style="flex:1;min-width:150px"><b style="display:block;font-size:14px;font-weight:600">Corners</b><span style="font-size:13px;color:#5A5A57">Buttons, photos and cards.</span></span>
+          <div style="display:flex;gap:2px;background:#F4F4F3;border-radius:12px;padding:3px"><sc-for list="{{ corners }}" as="k" hint-placeholder-count="3"><button onClick="{{ k.pick }}" aria-pressed="{{ k.on }}" style="height:36px;padding:0 12px;border-radius:9px;border:0;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;color:#14110F;background:{{ k.bg }};box-shadow:{{ k.sh }}"><span style="width:14px;height:14px;border-top:2px solid currentColor;border-inline-start:2px solid currentColor;border-start-start-radius:{{ k.r }}"></span>{{ k.label }}</button></sc-for></div>
+        </div>
+      </section>
+    </div>
+
+    <section aria-label="Storefront preview" style="position:{{ pw.pos }};inset:{{ pw.inset }};top:{{ pw.top }};z-index:{{ pw.z }};display:{{ pw.disp }};flex-direction:column;background:{{ pw.bg }};border:{{ pw.border }};border-radius:{{ pw.radius }};overflow:{{ pw.ov }};animation:{{ pw.anim }}">
+      <div style="display:flex;align-items:center;gap:10px;padding-block:10px 10px;padding-inline:20px 16px;min-height:56px;border-bottom:1px solid #EAEAE8;background:#fff">
+        <b style="font-size:15px;font-weight:600">Preview</b>
+        <sc-if value="{{ dirty }}"><span style="height:22px;padding:0 8px;border-radius:99px;background:#FFF0C2;color:#7A5300;font-size:11px;font-weight:600;display:grid;place-items:center">Draft</span></sc-if>
+        <span style="flex:1"></span>
+        <div style="display:flex;gap:2px;background:#F4F4F3;border-radius:10px;padding:3px"><sc-for list="{{ pvLangs }}" as="l" hint-placeholder-count="2"><button onClick="{{ l.pick }}" style="height:28px;min-width:36px;padding:0 10px;border-radius:8px;border:0;font-size:12px;cursor:pointer;background:{{ l.bg }};box-shadow:{{ l.sh }};color:#14110F;font-weight:600">{{ l.label }}</button></sc-for></div>
+      </div>
+      <div style="flex:1;padding:{{ pvPad }};background:#F4F4F3;display:flex;justify-content:center;align-items:flex-start">
+        <div style="width:{{ phoneBoxW }};height:{{ phoneBoxH }};flex-shrink:0"><div style="position:relative;width:300px;aspect-ratio:393/852;transform:scale({{ phoneK }});transform-origin:0 0;border-radius:54px;padding:3px;background:linear-gradient(150deg,#56565a 0%,#2a2a2d 30%,#1c1c1e 60%,#45454a 100%);box-shadow:0 0 0 1px #0d0d0e,0 2px 4px rgba(0,0,0,.12),0 24px 48px -12px rgba(20,17,15,.35)">
+          <span style="position:absolute;left:-3px;top:17%;width:3px;height:4.5%;border-radius:2px 0 0 2px;background:#2c2c2f"></span>
+          <span style="position:absolute;left:-3px;top:24%;width:3px;height:7.5%;border-radius:2px 0 0 2px;background:#2c2c2f"></span>
+          <span style="position:absolute;left:-3px;top:33%;width:3px;height:7.5%;border-radius:2px 0 0 2px;background:#2c2c2f"></span>
+          <span style="position:absolute;right:-3px;top:27%;width:3px;height:11%;border-radius:0 2px 2px 0;background:#2c2c2f"></span>
+          <div style="height:100%;border-radius:51px;background:#000;padding:9px">
+            <div dir="{{ pvDir }}" style="position:relative;height:100%;border-radius:42px;overflow:hidden;background:{{ th.bg }};color:{{ th.ink }};font-family:{{ font }};display:flex;flex-direction:column;transition:background .25s,color .25s">
+              <span style="position:absolute;top:10px;left:50%;transform:translateX(-50%);width:31%;height:26px;border-radius:20px;background:#000;z-index:3"></span>
+              <div dir="ltr" style="height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding-block:4px 0;padding-inline:30px 24px;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-size:14px;font-weight:600;letter-spacing:-0.01em">
+                <span>9:41</span>
+                <span style="display:flex;align-items:center;gap:5px">
+                  <span style="display:flex;align-items:flex-end;gap:1.5px;height:11px"><span style="width:3px;height:4px;border-radius:1px;background:currentColor"></span><span style="width:3px;height:6px;border-radius:1px;background:currentColor"></span><span style="width:3px;height:8.5px;border-radius:1px;background:currentColor"></span><span style="width:3px;height:11px;border-radius:1px;background:currentColor"></span></span>
+                  <i class="icon-wifi" style="font-size:14px"></i>
+                  <span style="display:flex;align-items:center;gap:1px"><span style="width:22px;height:11px;border-radius:3.5px;border:1px solid currentColor;opacity:.9;padding:1.5px;display:flex"><span style="width:80%;height:100%;border-radius:1.5px;background:currentColor"></span></span><span style="width:1.5px;height:4px;border-radius:0 1px 1px 0;background:currentColor;opacity:.5"></span></span>
+                </span>
+              </div>
+              <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding-top:4px">
+                <sc-if value="{{ cover }}"><div style="height:112px;flex-shrink:0;margin:0 12px;border-radius:{{ r.card }};background:url(assets/dishes.jpg) 35% 50%/320% auto"></div></sc-if>
+                <div style="position:relative;padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-top:{{ logoMt }}">
+                  <span style="width:60px;height:60px;border-radius:{{ r.logo }};background:url(assets/dishes.jpg) 0 0/1000% 100%;box-shadow:0 0 0 3px {{ th.bg }}"></span>
+                  <span><b style="display:block;font-size:20px;font-weight:{{ fw }};line-height:1.2">{{ pv.name }}</b><span style="font-size:12px;color:{{ th.muted }}">{{ pv.sub }}</span></span>
+                </div>
+                <div style="display:flex;gap:6px;padding:0 16px"><sc-for list="{{ pvChips }}" as="c" hint-placeholder-count="3"><span style="height:30px;padding:0 12px;border-radius:{{ r.chip }};background:{{ c.bg }};color:{{ c.ink }};font-size:12px;font-weight:600;display:grid;place-items:center;white-space:nowrap">{{ c.label }}</span></sc-for></div>
+                <b style="padding:0 16px;font-size:15px;font-weight:{{ fw }}">{{ pv.section }}</b>
+                <sc-if value="{{ lyList }}"><div style="padding:0 16px;display:flex;flex-direction:column;gap:12px"><sc-for list="{{ pvItems }}" as="it" hint-placeholder-count="4"><div style="display:flex;gap:12px;align-items:center"><span style="width:64px;height:64px;flex-shrink:0;border-radius:{{ r.img }};background:url(assets/dishes.jpg) {{ it.pos }} 0/1000% 100%"></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><b style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.name }}</b><span style="font-size:11px;color:{{ th.muted }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.desc }}</span><span style="font-size:13px;font-weight:600">{{ it.price }}</span></span><span style="width:28px;height:28px;flex-shrink:0;border-radius:{{ r.chip }};background:{{ th.surface }};display:grid;place-items:center"><i class="icon-plus" style="font-size:14px"></i></span></div></sc-for></div></sc-if>
+                <sc-if value="{{ lyGrid }}"><div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px 10px"><sc-for list="{{ pvItems }}" as="it" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="position:relative;aspect-ratio:1;border-radius:{{ r.img }};background:url(assets/dishes.jpg) {{ it.pos }} 0/1000% 100%"><span style="position:absolute;bottom:6px;inset-inline-end:6px;width:26px;height:26px;border-radius:{{ r.chip }};background:{{ th.bg }};display:grid;place-items:center"><i class="icon-plus" style="font-size:13px"></i></span></span><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.name }}</b><span style="font-size:12px;color:{{ th.muted }};margin-top:-4px">{{ it.price }}</span></div></sc-for></div></sc-if>
+                <sc-if value="{{ lyText }}"><div style="padding:0 16px;display:flex;flex-direction:column"><sc-for list="{{ pvItems }}" as="it" hint-placeholder-count="5"><div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid {{ th.line }}"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><b style="font-size:14px;font-weight:600">{{ it.name }}</b><span style="font-size:12px;color:{{ th.muted }};line-height:1.35">{{ it.desc }}</span></span><b style="font-size:13px;font-weight:600;white-space:nowrap">{{ it.price }}</b></div></sc-for></div></sc-if>
+              </div>
+              <div style="flex-shrink:0;padding:10px 16px 30px;background:{{ th.bg }}">
+                <div style="height:48px;border-radius:{{ r.btn }};background:{{ th.accent }};color:{{ th.onAccent }};display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:14px;font-weight:600"><span>{{ pv.basket }}</span><span>$24.00</span></div>
+              </div>
+              <span style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:36%;height:5px;border-radius:99px;background:currentColor;opacity:.9"></span>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </section>
+  </div>
+
+  <sc-if value="{{ stack }}">
+    <div style="position:sticky;bottom:{{ barBottom }};z-index:85;display:flex;gap:8px;padding:10px;border-radius:16px;background:#fff;border:1px solid #EAEAE8;box-shadow:0 8px 24px -8px rgba(20,17,15,.18)">
+      <button onClick="{{ togglePv }}" style="flex:1;height:48px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer"><i class="icon-{{ pvBtnIcon }}" style="font-size:18px"></i>{{ pvBtnLabel }}</button>
+      <button onClick="{{ publish }}" disabled="{{ clean }}" style="flex:1;height:48px;border-radius:12px;border:0;background:{{ pubBg }};color:{{ pubInk }};font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:{{ pubCursor }}"><i class="icon-{{ pubIcon }}" style="font-size:18px"></i>{{ pubLabelM }}</button>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ req }}">
+  <div onClick="{{ closeReq }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:480px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-building-2" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Add branch</b><button onClick="{{ closeReq }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px"><span style="font-size:14px;color:#5A5A57;line-height:1.5">It goes live right away with your brand's branding. You can change its menu, hours and prices afterwards.</span><sc-if value="{{ askFirst }}"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Name your first branch<input value="{{ fbName }}" onChange="{{ setFbName }}" placeholder="Hamra" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"><span style="font-size:12px;font-weight:400;color:#5A5A57">With two branches, each needs a name in the branch switcher. Its link stays the same.</span></label></sc-if><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">New branch name<input value="{{ nbName }}" onChange="{{ setNbName }}" placeholder="Mar Mikhael" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Address<input value="{{ nbAddr }}" onChange="{{ setNbAddr }}" placeholder="Street, area, city" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label><div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Country<dc-import name="Dropdown" options="{{ countryOpts }}" value="{{ nbCountry }}" on-change="{{ setNbCountry }}" searchable="{{ true }}" search-placeholder="Search countries" height="{{ 44 }}" weight="{{ 400 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import><span style="font-size:12px;font-weight:400;color:#5A5A57">{{ nbCurNote }}</span></div><div style="display:flex;flex-direction:column;gap:8px"><button onClick="{{ toggleCopy }}" role="checkbox" aria-checked="{{ nbCopy }}" style="display:flex;align-items:center;gap:10px;padding:0;border:0;background:none;font-size:14px;font-weight:500;color:#14110F;cursor:pointer;text-align:start"><span style="width:20px;height:20px;flex-shrink:0;border-radius:6px;border:1.5px solid {{ copyBd }};background:{{ copyBg }};display:grid;place-items:center;color:#fff"><i class="icon-check" style="font-size:13px;opacity:{{ copyOp }}"></i></span>Copy menu from</button><sc-if value="{{ nbCopy }}"><dc-import name="Dropdown" options="{{ copyOpts }}" value="{{ nbFrom }}" on-change="{{ setNbFrom }}" height="{{ 44 }}" weight="{{ 400 }}" font-size="{{ ui.fs }}" block="{{ true }}" hint-size="100%,44px"></dc-import><span style="font-size:12px;font-weight:400;color:#5A5A57">Copied once. After that, each branch edits its own menu.</span></sc-if></div><div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:#F4F4F3"><span style="font-size:13px;font-weight:500">Store link</span><span dir="ltr" style="font-size:14px;font-weight:600;word-break:break-all;text-align:start">{{ nbLink }}</span><span style="font-size:12px;color:#5A5A57">This link can't be changed later.</span></div><div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:10px;background:#FFF0C2;color:#14110F"><i class="icon-gem" style="font-size:16px;color:#7A5300;margin-top:2px"></i><span style="font-size:13px;line-height:1.5">{{ nbPlan }}</span></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button onClick="{{ closeReq }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">Cancel</button><button onClick="{{ sendReq }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:{{ nbCursor }};opacity:{{ nbOp }}">Add branch</button></div></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const SORTCOLS = (COLS, sort, dir, set, edge) => COLS.map(([k, label, align, first], i) => { const on = sort === k; return { label, align: align === "right" ? "end" : "start", padL: i === 0 ? edge : "12px", padR: i === COLS.length - 1 ? edge : "12px", dir: align === "right" ? "row-reverse" : "row",
+  ink: on ? "#14110F" : "#5A5A57", icon: on ? (dir === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down", iconOp: on ? 1 : 0.45, aria: on ? (dir === "asc" ? "ascending" : "descending") : "none",
+  sort: () => set(k, on ? (dir === "asc" ? "desc" : "asc") : (first || "desc")) }; });
+const SORTBY = (list, key, dir) => [...list].sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * (dir === "asc" ? 1 : -1); });
+const DAYNUM = (s) => { if (s === "Today") return 1113; const [d, m] = s.split(" "); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(m) * 100 + 100 + +d; };
+const B = [
+  { name: "Hamra", area: "Hamra Street, Beirut", status: "Open", statusLong: "Open · closes 22:00", orders: 31, sales: "$486.50", plan: "Premium", here: true },
+  { name: "Achrafieh", area: "Sassine Square, Beirut", status: "Paused", statusLong: "Paused · resumes 19:30", orders: 28, sales: "$462.10", plan: "Premium" },
+  { name: "Jounieh", area: "Old Souk, Jounieh", status: "Open", statusLong: "Open · closes 23:00", orders: 20, sales: "$336.00", plan: "Premium" },
+];
+const THEMES = [["Paper", "#FFFFFF", "#14110F", "#14110F"], ["Tomato", "#FFF7F3", "#2B1410", "#C2300B"], ["Ocean", "#F6F9FC", "#0F2233", "#1E5FA8"], ["Night", "#14110F", "#F4F4F3", "#FFC52E"]];
+const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const toHex = a => "#" + a.map(v => Math.round(v).toString(16).padStart(2, "0")).join("").toUpperCase();
+const mix = (a, b, t) => { const x = hx(a), y = hx(b); return toHex(x.map((v, i) => v * t + y[i] * (1 - t))); };
+const lum = h => { const c = hx(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+const DERIVE = (bg, ink, accent) => ({ bg, ink, accent, surface: mix(ink, bg, 0.07), line: mix(ink, bg, 0.12), muted: mix(ink, bg, 0.62), onAccent: ratio(accent, "#FFFFFF") >= ratio(accent, "#14110F") ? "#FFFFFF" : "#14110F" });
+const FONTS = [["Clean", "'Parkinsans','Alexandria',sans-serif", 700], ["Modern", "'IBM Plex Sans Arabic',sans-serif", 700], ["Friendly", "'Baloo Bhaijaan 2',sans-serif", 700], ["Classic", "'Amiri',serif", 700], ["Bold", "'Rubik',sans-serif", 800]];
+const CORNERS = [["sharp", "Sharp", { card: "4px", img: "4px", btn: "6px", chip: "6px", logo: "8px" }, "1px"], ["soft", "Soft", { card: "14px", img: "12px", btn: "14px", chip: "99px", logo: "16px" }, "5px"], ["round", "Round", { card: "24px", img: "20px", btn: "99px", chip: "99px", logo: "99px" }, "12px"]];
+const LAYOUTS = [["list", "Photo list", "Small photo beside each item"], ["grid", "Photo grid", "Big photos, two per row"], ["text", "Text only", "No photos needed"]];
+const LNOTE = { list: "Items without a photo show as text, so you can add photos over time.", grid: "Best when every item has a good photo. Items without one show as text.", text: "Names, descriptions and prices only. Photos you've added stay saved." };
+const KEYS = ["mode", "preset", "logoIdx", "custom", "layout", "font", "corners", "cover"];
+const DEF = { mode: "preset", preset: 1, logoIdx: 0, custom: { bg: "#FFF7F3", ink: "#2B1410", accent: "#C2300B" }, layout: "list", font: 0, corners: "soft", cover: true };
+const PICK = s => KEYS.reduce((o, k) => (o[k] = s[k], o), {});
+const fit = (c, bg, min) => { const t = lum(bg) > 0.35 ? "#14110F" : "#FFFFFF"; for (let i = 0; i < 14 && ratio(c, bg) < min; i++) c = mix(t, c, 0.12); return c; };
+const LOGO_THEMES = ([a, b]) => { const lb = mix(a, "#FFFFFF", 0.05), db = mix(a, "#14110F", 0.14); return [["Logo · Light", lb, mix(a, "#14110F", 0.12), fit(a, lb, 3)], ["Logo · Bold", "#FFFFFF", mix(b, "#14110F", 0.12), fit(b, "#FFFFFF", 3)], ["Logo · Dark", db, mix(a, "#F4F4F3", 0.06), fit(mix(b, "#FFFFFF", 0.8), db, 3)]]; };
+const RES = s => s.mode === "custom" ? [s.custom.bg, s.custom.ink, s.custom.accent] : s.mode === "logo" ? LOGO_THEMES(s.logoCols).map(x => x.slice(1))[s.logoIdx] : THEMES[s.preset].slice(1);
+const hsv2hex = ({ h, s, v }) => { const f = n => { const k = (n + h / 60) % 6; return (v - v * s * Math.max(0, Math.min(k, 4 - k, 1))) * 255; }; return toHex([f(5), f(3), f(1)]); };
+const hex2hsv = hex => { const [r, g, b] = hx(hex).map(x => x / 255), mx = Math.max(r, g, b), d = mx - Math.min(r, g, b); let h = 0; if (d) h = mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4); return { h: h < 0 ? h + 360 : h, s: mx ? d / mx : 0, v: mx }; };
+const CL = x => Math.max(0, Math.min(1, x));
+const ROLES = [["bg", "Background"], ["ink", "Text"], ["accent", "Accent"]];
+const ROLE_SW = { bg: ["#FFFFFF", "#FAFAF7", "#FFF7F3", "#FFFAEE", "#F7F7EF", "#F6F9FC", "#FFF6F7", "#F4F1FF", "#14110F", "#1E1412", "#0F1A15", "#0F1626"], ink: ["#14110F", "#2B1410", "#2A1E05", "#1E2414", "#0F2233", "#2E0F16", "#3A3A38", "#FFFFFF", "#F4F4F3", "#FFF7E6", "#EEF3EF", "#E8EEF8"], accent: ["#C2300B", "#E3A21A", "#56702F", "#1E5FA8", "#B8325A", "#6B3FD1", "#0E8A7E", "#14110F", "#FF6A3D", "#FFC52E", "#7FD1A0", "#8FB8FF"] };
+const SNAP = s => JSON.stringify([RES({ ...s, logoCols: s.logoCols }), s.layout, s.font, s.corners, s.cover]);
+const ITEMS = { en: [["Pepperoni Party", "Double pepperoni, mozzarella, basil", "$10.00"], ["Philly Steak", "Shaved beef, peppers, provolone", "$12.00"], ["Tomato & Cheese", "San Marzano tomato, fior di latte", "$14.00"], ["Nutella Crêpe", "Hazelnut spread, banana, sugar dust", "$7.00"], ["Lotus Crêpe", "Biscoff spread, crushed biscuits", "$8.00"]],
+  ar: [["بيبروني بارتي", "بيبروني مضاعف، موزاريلا، ريحان", "$10.00"], ["فيلي ستيك", "لحم بقري، فلفل، بروفولون", "$12.00"], ["طماطم وجبنة", "طماطم سان مارزانو، جبنة طازجة", "$14.00"], ["كريب نوتيلا", "شوكولا بالبندق، موز، سكر ناعم", "$7.00"], ["كريب لوتس", "كريمة لوتس، بسكويت مطحون", "$8.00"]] };
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { ...DEF, pub: PICK(DEF), hex: {}, touched: false, role: "accent", drag: null, logoCols: ["#C2300B", "#E3A21A", "#56702F"], ar: false, pvOpen: false, req: false, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra", fbName: "Hamra", brandName: "Block Party", kind: "Restaurant", added: [] };
+  rootRef = (el) => { if (el === this.el) return; this.ro && this.ro.disconnect(); this.el = el; if (el && window.ResizeObserver) { this.ro = new ResizeObserver(([e]) => { const n = e.contentRect.width < 820; if (n !== this.state.narrow) this.setState({ narrow: n, pvOpen: false }); }); this.ro.observe(el); } };
+  componentDidMount() { this.onR = () => this.state.pvOpen && this.forceUpdate(); window.addEventListener("resize", this.onR); this.readLogo(); }
+  readLogo() { const img = new Image(); img.onload = () => { try { const cv = document.createElement("canvas"); cv.width = cv.height = 48; const x = cv.getContext("2d", { willReadFrequently: true }); x.drawImage(img, 0, 0, img.width / 10, img.height, 0, 0, 48, 48); const d = x.getImageData(0, 0, 48, 48).data, bk = {};
+    for (let i = 0; i < d.length; i += 4) { const p = hex2hsv(toHex([d[i], d[i + 1], d[i + 2]])); if (p.s < 0.3 || p.v < 0.25) continue; const k = Math.round(p.h / 30) % 12, o = bk[k] || (bk[k] = { n: 0, r: 0, g: 0, b: 0 }), w = p.s * p.v; o.n += w; o.r += d[i] * w; o.g += d[i + 1] * w; o.b += d[i + 2] * w; }
+    const top = Object.values(bk).sort((p, q) => q.n - p.n).slice(0, 3).map(o => toHex([o.r / o.n, o.g / o.n, o.b / o.n])); if (top.length) this.setState(s => ({ logoCols: [...top, ...s.logoCols].slice(0, 3) })); } catch (e) {} }; img.src = "assets/dishes.jpg"; }
+  curHsv() { const st = this.state; return st.drag && st.drag.role === st.role ? st.drag : hex2hsv(st.custom[st.role]); }
+  setHsv(p) { const hex = hsv2hex(p); this.setState(s => ({ drag: { role: s.role, ...p }, custom: { ...s.custom, [s.role]: hex }, hex: { ...s.hex, [s.role]: undefined }, touched: true })); }
+  svAt(e) { const r = e.currentTarget.getBoundingClientRect(); this.setHsv({ h: this.curHsv().h, s: CL((e.clientX - r.left) / r.width), v: CL(1 - (e.clientY - r.top) / r.height) }); }
+  hueAt(e) { const r = e.currentTarget.getBoundingClientRect(), c = this.curHsv(); this.setHsv({ ...c, h: CL((e.clientX - r.left) / r.width) * 359.9 }); }
+  componentWillUnmount() { this.ro && this.ro.disconnect(); window.removeEventListener("resize", this.onR); }
+  t(m) { this.props.toast && this.props.toast(m); }
+  setC(k, v) { this.setState(s => ({ custom: { ...s.custom, [k]: v }, hex: { ...s.hex, [k]: undefined }, drag: null, touched: true })); }
+  renderVals() {
+    const st = this.state, scr = this.props.screen, phone = !!this.props.mobile, mob = phone || !!st.narrow;
+    const ar = st.ar, c = st.custom;
+    const th = DERIVE(...RES(st)); const role = st.role, hv = this.curHsv(), roleHex = c[role];
+    const dirty = SNAP(st) !== SNAP(st.pub);
+    const r = CORNERS.find(x => x[0] === st.corners)[2];
+    const tr = ratio(th.ink, th.bg), acr = ratio(th.accent, th.bg);
+    const pvOpen = mob && st.pvOpen;
+    return {
+      ui: UI(phone), mobile: phone, desktop: !phone, rootRef: this.rootRef, stack: mob, wide: !mob, barBottom: phone ? "calc(76px + env(safe-area-inset-bottom))" : "calc(12px + env(safe-area-inset-bottom))",
+      isBranches: scr === "branches", isBranding: scr === "branding", mixedBrand: this.props.plan === "free" || this.props.plan === "suspended",
+      branchCols: SORTCOLS([["name", "Branch", "left", "asc"], ["status", "Status", "left", "asc"], ["orders", "Orders", "right"], ["sales", "Sales", "right"]], st.bSort || "sales", st.bDir || "desc", (bSort, bDir) => this.setState({ bSort, bDir }), "20px"),
+      branches: SORTBY([...(this.props.oneBranch ? [{ ...B[0], name: st.firstNamed ? st.fbName : "Block Party" }] : B), ...st.added], { name: x => x.name, status: x => x.status, orders: x => x.orders, sales: x => parseFloat(x.sales.replace(/[^0-9.]/g, "")) }[st.bSort || "sales"], st.bDir || "desc").map(b => ({ ...b, border: b.here ? "#14110F" : "#EAEAE8", cta: this.props.lang === "ar" ? (b.here ? "أنت هنا · فتح" : "فتح") : (b.here ? "You're here · Open" : "Open"),
+        stBg: b.status === "Open" ? "#F4F4F3" : "#FFF0C2", stInk: b.status === "Open" ? "#14110F" : "#7A5300", stDot: b.status === "Open" ? "#FF4A1C" : "#FFC52E",
+        link: b.here ? "dinelabs.co/blockparty" : `dinelabs.co/blockparty-${b.name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
+        open: () => { this.props.go && this.props.go("home"); if (!b.here) this.t(`Switched to ${b.name}`); }, copy: () => this.t(`${b.name} link copied`) })),
+      openRequest: () => this.setState({ req: true, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra" }), req: st.req, closeReq: () => this.setState({ req: false }),
+      nbName: st.nbName, nbAddr: st.nbAddr, setNbName: (e) => this.setState({ nbName: e.target.value }), setNbAddr: (e) => this.setState({ nbAddr: e.target.value }),
+      nbLink: "dinelabs.co/blockparty-" + ((st.nbName.trim() || "mar mikhael").toLowerCase().replace(/[^a-z0-9]+/g, "")),
+      nbPlan: this.props.trial ? "Covered by your Premium trial until it ends. Then it moves to Free." : "Starts on Free. Talk to sales to switch it to Premium.",
+      nbCursor: st.nbName.trim() ? "pointer" : "default", nbOp: st.nbName.trim() ? 1 : 0.4,
+      askFirst: !!this.props.oneBranch && !st.firstNamed && st.added.length === 0, fbName: st.fbName, setFbName: (e) => this.setState({ fbName: e.target.value }), firstLink: "dinelabs.co/blockparty",
+      countryOpts: (window.DL_COUNTRIES || [{ value: "Lebanon", label: "Lebanon" }]).map(c => ({ value: c.value, label: c.label, flag: c.flag })), nbCountry: st.nbCountry, setNbCountry: (e) => this.setState({ nbCountry: e.target.value }),
+      nbCurNote: "Currency: " + (((window.DL_CURRENCY || {})[st.nbCountry]) || [["USD", "US dollar"]]).map(([c, n]) => n + " (" + c + ")").join(" or "),
+      nbCopy: st.nbCopy, toggleCopy: () => this.setState({ nbCopy: !st.nbCopy }), copyBd: st.nbCopy ? "#14110F" : "#DADAD7", copyBg: st.nbCopy ? "#14110F" : "#fff", copyOp: st.nbCopy ? 1 : 0,
+      copyOpts: (this.props.oneBranch ? [B[0].name] : B.map(b => b.name)).concat(st.added.map(b => b.name)).map(n => ({ value: n, label: n })), nbFrom: st.nbFrom, setNbFrom: (e) => this.setState({ nbFrom: e.target.value }),
+      brandName: st.brandName, setBrandName: (e) => this.setState({ brandName: e.target.value }),
+      kindOpts: ["Restaurant", "Coffee shop", "Bakery", "Cloud kitchen", "Bar", "Dessert shop"].map(k => ({ value: k, label: k })), kind: st.kind, setKind: (e) => this.setState({ kind: e.target.value }),
+      sendReq: () => { const n = st.nbName.trim(); if (!n || (this.props.oneBranch && !st.firstNamed && st.added.length === 0 && !st.fbName.trim())) return; this.setState(s => ({ req: false, firstNamed: s.firstNamed || !!this.props.oneBranch, added: [...s.added, { name: n, area: s.nbAddr.trim() || "Beirut", status: "Open", statusLong: "Open · closes 22:00", orders: 0, sales: "$0.00", plan: this.props.trial ? "Premium trial" : "Free" }] })); this.t("Branch added"); }, stop: (e) => e.stopPropagation(),
+      openShare: () => this.props.openShare && this.props.openShare(),
+
+      dirty, clean: !dirty, discH: mob ? "36px" : "44px",
+      cols: mob ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(300px,340px)",
+      stBg: dirty ? "#FFF0C2" : "#F4F4F3", stInk: dirty ? "#7A5300" : "#14110F", stDot: dirty ? "#FFC52E" : "#FF4A1C", stLabel: dirty ? "Unpublished changes" : "Live on 3 branches",
+      pubBg: dirty ? "#C2300B" : "#F4F4F3", pubInk: dirty ? "#fff" : "#5A5A57", pubCursor: dirty ? "pointer" : "default", pubIcon: dirty ? "upload" : "check", pubLabel: dirty ? "Publish changes" : "Published", pubLabelM: dirty ? "Publish" : "Published",
+      publish: () => { if (!dirty) return; this.setState({ pub: PICK(st), pvOpen: false }); this.t("Branding published to all 3 branches"); },
+      discard: () => { this.setState({ ...st.pub, hex: {} }); this.t("Changes discarded"); },
+      modes: [["preset", "Themes"], ["custom", "Custom"]].map(([k, label]) => { const on = k === "custom" ? st.mode === "custom" : st.mode !== "custom"; return { label, bg: on ? "#fff" : "transparent", sh: on ? "0 1px 2px rgba(20,17,15,.12)" : "none",
+        pick: () => { if (k === "custom" && !st.touched) { const [bg, ink, accent] = RES(st); this.setState({ mode: k, custom: { bg, ink, accent }, hex: {} }); } else if (k === "custom") this.setState({ mode: k }); else if (st.mode === "custom") this.setState({ mode: "preset" }); } }; }),
+      isPreset: st.mode !== "custom", isCustom: st.mode === "custom",
+      presets: THEMES.map(([name, bg, ink, accent], i) => { const on = st.mode === "preset" && st.preset === i; return { name, ...DERIVE(bg, ink, accent), on, border: on ? "#14110F" : "#EAEAE8", hover: on ? "#14110F" : "#C9C9C5", pick: () => this.setState({ mode: "preset", preset: i }) }; }),
+      logoThemes: LOGO_THEMES(st.logoCols).map(([name, bg, ink, accent], i) => { const on = st.mode === "logo" && st.logoIdx === i; return { name, ...DERIVE(bg, ink, accent), on, border: on ? "#14110F" : "#EAEAE8", hover: on ? "#14110F" : "#C9C9C5", pick: () => this.setState({ mode: "logo", logoIdx: i }) }; }),
+      roles: ROLES.map(([k, label]) => ({ label, val: c[k], on: role === k, warn: (k === "ink" && tr < 4.5) || (k === "accent" && acr < 3), border: role === k ? "#14110F" : "#EAEAE8", hover: role === k ? "#14110F" : "#C9C9C5", pick: () => this.setState({ role: k, drag: null }) })),
+      roleVal: roleHex, roleLabel: ROLES.find(x => x[0] === role)[1], roleText: st.hex[role] ?? roleHex,
+      roleType: e => { const v = e.target.value, h = "#" + v.trim().replace(/^#/, ""); const ok = /^#[0-9a-f]{6}$/i.test(h); this.setState(s => ({ hex: { ...s.hex, [role]: v }, ...(ok ? { custom: { ...s.custom, [role]: h.toUpperCase() }, drag: null, touched: true } : {}) })); },
+      roleBlur: () => this.setState(s => ({ hex: { ...s.hex, [role]: undefined } })),
+      hueColor: `hsl(${Math.round(hv.h)},100%,50%)`, svX: hv.s * 100 + "%", svY: (1 - hv.v) * 100 + "%", hueX: (hv.h / 360) * 100 + "%",
+      svDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this.svAt(e); }, svMove: e => { if (e.buttons & 1) this.svAt(e); },
+      hueDown: e => { e.currentTarget.setPointerCapture(e.pointerId); this.hueAt(e); }, hueMove: e => { if (e.buttons & 1) this.hueAt(e); },
+      swTitle: { bg: "Backgrounds", ink: "Text colors", accent: "Accents" }[role],
+      logoSw: [...st.logoCols, mix(st.logoCols[0], "#FFFFFF", 0.08), mix(st.logoCols[0], "#14110F", 0.15)].map(hex => ({ hex, ring: hex === roleHex ? "0 0 0 2px #FAFAFA,0 0 0 4px #14110F" : "inset 0 0 0 1px rgba(20,17,15,.14)", pick: () => this.setC(role, hex) })),
+      roleSw: ROLE_SW[role].map(hex => ({ hex, ring: hex === roleHex ? "0 0 0 2px #FAFAFA,0 0 0 4px #14110F" : "inset 0 0 0 1px rgba(20,17,15,.14)", pick: () => this.setC(role, hex) })),
+      hint: tr < 4.5 ? "Text is hard to read on this background. Pick a darker or lighter text color." : acr < 3 ? "Buttons blend into the background. Try a stronger accent." : "Button text switches between white and black automatically.",
+      checks: [[tr >= 4.5, "Text readable", "Text hard to read", tr], [acr >= 3, "Buttons stand out", "Buttons blend in", acr]].map(([ok, a, b, v]) => ({ title: ok ? a : b, ratio: v.toFixed(1) + ":1", icon: ok ? "circle-check" : "triangle-alert", bg: ok ? "#F4F4F3" : "#FFF0C2", color: ok ? "#14110F" : "#7A5300" })),
+      layouts: LAYOUTS.map(([k, name, sub]) => ({ name, sub, on: st.layout === k, isList: k === "list", isGrid: k === "grid", isText: k === "text", border: st.layout === k ? "#14110F" : "#EAEAE8", hover: st.layout === k ? "#14110F" : "#C9C9C5", pick: () => this.setState({ layout: k }) })),
+      three: [1, 2, 3], four: [1, 2, 3, 4], layoutNote: LNOTE[st.layout],
+      lyList: st.layout === "list", lyGrid: st.layout === "grid", lyText: st.layout === "text",
+      cover: st.cover, coverOp: st.cover ? 1 : 0.35, swBg: st.cover ? "#14110F" : "#DADAD7", knobX: st.cover ? "18px" : "0",
+      toggleCover: () => this.setState({ cover: !st.cover }), changeLogo: () => this.t("Choose a square image for your logo"), changeCover: () => this.t("Choose a wide image for your cover"),
+      fonts: FONTS.map(([name, family, w], i) => ({ name, family, w, on: st.font === i, border: st.font === i ? "#14110F" : "#EAEAE8", hover: st.font === i ? "#14110F" : "#C9C9C5", pick: () => this.setState({ font: i }) })),
+      corners: CORNERS.map(([k, label, , rr]) => ({ label, r: rr, on: st.corners === k, bg: st.corners === k ? "#fff" : "transparent", sh: st.corners === k ? "0 1px 2px rgba(20,17,15,.12)" : "none", pick: () => this.setState({ corners: k }) })),
+      font: FONTS[st.font][1], fw: FONTS[st.font][2], th, r, logoMt: st.cover ? "-44px" : "0",
+      pw: !mob ? { pos: "sticky", inset: "auto", top: "80px", z: "1", disp: "flex", bg: "#fff", border: "1px solid #EAEAE8", radius: "14px", ov: "hidden", anim: "none" }
+        : { pos: "fixed", inset: "0", top: "0", z: "80", disp: pvOpen ? "flex" : "none", bg: "#F4F4F3", border: "0", radius: "0", ov: "auto", anim: "fadein .2s both" },
+      pvPad: mob ? "20px 16px 100px" : "24px", ...(() => { const vh = typeof window !== "undefined" ? window.innerHeight : 900, vw = typeof window !== "undefined" ? window.innerWidth : 400; const k = mob ? Math.max(0.55, Math.min(1, (vh - 180) / 651, (vw - 32) / 300)) : 1; return { phoneK: k, phoneBoxW: Math.round(300 * k) + "px", phoneBoxH: Math.round(651 * k) + "px" }; })(),
+      togglePv: () => this.setState({ pvOpen: !st.pvOpen }), pvBtnIcon: pvOpen ? "pencil" : "smartphone", pvBtnLabel: pvOpen ? "Back to editing" : "Preview",
+      pvLangs: [["EN", false], ["ع", true]].map(([label, v]) => ({ label, pick: () => this.setState({ ar: v }), bg: st.ar === v ? "#fff" : "transparent", sh: st.ar === v ? "0 1px 2px rgba(20,17,15,.12)" : "none" })),
+      pvDir: ar ? "rtl" : "ltr",
+      pv: ar ? { name: "بلوك بارتي", sub: "الحمرا · استلام خلال ٢٠ دقيقة", section: "الأكثر طلباً", basket: "عرض السلة · ٢" } : { name: "Block Party", sub: "Hamra · Pickup in 20 min", section: "Most ordered", basket: "View basket · 2" },
+      pvChips: (ar ? ["بيتزا", "كريب", "مشروبات"] : ["Pizzas", "Crêpes", "Drinks"]).map((label, i) => ({ label, bg: i === 0 ? th.accent : th.surface, ink: i === 0 ? th.onAccent : th.ink })),
+      pvItems: ITEMS[ar ? "ar" : "en"].map(([name, desc, price], i) => ({ name, desc, price, pos: ((i + 1) / 9) * 100 + "%" })),
+    };
+  }
+}
+</script>
+</body>
+</html>
