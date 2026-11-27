@@ -296,6 +296,9 @@ class Component extends DCLogic {
         this.setState({ custs: data.map(c => [c.name, c.phone || '—', c.orders || 0, c.spent || 0, c.lastAt ? new Date(c.lastAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—', c.firstAt ? new Date(c.firstAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—']) });
       }
     }).catch(() => {});
+    fetch('/api/manager/stats').then(r => r.ok ? r.json() : null).then(d => {
+      if (d) this.setState({ liveStats: d });
+    }).catch(() => {});
   }
   analysisVals(st, go) {
     const IMG = (k) => k < 0 ? "#F4F4F3" : `url(assets/dishes.jpg) ${(k * 100 / 9).toFixed(2)}% 0/1000% 100%`;
@@ -403,8 +406,17 @@ class Component extends DCLogic {
     const CH = { Delivery: ["bike", "#C2410C"], Pickup: ["shopping-bag", "#1D4E89"], "Dine-in": ["utensils", "#1F7A4D"] };
     const EG = { "Percent off": "Like 20% off pizzas", "Amount off the order": "Like $5 off the whole order", "Free delivery": "Like free delivery on orders over $30", "Buy one get one free": "Like 2 crêpes for the price of 1", "Promo code": "A discount only people with the code get" };
     const save = () => {
-      const conds = [...(scoped && !all ? [["tag", scope]] : []), ...(min ? [["receipt", `Orders over $${min}`]] : []), ["calendar", whenTxt === "Pick dates" ? "Custom dates" : whenTxt], ...(allTypes || delOnly ? [] : [["shopping-bag", typesTxt]])];
-      this.setState(s => ({ promo: null, pTab: "all", promos: [{ name: p.name.trim() || autoName, kind: K, icon, value: offer, conds, code: p.code.trim(), used: 0, sales: 0, on: true }, ...s.promos] })); this.t(`${p.name.trim() || autoName} is running`); };
+      const title = p.name.trim() || autoName;
+      const conds = [...(scoped && !all ? [["tag", scope]] : []), ...(min ? [["receipt", `Orders over ${window.__dlCurrency || "€"}${min}`]] : []), ["calendar", whenTxt === "Pick dates" ? "Custom dates" : whenTxt], ...(allTypes || delOnly ? [] : [["shopping-bag", typesTxt]])];
+      fetch('/api/manager/promotions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, sub: whenTxt === "Pick dates" ? "Custom dates" : whenTxt, kind: K === "Promo code" ? 5 : 0, value: p.value, code: p.code.trim(), on: true })
+      }).then(r => r.ok ? r.json() : null).then(created => {
+        this.setState(s => ({ promo: null, pTab: "all", promos: [{ id: created?._id || created?.id, name: title, kind: K, icon, value: offer, conds, code: p.code.trim(), used: 0, sales: 0, on: true }, ...s.promos] }));
+        this.t(`${title} is running`);
+      }).catch(() => this.t("Could not save promotion"));
+    };
     const q = (p.pq || "").toLowerCase(), vis = MPRODS.filter(x => !q || x[0].toLowerCase().includes(q));
     const moreBits = [allTypes || delOnly ? "" : typesTxt, K !== "Free delivery" && min ? `Over $${min}` : ""].filter(Boolean);
     return {

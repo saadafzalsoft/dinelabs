@@ -19,9 +19,9 @@
   <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-store" style="font-size:18px"></i><b style="font-size:15px;font-weight:600">Basics</b></div>
     <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px">
-      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Branch name<input value="Hamra" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"><span style="font-weight:400;font-size:12px;color:#5A5A57">Shown in the branch switcher and on the storefront. Your brand name and business type are in <button onClick="{{ goBranding }}" style="border:0;background:none;padding:0;font-size:12px;font-weight:600;color:#14110F;text-decoration:underline;cursor:pointer">Branding</button>.</span></label>
-      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Restaurant phone<input value="+961 1 345 678" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"><span style="font-weight:400;font-size:12px;color:#5A5A57">Customers call this number to change or cancel an order. It starts as your own number and can be different.</span></label>
-      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Store link<div style="display:flex;gap:8px"><span style="flex:1;height:44px;border:1px solid #EAEAE8;background:#F4F4F3;border-radius:10px;padding:0 12px;font-size:14px;font-weight:400;display:flex;align-items:center;color:#14110F">dinelabs.co/blockparty</span><button onClick="{{ copyLink }}" style="height:44px;padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">Copy</button></div><span style="font-weight:400;font-size:12px;color:#5A5A57">Your store link can't be changed.</span></div>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Branch name<input value="{{ storeName }}" onChange="{{ onStoreName }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"><span style="font-weight:400;font-size:12px;color:#5A5A57">Shown in the branch switcher and on the storefront. Your brand name and business type are in <button onClick="{{ goBranding }}" style="border:0;background:none;padding:0;font-size:12px;font-weight:600;color:#14110F;text-decoration:underline;cursor:pointer">Branding</button>.</span></label>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Restaurant phone<input value="{{ storePhone }}" onChange="{{ onStorePhone }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"><span style="font-weight:400;font-size:12px;color:#5A5A57">Customers call this number to change or cancel an order. It starts as your own number and can be different.</span></label>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Store link<div style="display:flex;gap:8px"><span style="flex:1;height:44px;border:1px solid #EAEAE8;background:#F4F4F3;border-radius:10px;padding:0 12px;font-size:14px;font-weight:400;display:flex;align-items:center;color:#14110F">{{ storeLink }}</span><button onClick="{{ copyLink }}" style="height:44px;padding:0 16px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">Copy</button></div><span style="font-weight:400;font-size:12px;color:#5A5A57">Your store link can't be changed.</span></div>
     </div>
   </section>
   <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
@@ -54,7 +54,7 @@
   </section>
   <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-at-sign" style="font-size:18px"></i><b style="font-size:15px;font-weight:600">Social links</b><span style="font-size:13px;color:#5A5A57">· optional</span></div>
-    <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px"><sc-for list="{{ socials }}" as="s" hint-placeholder-count="6"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">{{ s.label }}<input value="{{ s.v }}" placeholder="{{ s.ph }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label></sc-for></div>
+    <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px"><sc-for list="{{ socials }}" as="s" hint-placeholder-count="6"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">{{ s.label }}<input value="{{ s.v }}" onChange="{{ s.onChange }}" placeholder="{{ s.ph }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label></sc-for></div>
   </section>
 </div>
 </sc-if>
@@ -119,17 +119,24 @@ const CUR_OLD = { "Lebanon": ["US dollar (USD)", "Lebanese pound (LBP)"], "Unite
 class Component extends DCLogic {
   locOk() { const v = this.state.mapLink ?? (this.props.newUser ? "" : "x"); return v === "x" || /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); }
   pinAt(e) { const r = e.currentTarget.getBoundingClientRect(); const c = v => Math.max(4, Math.min(96, v)); this.setState({ pin: [c(((e.clientX - r.left) / r.width) * 100), c(((e.clientY - r.top) / r.height) * 100)] }); }
-  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "" };
+  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "", slug: "", instagram: "", facebook: "", tiktok: "", youtube: "" };
   componentDidMount() {
     fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
       if (!raw) return;
+      const curr = raw.baseCurrency || raw.currency || "EUR";
       this.setState({
         storeName: raw.name || raw.restaurantName || "",
         phone: raw.whatsappNumber || raw.phoneNumber || raw.phone || "",
         address: raw.address || "",
+        slug: raw.slug || "",
         country: raw.country || "Germany",
+        currencyCode: curr,
         mapLink: raw.googleMapsLink || raw.mapLink || "",
         tips: raw.tips !== false,
+        instagram: raw.instagram || "",
+        facebook: raw.facebook || "",
+        tiktok: raw.tiktok || "",
+        youtube: raw.youtube || "",
       });
     }).catch(() => {});
   }
@@ -140,7 +147,14 @@ class Component extends DCLogic {
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
       isProfile: scr === "profile", isNotifications: scr === "notifications", isPayments: scr === "payments", isPlan: scr === "plan",
+      storeName: st.storeName, onStoreName: (e) => this.setState({ storeName: e.target.value }),
+      storePhone: st.phone, onStorePhone: (e) => this.setState({ phone: e.target.value }),
+      storeLink: `dinelabs.co/store/${st.slug || window.__dlTenant?.slug || ""}`,
       save: () => {
+        const cMatch = (st.currency || "").match(/\(([A-Z]{3})\)/);
+        const baseCurrency = cMatch ? cMatch[1] : (st.currencyCode || "EUR");
+        const sym = baseCurrency === 'USD' ? '$' : baseCurrency === 'GBP' ? '£' : baseCurrency === 'EUR' ? '€' : (baseCurrency + ' ');
+        window.__dlCurrency = sym;
         fetch('/api/tenant/settings', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -149,16 +163,21 @@ class Component extends DCLogic {
             whatsappNumber: st.phone || undefined,
             address: st.address || undefined,
             country: st.country || undefined,
+            baseCurrency,
             googleMapsLink: st.mapLink || undefined,
             tips: st.tips,
+            instagram: st.instagram,
+            facebook: st.facebook,
+            tiktok: st.tiktok,
+            youtube: st.youtube,
           })
         }).then(r => {
           this.t(r.ok ? "Store profile saved" : "Could not save store profile");
         }).catch(() => this.t("Could not save store profile"));
       },
-      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (window.__dlTenant?.slug || "")); } catch (e) {} this.t("Link copied"); },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (st.slug || window.__dlTenant?.slug || "")); } catch (e) {} this.t("Link copied"); },
       langs: ["English", "العربية"].map((label, i) => ({ label, pick: () => { this.setState({ lang: i }); this.props.setLang && this.props.setLang(i === 1 ? "ar" : "en"); }, bg: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#fff" : "transparent", color: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#14110F" : "#14110F" })),
-      socials: [["Instagram", "@blockpartypizza", "@yourstore"], ["Facebook", "", "facebook.com/yourstore"], ["TikTok", "@blockparty.lb", "@yourstore"], ["YouTube", "", "youtube.com/@yourstore"]].map(([label, v, ph]) => ({ label, v, ph })),
+      socials: [["instagram", "Instagram", "@yourstore"], ["facebook", "Facebook", "facebook.com/yourstore"], ["tiktok", "TikTok", "@yourstore"], ["youtube", "YouTube", "youtube.com/@yourstore"]].map(([k, label, ph]) => ({ label, v: st[k] || "", ph, onChange: (e) => this.setState({ [k]: e.target.value }) })),
       openApp: () => this.props.openApp && this.props.openApp(),
       testSound: () => this.t("Playing the new-order sound"),
       emailOn: st.email, emailSw: sw(st.email)[0], emailJ: sw(st.email)[1], toggleEmail: () => this.setState({ email: !st.email }), sendTest: () => this.t("Test email sent to orders@blockparty.lb"),

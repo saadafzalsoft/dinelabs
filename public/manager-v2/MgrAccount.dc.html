@@ -111,7 +111,7 @@ class Component extends DCLogic {
           setMgrLang: (e) => { const v = e.target.value; this.setState({ mgrLang: v }); this.props.setLang && this.props.setLang(v === "Arabic" ? "ar" : "en"); if (v !== "Arabic" && v !== "English") this.t("Manager is now in " + v); } }; })(),
       del: st.del, openDelete: () => this.setState({ del: true }), closeDel: () => this.setState({ del: false }), stop: (e) => e.stopPropagation(),
       confirmDel: () => { this.setState({ del: false }); this.t("Account set to be deleted in 30 days. Sign in before then to cancel."); },
-      markAll: () => { this.setState(s => ({ trialRead: true, notes: s.notes.map(n => ({ ...n, unread: false })) })); this.t("All marked as read"); },
+      markAll: () => { fetch('/api/manager/notifications', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ markAll: true }) }).catch(() => {}); this.setState(s => ({ trialRead: true, notes: s.notes.map(n => ({ ...n, unread: false })) })); this.t("All marked as read"); },
       notes: [...(BILL_N[this.props.bill] ? [{ ...BILL_N[this.props.bill], when: "Today", unread: !st.trialRead, trial: true }] : this.props.trial ? [{ ...TRIAL_N, unread: !st.trialRead, trial: true }] : []), ...st.notes].map((n, i) => ({ ...n, bg: n.unread ? "#FAFAFA" : "#fff", weight: n.unread ? 600 : 500, iconBg: n.ib, iconInk: n.ii,
         gold: !!(n.cta && n.gold), plain: !!(n.cta && !n.gold), read: () => n.trial ? this.setState({ trialRead: true }) : read(i - (BILL_N[this.props.bill] || this.props.trial ? 1 : 0)),
         act: (e) => { e.stopPropagation(); read(i - (BILL_N[this.props.bill] || this.props.trial ? 1 : 0)); this.t("Opening WhatsApp with Dinelabs sales"); } })),

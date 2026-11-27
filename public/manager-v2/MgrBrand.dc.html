@@ -276,6 +276,21 @@ class Component extends DCLogic {
     this.onR = () => this.state.pvOpen && this.forceUpdate();
     window.addEventListener("resize", this.onR);
     this.readLogo();
+    fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
+      if (!raw) return;
+      const th = raw.theme || {};
+      this.setState(s => ({
+        brandName: raw.name || raw.restaurantName || s.brandName,
+        logoUrl: raw.logoUrl || '',
+        ...(th.mode ? { mode: th.mode } : {}),
+        ...(th.preset !== undefined ? { preset: th.preset } : {}),
+        ...(th.custom ? { custom: th.custom } : {}),
+        ...(th.layout ? { layout: th.layout } : {}),
+        ...(th.font ? { font: th.font } : {}),
+        ...(th.corners ? { corners: th.corners } : {}),
+        ...(th.cover ? { cover: th.cover } : {}),
+      }));
+    }).catch(() => {});
     fetch('/api/manager/branches').then(r => r.ok ? r.json() : []).then(data => {
       if (Array.isArray(data) && data.length > 0) {
         const sym = window.__dlCurrency || "€";
@@ -334,14 +349,40 @@ class Component extends DCLogic {
       copyOpts: (this.props.oneBranch ? [B[0].name] : B.map(b => b.name)).concat(st.added.map(b => b.name)).map(n => ({ value: n, label: n })), nbFrom: st.nbFrom, setNbFrom: (e) => this.setState({ nbFrom: e.target.value }),
       brandName: st.brandName, setBrandName: (e) => this.setState({ brandName: e.target.value }),
       kindOpts: ["Restaurant", "Coffee shop", "Bakery", "Cloud kitchen", "Bar", "Dessert shop"].map(k => ({ value: k, label: k })), kind: st.kind, setKind: (e) => this.setState({ kind: e.target.value }),
-      sendReq: () => { const n = st.nbName.trim(); if (!n || (this.props.oneBranch && !st.firstNamed && st.added.length === 0 && !st.fbName.trim())) return; this.setState(s => ({ req: false, firstNamed: s.firstNamed || !!this.props.oneBranch, added: [...s.added, { name: n, area: s.nbAddr.trim() || "Beirut", status: "Open", statusLong: "Open · closes 22:00", orders: 0, sales: "$0.00", plan: this.props.trial ? "Premium trial" : "Free" }] })); this.t("Branch added"); }, stop: (e) => e.stopPropagation(),
+      sendReq: () => {
+        const n = st.nbName.trim(); if (!n) return;
+        fetch('/api/manager/branches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: n, address: st.nbAddr.trim(), copyFromId: st.nbCopy ? (st.liveBranches?.[0]?.id || null) : null })
+        }).then(r => r.ok ? r.json() : null).then(created => {
+          const sym = window.__dlCurrency || "€";
+          const entry = created ? { id: created.id, slug: created.slug, name: created.name, area: created.where || created.slug, status: 'Open', statusLong: 'Open', orders: 0, sales: sym + '0.00', plan: 'Active', here: false }
+            : { name: n, area: st.nbAddr.trim(), status: 'Open', statusLong: 'Open', orders: 0, sales: sym + '0.00', plan: 'Active' };
+          this.setState(s => ({ req: false, added: [...s.added, entry] }));
+          this.t("Branch added");
+        }).catch(() => this.t("Could not add branch"));
+      }, stop: (e) => e.stopPropagation(),
       openShare: () => this.props.openShare && this.props.openShare(),
 
       dirty, clean: !dirty, discH: mob ? "36px" : "44px",
       cols: mob ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(300px,340px)",
-      stBg: dirty ? "#FFF0C2" : "#F4F4F3", stInk: dirty ? "#7A5300" : "#14110F", stDot: dirty ? "#FFC52E" : "#FF4A1C", stLabel: dirty ? "Unpublished changes" : "Live on 3 branches",
+      stBg: dirty ? "#FFF0C2" : "#F4F4F3", stInk: dirty ? "#7A5300" : "#14110F", stDot: dirty ? "#FFC52E" : "#FF4A1C", stLabel: dirty ? "Unpublished changes" : "Live on storefront",
       pubBg: dirty ? "#C2300B" : "#F4F4F3", pubInk: dirty ? "#fff" : "#5A5A57", pubCursor: dirty ? "pointer" : "default", pubIcon: dirty ? "upload" : "check", pubLabel: dirty ? "Publish changes" : "Published", pubLabelM: dirty ? "Publish" : "Published",
-      publish: () => { if (!dirty) return; this.setState({ pub: PICK(st), pvOpen: false }); this.t("Branding published to all 3 branches"); },
+      publish: () => {
+        if (!dirty) return;
+        fetch('/api/tenant/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: st.brandName,
+            theme: { mode: st.mode, preset: st.preset, custom: st.custom, layout: st.layout, font: st.font, corners: st.corners, cover: st.cover }
+          })
+        }).then(r => {
+          if (r.ok) { this.setState({ pub: PICK(st), pvOpen: false }); this.t("Branding published to your storefront"); }
+          else this.t("Could not publish branding");
+        }).catch(() => this.t("Could not publish branding"));
+      },
       discard: () => { this.setState({ ...st.pub, hex: {} }); this.t("Changes discarded"); },
       modes: [["preset", "Themes"], ["custom", "Custom"]].map(([k, label]) => { const on = k === "custom" ? st.mode === "custom" : st.mode !== "custom"; return { label, bg: on ? "#fff" : "transparent", sh: on ? "0 1px 2px rgba(20,17,15,.12)" : "none",
         pick: () => { if (k === "custom" && !st.touched) { const [bg, ink, accent] = RES(st); this.setState({ mode: k, custom: { bg, ink, accent }, hex: {} }); } else if (k === "custom") this.setState({ mode: k }); else if (st.mode === "custom") this.setState({ mode: "preset" }); } }; }),
