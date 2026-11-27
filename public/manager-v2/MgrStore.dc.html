@@ -119,7 +119,20 @@ const CUR_OLD = { "Lebanon": ["US dollar (USD)", "Lebanese pound (LBP)"], "Unite
 class Component extends DCLogic {
   locOk() { const v = this.state.mapLink ?? (this.props.newUser ? "" : "x"); return v === "x" || /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); }
   pinAt(e) { const r = e.currentTarget.getBoundingClientRect(); const c = v => Math.max(4, Math.min(96, v)); this.setState({ pin: [c(((e.clientX - r.left) / r.width) * 100), c(((e.clientY - r.top) / r.height) * 100)] }); }
-  state = { lang: 0, email: true, card: true, cash: true, tips: true };
+  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "" };
+  componentDidMount() {
+    fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
+      if (!raw) return;
+      this.setState({
+        storeName: raw.name || raw.restaurantName || "",
+        phone: raw.whatsappNumber || raw.phoneNumber || raw.phone || "",
+        address: raw.address || "",
+        country: raw.country || "Germany",
+        mapLink: raw.googleMapsLink || raw.mapLink || "",
+        tips: raw.tips !== false,
+      });
+    }).catch(() => {});
+  }
   t(m) { this.props.toast && this.props.toast(m); }
   renderVals() {
     const st = this.state, scr = this.props.screen;
@@ -127,7 +140,23 @@ class Component extends DCLogic {
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
       isProfile: scr === "profile", isNotifications: scr === "notifications", isPayments: scr === "payments", isPlan: scr === "plan",
-      save: () => this.t("Store profile saved"), copyLink: () => this.t("Link copied"),
+      save: () => {
+        fetch('/api/tenant/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: st.storeName || undefined,
+            whatsappNumber: st.phone || undefined,
+            address: st.address || undefined,
+            country: st.country || undefined,
+            googleMapsLink: st.mapLink || undefined,
+            tips: st.tips,
+          })
+        }).then(r => {
+          this.t(r.ok ? "Store profile saved" : "Could not save store profile");
+        }).catch(() => this.t("Could not save store profile"));
+      },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (window.__dlTenant?.slug || "")); } catch (e) {} this.t("Link copied"); },
       langs: ["English", "العربية"].map((label, i) => ({ label, pick: () => { this.setState({ lang: i }); this.props.setLang && this.props.setLang(i === 1 ? "ar" : "en"); }, bg: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#fff" : "transparent", color: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#14110F" : "#14110F" })),
       socials: [["Instagram", "@blockpartypizza", "@yourstore"], ["Facebook", "", "facebook.com/yourstore"], ["TikTok", "@blockparty.lb", "@yourstore"], ["YouTube", "", "youtube.com/@yourstore"]].map(([label, v, ph]) => ({ label, v, ph })),
       openApp: () => this.props.openApp && this.props.openApp(),

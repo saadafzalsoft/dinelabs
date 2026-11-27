@@ -76,7 +76,24 @@ const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0",
 class Component extends DCLogic {
   state = { notes: N0, lang: 0, motion: false, del: false, trialRead: false };
   t(m) { this.props.toast && this.props.toast(m); }
-  componentDidMount() { if (this.props.screen === "inbox") this.props.onRead && this.props.onRead(); }
+  componentDidMount() {
+    if (this.props.screen === "inbox") this.props.onRead && this.props.onRead();
+    fetch('/api/manager/notifications').then(r => r.ok ? r.json() : []).then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        this.setState({
+          notes: data.map(n => ({
+            icon: n.type === 'trial' ? 'gem' : 'bell',
+            ib: n.type === 'trial' ? '#FFF0C2' : '#F4F4F3',
+            ii: n.type === 'trial' ? '#7A5300' : '#14110F',
+            title: n.title,
+            body: n.body,
+            when: n.when || 'Active',
+            unread: Boolean(n.unread),
+          }))
+        });
+      }
+    }).catch(() => {});
+  }
   componentDidUpdate(pp) { if (this.props.screen === "inbox" && pp.screen !== "inbox") this.props.onRead && this.props.onRead(); }
   renderVals() {
     const langIdx = this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : this.state.lang;
@@ -85,7 +102,7 @@ class Component extends DCLogic {
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
       isAccount: scr === "account", isInbox: scr === "inbox",
-      changePw: () => this.t("We sent a reset link to karim@blockparty.lb"),
+      changePw: () => { const em = window.__dlTenant?.ownerEmail || ""; if (em) fetch('/api/auth/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, action: 'request' }) }).catch(() => {}); this.t("We sent a reset link to " + (em || "your email")); },
       langs: ["English", "العربية"].map((label, i) => ({ label, pick: () => { this.setState({ lang: i }); this.props.setLang && this.props.setLang(i === 1 ? "ar" : "en"); }, bg: langIdx === i ? "#fff" : "transparent", color: langIdx === i ? "#14110F" : "#14110F" })),
       motionSw: st.motion ? "#14110F" : "#DADAD7", motionJ: st.motion ? "flex-end" : "flex-start", toggleMotion: () => this.setState({ motion: !st.motion }),
       signOut: () => this.props.signOut && this.props.signOut(),

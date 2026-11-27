@@ -278,12 +278,25 @@ const SORTCOLS = (COLS, sort, dir, set, edge) => COLS.map(([k, label, align, fir
 const SORTBY = (list, key, dir) => [...list].sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * (dir === "asc" ? 1 : -1); });
 const DAYNUM = (s) => { if (s === "Today") return 1113; const [d, m] = s.split(" "); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(m) * 100 + 100 + +d; };
 const CUST = [["Lina Saad","+961 3 412 908",14,312.5,"Today",  "12 Mar"],["Rami Khoury","+961 70 555 214",22,486.2,"Today","3 Feb"],["Maya Rizk","+961 71 323 482",9,214.0,"Today","20 Jun"],["Joelle Abi Nader","+961 76 766 246",17,401.8,"4 Nov","8 Jan"],["Tarek Mansour","+961 75 979 769",11,268.4,"4 Nov","1 Apr"],["Yara Nassar","+961 70 106 991",8,173.3,"2 Nov","14 Jul"],["Fadi Chamoun","+961 72 139 341",6,122.6,"1 Nov","2 Aug"],["Rita Gemayel","+961 78 313 492",5,148.9,"30 Oct","9 Sep"],["Hadi Salem","+961 73 433 109",4,96.0,"28 Oct","12 Sep"],["Omar Aoun","+961 75 766 248",3,64.4,"Today","1 Oct"]];
-const money = (v) => "$" + v.toFixed(2);
+const money = (v) => (window.__dlCurrency || "€") + Number(v || 0).toFixed(2);
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
 class Component extends DCLogic {
-  state = { promos: P0, pTab: "all", pMenu: null, tip1: true, promo: null, cq: "", sort: "spent", sdir: "desc", vSort: "views", vDir: "desc", cust: null };
+  state = { promos: [], custs: [], pTab: "all", pMenu: null, tip1: true, promo: null, cq: "", sort: "spent", sdir: "desc", vSort: "views", vDir: "desc", cust: null };
   t(m) { this.props.toast && this.props.toast(m); }
-  componentDidMount() { const prods = window.__dlPendingPromo; if (prods && this.props.screen === "promotions") { window.__dlPendingPromo = null; this.setState({ promo: { ...this.blankPromo("Percent off", 2), prods, dir: "fwd" } }); } }
+  componentDidMount() {
+    const prods = window.__dlPendingPromo;
+    if (prods && this.props.screen === "promotions") { window.__dlPendingPromo = null; this.setState({ promo: { ...this.blankPromo("Percent off", 2), prods, dir: "fwd" } }); }
+    fetch('/api/manager/promotions').then(r => r.ok ? r.json() : []).then(data => {
+      if (Array.isArray(data)) {
+        this.setState({ promos: data.map(p => ({ id: p._id || p.id, name: p.title, kind: p.code ? 'Promo code' : 'Percent off', icon: p.code ? 'tag' : 'percent', value: p.sub || 'Active', conds: [['calendar', p.sub || 'Always on']], on: p.on !== false, used: p.used || 0, sales: 0, code: p.code || '' })) });
+      }
+    }).catch(() => {});
+    fetch('/api/manager/customers').then(r => r.ok ? r.json() : []).then(data => {
+      if (Array.isArray(data)) {
+        this.setState({ custs: data.map(c => [c.name, c.phone || '—', c.orders || 0, c.spent || 0, c.lastAt ? new Date(c.lastAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—', c.firstAt ? new Date(c.firstAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—']) });
+      }
+    }).catch(() => {});
+  }
   analysisVals(st, go) {
     const IMG = (k) => k < 0 ? "#F4F4F3" : `url(assets/dishes.jpg) ${(k * 100 / 9).toFixed(2)}% 0/1000% 100%`;
     const per = st.aPer || "30", f = { "7": 0.24, "30": 1, "90": 3.1 }[per];
@@ -431,9 +444,9 @@ class Component extends DCLogic {
     const st = this.state, scr = this.props.screen;
     const go = (s) => () => this.props.go && this.props.go(s);
     const p = st.promo, setP = (x) => this.setState(s => ({ promo: { ...s.promo, ...x } }));
-    let cs = CUST.filter(c => !st.cq || (c[0] + c[1]).toLowerCase().includes(st.cq.toLowerCase()));
+    let cs = st.custs.filter(c => !st.cq || (c[0] + c[1]).toLowerCase().includes(st.cq.toLowerCase()));
     cs = SORTBY(cs, { name: x => x[0].toLowerCase(), phone: x => x[1], orders: x => x[2], spent: x => x[3], last: x => DAYNUM(x[4]) }[st.sort] || (x => x[3]), st.sdir || "desc");
-    const c = CUST.find(x => x[0] === st.cust);
+    const c = st.custs.find(x => x[0] === st.cust);
     const ini = (n) => n.split(" ").map(w => w[0]).slice(0, 2).join("");
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
@@ -452,7 +465,7 @@ class Component extends DCLogic {
         used: x.used.toLocaleString("en-US"), usedLabel: x.used === 1 ? "use" : "uses", sales: x.sales ? "$" + Math.round(x.sales).toLocaleString("en-US") : "",
         canToggle: !x.ended, on: x.on ? "true" : "false", toggleLabel: x.on ? "Pause" : "Resume",
         swBg: x.on ? "#14110F" : "#DADAD7", swJ: x.on ? "flex-end" : "flex-start",
-        toggle: () => { this.setState(s => ({ promos: s.promos.map((y, j) => j === i ? { ...y, on: !y.on } : y) })); this.t(x.on ? `${x.name} paused` : `${x.name} is running`); },
+        toggle: () => { const nextOn = !x.on; if (x.id) fetch('/api/manager/promotions', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: x.id, on: nextOn }) }).catch(() => {}); this.setState(s => ({ promos: s.promos.map((y, j) => j === i ? { ...y, on: nextOn } : y) })); this.t(x.on ? `${x.name} paused` : `${x.name} is running`); },
         copy: () => { try { navigator.clipboard.writeText(x.code); } catch (e) {} this.t(`${x.code} copied`); },
         menu: () => this.setState({ pMenu: st.pMenu === i ? null : i }), menuOpen: st.pMenu === i, dupLabel: x.ended ? "Run again" : "Duplicate",
         dup: () => { this.setState(s => ({ pMenu: null, promos: [...s.promos.slice(0, i + 1), { ...x, name: x.ended ? x.name : x.name + " (copy)", conds: x.ended ? [["calendar", "Always on"]] : x.conds, used: 0, sales: 0, on: !!x.ended, ended: false }, ...s.promos.slice(i + 1)] })); this.t(x.ended ? `${x.name} is running again` : "Promotion duplicated"); },

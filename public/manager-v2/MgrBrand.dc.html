@@ -272,7 +272,30 @@ const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0",
 class Component extends DCLogic {
   state = { ...DEF, pub: PICK(DEF), hex: {}, touched: false, role: "accent", drag: null, logoCols: ["#C2300B", "#E3A21A", "#56702F"], ar: false, pvOpen: false, req: false, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra", fbName: "Hamra", brandName: "Block Party", kind: "Restaurant", added: [] };
   rootRef = (el) => { if (el === this.el) return; this.ro && this.ro.disconnect(); this.el = el; if (el && window.ResizeObserver) { this.ro = new ResizeObserver(([e]) => { const n = e.contentRect.width < 820; if (n !== this.state.narrow) this.setState({ narrow: n, pvOpen: false }); }); this.ro.observe(el); } };
-  componentDidMount() { this.onR = () => this.state.pvOpen && this.forceUpdate(); window.addEventListener("resize", this.onR); this.readLogo(); }
+  componentDidMount() {
+    this.onR = () => this.state.pvOpen && this.forceUpdate();
+    window.addEventListener("resize", this.onR);
+    this.readLogo();
+    fetch('/api/manager/branches').then(r => r.ok ? r.json() : []).then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        const sym = window.__dlCurrency || "€";
+        this.setState({
+          liveBranches: data.map(b => ({
+            id: b.id,
+            slug: b.slug,
+            name: b.name,
+            area: b.where || b.slug,
+            status: b.status || 'Open',
+            statusLong: b.open ? 'Open' : 'Paused',
+            orders: b.orders || 0,
+            sales: sym + Number(b.sales || 0).toFixed(2),
+            plan: 'Active',
+            here: Boolean(b.isCurrent),
+          }))
+        });
+      }
+    }).catch(() => {});
+  }
   readLogo() { const img = new Image(); img.onload = () => { try { const cv = document.createElement("canvas"); cv.width = cv.height = 48; const x = cv.getContext("2d", { willReadFrequently: true }); x.drawImage(img, 0, 0, img.width / 10, img.height, 0, 0, 48, 48); const d = x.getImageData(0, 0, 48, 48).data, bk = {};
     for (let i = 0; i < d.length; i += 4) { const p = hex2hsv(toHex([d[i], d[i + 1], d[i + 2]])); if (p.s < 0.3 || p.v < 0.25) continue; const k = Math.round(p.h / 30) % 12, o = bk[k] || (bk[k] = { n: 0, r: 0, g: 0, b: 0 }), w = p.s * p.v; o.n += w; o.r += d[i] * w; o.g += d[i + 1] * w; o.b += d[i + 2] * w; }
     const top = Object.values(bk).sort((p, q) => q.n - p.n).slice(0, 3).map(o => toHex([o.r / o.n, o.g / o.n, o.b / o.n])); if (top.length) this.setState(s => ({ logoCols: [...top, ...s.logoCols].slice(0, 3) })); } catch (e) {} }; img.src = "assets/dishes.jpg"; }
@@ -295,10 +318,10 @@ class Component extends DCLogic {
       ui: UI(phone), mobile: phone, desktop: !phone, rootRef: this.rootRef, stack: mob, wide: !mob, barBottom: phone ? "calc(76px + env(safe-area-inset-bottom))" : "calc(12px + env(safe-area-inset-bottom))",
       isBranches: scr === "branches", isBranding: scr === "branding", mixedBrand: this.props.plan === "free" || this.props.plan === "suspended",
       branchCols: SORTCOLS([["name", "Branch", "left", "asc"], ["status", "Status", "left", "asc"], ["orders", "Orders", "right"], ["sales", "Sales", "right"]], st.bSort || "sales", st.bDir || "desc", (bSort, bDir) => this.setState({ bSort, bDir }), "20px"),
-      branches: SORTBY([...(this.props.oneBranch ? [{ ...B[0], name: st.firstNamed ? st.fbName : "Block Party" }] : B), ...st.added], { name: x => x.name, status: x => x.status, orders: x => x.orders, sales: x => parseFloat(x.sales.replace(/[^0-9.]/g, "")) }[st.bSort || "sales"], st.bDir || "desc").map(b => ({ ...b, border: b.here ? "#14110F" : "#EAEAE8", cta: this.props.lang === "ar" ? (b.here ? "أنت هنا · فتح" : "فتح") : (b.here ? "You're here · Open" : "Open"),
+      branches: SORTBY([...(st.liveBranches || (this.props.oneBranch ? [{ ...B[0], name: st.firstNamed ? st.fbName : "My Store" }] : B)), ...st.added], { name: x => x.name, status: x => x.status, orders: x => x.orders, sales: x => parseFloat(String(x.sales).replace(/[^0-9.]/g, "")) || 0 }[st.bSort || "sales"], st.bDir || "desc").map(b => ({ ...b, border: b.here ? "#14110F" : "#EAEAE8", cta: this.props.lang === "ar" ? (b.here ? "أنت هنا · فتح" : "فتح") : (b.here ? "You're here · Open" : "Open"),
         stBg: b.status === "Open" ? "#F4F4F3" : "#FFF0C2", stInk: b.status === "Open" ? "#14110F" : "#7A5300", stDot: b.status === "Open" ? "#FF4A1C" : "#FFC52E",
-        link: b.here ? "dinelabs.co/blockparty" : `dinelabs.co/blockparty-${b.name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
-        open: () => { this.props.go && this.props.go("home"); if (!b.here) this.t(`Switched to ${b.name}`); }, copy: () => this.t(`${b.name} link copied`) })),
+        link: b.slug ? `dinelabs.co/store/${b.slug}` : `dinelabs.co/store/${b.name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
+        open: () => { this.props.go && this.props.go("home"); if (!b.here) this.t(`Switched to ${b.name}`); }, copy: () => { try { navigator.clipboard.writeText("https://" + (b.slug ? `dinelabs.co/store/${b.slug}` : "")); } catch (e) {} this.t(`${b.name} link copied`); } })),
       openRequest: () => this.setState({ req: true, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra" }), req: st.req, closeReq: () => this.setState({ req: false }),
       nbName: st.nbName, nbAddr: st.nbAddr, setNbName: (e) => this.setState({ nbName: e.target.value }), setNbAddr: (e) => this.setState({ nbAddr: e.target.value }),
       nbLink: "dinelabs.co/blockparty-" + ((st.nbName.trim() || "mar mikhael").toLowerCase().replace(/[^a-z0-9]+/g, "")),

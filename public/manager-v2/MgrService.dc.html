@@ -314,8 +314,29 @@ class Component extends DCLogic {
     del: true, zones: [{ km: "3", fee: "2.00", min: "", time: "20–30 min" }, { km: "6", fee: "3.50", min: "15", time: "30–45 min" }, { km: "10", fee: "5.00", min: "25", time: "45–60 min" }], zOpen: null,
     pick: true, pf: "15", pt: "20", dine: true, tables: [1, 2, 3, 4, 5, 6], tab: 0, qr: null };
   t(m) { this.props.toast && this.props.toast(m); }
-  componentDidMount() { if (this.props.newUser) this.setState({ zones: [], del: false }); }
-  componentDidUpdate(pp) { if (pp.newUser !== this.props.newUser) this.setState(this.props.newUser ? { zones: [], del: false, zOpen: null } : { zones: STARTER.map(z => ({ ...z })), del: true }); }
+  componentDidMount() {
+    fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
+      if (!raw) return;
+      this.setState({
+        del: raw.enabledModes?.delivery ?? true,
+        pick: raw.enabledModes?.pickup ?? true,
+        dine: raw.enabledModes?.dineIn ?? true,
+        zones: Array.isArray(raw.deliveryZones) && raw.deliveryZones.length > 0 ? raw.deliveryZones : this.state.zones,
+      });
+    }).catch(() => {});
+    fetch('/api/tables').then(r => r.ok ? r.json() : []).then(tbls => {
+      if (Array.isArray(tbls) && tbls.length > 0) {
+        this.setState({ tables: tbls.map((t, i) => Number(t.tableNo || t.number || i + 1)) });
+      }
+    }).catch(() => {});
+  }
+  saveModes(next) {
+    fetch('/api/tenant/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabledModes: next })
+    }).catch(() => {});
+  }
   renderVals() {
     const st = this.state, scr = this.props.screen;
     const setH = (i, v) => this.setState(s => ({ hours: s.hours.map((h, j) => j === i ? v : h) }));
@@ -362,7 +383,7 @@ class Component extends DCLogic {
       offFilter: !st.del && st.zones.length > 0 ? "grayscale(1)" : "none", offOp: !st.del && st.zones.length > 0 ? 0.45 : 1, offPe: !st.del && st.zones.length > 0 ? "none" : "auto",
       delSub: this.props.hasLocation === false ? "Add your store location, then set your zones." : st.zones.length ? "Customers inside your zones can choose delivery at checkout." : "Set up at least one zone below to start taking delivery orders.",
       delLive: this.props.hasLocation === false ? "Needs location" : !st.zones.length ? "Needs a zone" : st.del ? "Live on storefront" : "Off", delDot: !st.zones.length ? "#C28A00" : st.del ? "#1F7A4D" : "#5A5A57", delSw: sw(st.del && st.zones.length > 0)[0], delJ: sw(st.del && st.zones.length > 0)[1],
-      toggleDel: () => { if (this.props.hasLocation === false) return this.t("Add your store location first"); if (!st.zones.length) return this.t("Add at least one zone to turn on delivery"); this.setState({ del: !st.del }); this.t(st.del ? "Delivery is off" : "Delivery is on"); },
+      toggleDel: () => { if (this.props.hasLocation === false) return this.t("Add your store location first"); if (!st.zones.length) return this.t("Add at least one zone to turn on delivery"); const next = !st.del; this.setState({ del: next }); this.saveModes({ delivery: next, pickup: st.pick, dineIn: st.dine }); this.t(next ? "Delivery is on" : "Delivery is off"); },
       ...(() => { const grey = (off) => ({ filter: off ? "grayscale(1)" : "none", op: off ? 0.45 : 1, pe: off ? "none" : "auto" }); const mob = !!this.props.mobile;
         const pf = +st.pf || 0, pt = +st.pt || 0;
         return {
@@ -381,7 +402,7 @@ class Component extends DCLogic {
       tableCount: st.tables.length,
       dineTabs: ["Tables", "Floor plan"].map((label, i) => ({ label, pick: () => this.setState({ tab: i }), bg: st.tab === i ? "#fff" : "transparent", color: st.tab === i ? "#14110F" : "#14110F", shadow: st.tab === i ? "0 1px 3px rgba(0,0,0,.08)" : "none" })),
       showList: true,
-      tables: st.tables.map((n, i) => ({ n, short: `?table=${n}`, seats: SEATS[(n - 1) % 8], shape: SEATS[(n - 1) % 8] > 4 ? "16px" : "99px", link: `dinelabs.co/blockparty?table=${n}`,
+      tables: st.tables.map((n, i) => ({ n, short: `?table=${n}`, seats: SEATS[(n - 1) % 8], shape: SEATS[(n - 1) % 8] > 4 ? "16px" : "99px", link: `dinelabs.co/store/${window.__dlTenant?.slug || "store"}?table=${n}`,
         copy: () => this.t(`Table ${n} link copied`), qr: () => this.setState({ qr: n }), del: () => { this.setState(s => ({ tables: s.tables.filter(x => x !== n) })); this.t(`Table ${n} removed`); } })),
       addTable: () => { const n = Math.max(0, ...st.tables) + 1; this.setState(s => ({ tables: [...s.tables, n] })); this.t(`Table ${n} added`); },
       qr: st.qr, closeQr: () => this.setState({ qr: null }), printQr: () => { this.t(`Printing table ${st.qr} QR code`); this.setState({ qr: null }); }, dlQr: () => { this.t(`Table ${st.qr} QR code downloaded`); this.setState({ qr: null }); }, stop: (e) => e.stopPropagation(),

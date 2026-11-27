@@ -214,7 +214,51 @@ const RULES = ["Choose 1", "Choose up to 3", "Choose any"];
 const fmt = (p) => +p ? ` · +$${(+p).toFixed(2)}` : "";
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
 class Component extends DCLogic {
-  state = { cats: C0.map((c, i) => ({ ...c, id: i + 1 })), groups: G0, editing: null, draft: null, cmenu: null, armed: null, dragging: null, over: null, overPos: null, grp: null, custom: [["Spicy", "حار", "flame", "red", 2], ["Vegetarian", "نباتي", "leaf", "green", 3], ["Popular", "الأكثر طلباً", "star", "mustard", 4]].map(([name, ar, icon, color, n], i) => ({ id: i + 1, name, ar, icon, color, n })), lEdit: null, lDraft: null, lQuery: "" };
+  state = { cats: [], groups: [], editing: null, draft: null, cmenu: null, armed: null, dragging: null, over: null, overPos: null, grp: null, custom: [], lEdit: null, lDraft: null, lQuery: "" };
+  componentDidMount() {
+    Promise.all([
+      fetch('/api/categories').then(r => r.ok ? r.json() : []),
+      fetch('/api/products').then(r => r.ok ? r.json() : []),
+      fetch('/api/modifier-groups').then(r => r.ok ? r.json() : []),
+    ]).then(([rawCats, rawProds, rawMods]) => {
+      const counts = new Map();
+      if (Array.isArray(rawProds)) {
+        rawProds.forEach(p => {
+          (p.categories || []).forEach(cid => counts.set(String(cid), (counts.get(String(cid)) || 0) + 1));
+        });
+      }
+      if (Array.isArray(rawCats)) {
+        this.setState({
+          cats: rawCats.map(c => ({
+            id: String(c._id || c.id),
+            name: typeof c.name === 'object' ? (c.name.en || c.name.de || Object.values(c.name)[0] || 'Category') : (c.name || 'Category'),
+            ar: typeof c.name === 'object' ? (c.name.ar || '') : '',
+            count: counts.get(String(c._id || c.id)) || 0,
+            feat: Boolean(c.isFeatured),
+            hidden: c.isVisible === false || Boolean(c.hidden),
+          }))
+        });
+      }
+      if (Array.isArray(rawMods)) {
+        this.setState({
+          groups: rawMods.map(g => ({
+            id: String(g._id || g.id),
+            name: typeof g.name === 'object' ? (g.name.en || g.name.de || Object.values(g.name)[0] || 'Group') : (g.name || 'Group'),
+            ar: typeof g.name === 'object' ? (g.name.ar || '') : '',
+            min: Number(g.minSelections) || 0,
+            max: Number(g.maxSelections) || 1,
+            used: 0,
+            opts: (g.options || []).map(o => [
+              typeof o.name === 'object' ? (o.name.en || o.name.de || Object.values(o.name)[0] || 'Option') : (o.name || 'Option'),
+              typeof o.name === 'object' ? (o.name.ar || '') : '',
+              Number(o.price) || 0,
+              o.isAvailable !== false,
+            ])
+          }))
+        });
+      }
+    }).catch(() => {});
+  }
   t(m) { this.props.toast && this.props.toast(m); }
   openLabel(l) { this.setState(s => ({ custom: s.custom.filter(x => !x.isNew), lEdit: l.id, lDraft: { name: l.name, ar: l.ar, color: l.color, icon: l.icon }, lQuery: "" })); }
   saveLabel() { const d = this.state.lDraft, name = d.name.trim(); if (!name) { this.t("Give the label a name"); return; }
@@ -227,8 +271,13 @@ class Component extends DCLogic {
   setCats(fn) { this.setState(s => ({ cats: fn(s.cats) })); }
   saveCat() { const { editing, draft } = this.state; if (editing == null) return; const name = (draft.name || "").trim();
     if (!name) { this.t("Give the category a name"); return; }
-    const cur = this.state.cats.find(c => c.id === editing) || {}, isNew = cur.isNew, changed = name !== cur.name || (draft.ar || "").trim() !== (cur.ar || "");
-    this.setState(s => ({ cats: s.cats.map(c => c.id === editing ? { ...c, name, ar: (draft.ar || "").trim(), isNew: false } : c), editing: null, draft: null }));
+    const cur = this.state.cats.find(c => c.id === editing) || {}, isNew = cur.isNew, ar = (draft.ar || "").trim(), changed = name !== cur.name || ar !== (cur.ar || "");
+    if (isNew) {
+      fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: { en: name, ar } }) }).catch(() => {});
+    } else if (changed) {
+      fetch('/api/categories', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, name: { en: name, ar } }) }).catch(() => {});
+    }
+    this.setState(s => ({ cats: s.cats.map(c => c.id === editing ? { ...c, name, ar, isNew: false } : c), editing: null, draft: null }));
     if (isNew) this.t(`${name} added`); else if (changed) this.t("Category renamed"); }
   cancelCat() { const id = this.state.editing; this.setState(s => ({ cats: s.cats.filter(c => !(c.id === id && c.isNew)), editing: null, draft: null })); }
   moveCat(id, dir) { this.setState(s => { const a = [...s.cats], i = a.findIndex(c => c.id === id), j = i + dir; if (j < 0 || j >= a.length) return { cmenu: null }; [a[i], a[j]] = [a[j], a[i]]; return { cats: a, cmenu: null }; }); }
@@ -255,7 +304,7 @@ class Component extends DCLogic {
         blurSave: (e) => { const row = e.currentTarget.parentElement; setTimeout(() => { if (this.state.editing !== c.id || row.contains(document.activeElement)) return; (this.state.draft.name || "").trim() ? this.saveCat() : this.cancelCat(); }, 0); },
         menu: () => this.setState({ cmenu: st.cmenu === c.id ? null : c.id }), menuOpen: st.cmenu === c.id,
         up: () => this.moveCat(c.id, -1), down: () => this.moveCat(c.id, 1),
-        del: () => { this.setState(s => ({ cats: s.cats.filter(x => x.id !== c.id), cmenu: null })); this.t(`${c.name} deleted. Its products stay in your menu.`); },
+        del: () => { fetch(`/api/categories?id=${encodeURIComponent(c.id)}`, { method: 'DELETE' }).catch(() => {}); this.setState(s => ({ cats: s.cats.filter(x => x.id !== c.id), cmenu: null })); this.t(`${c.name} deleted. Its products stay in your menu.`); },
         drag: st.armed === c.id || st.dragging === c.id ? "true" : "false", arm: () => this.setState({ armed: c.id }),
         dragStart: (e) => { e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", String(c.id)); } catch (_) {} this.setState({ dragging: c.id }); },
         dragOver: (e) => { if (st.dragging == null || st.dragging === c.id) return; e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(), pos = e.clientY < r.top + r.height / 2 ? "before" : "after"; if (st.over !== c.id || st.overPos !== pos) this.setState({ over: c.id, overPos: pos }); },
@@ -285,7 +334,7 @@ class Component extends DCLogic {
         previewName: g.name || "Add-on group name", previewRule: RULES[g.type], shape: g.type === 0 ? "99px" : "5px",
         reqTag: g.req ? "Required" : "Optional", reqTagBg: g.req ? "#14110F" : "#F4F4F3", reqTagInk: g.req ? "#fff" : "#14110F",
         preview: g.opts.filter(o => o[0]).map(o => ({ en: o[0], p: +o[2] ? `+$${(+o[2]).toFixed(2)}` : "" })),
-        save: () => { const clean = { ...g, opts: g.opts.filter(o => o[0]) }; this.setState(s => ({ grp: null, groups: g.idx < 0 ? [...s.groups, clean] : s.groups.map((x, i) => i === g.idx ? clean : x) })); this.t(`${g.name || "Group"} saved`); },
+        save: () => { const clean = { ...g, opts: g.opts.filter(o => o[0]) }; fetch('/api/modifier-groups', { method: clean.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: clean.id, name: { en: clean.name, ar: clean.ar }, minSelections: clean.min, maxSelections: clean.max, options: clean.opts.map(o => ({ name: { en: o[0], ar: o[1] }, price: Number(o[2]) || 0, isAvailable: o[3] !== false })) }) }).catch(() => {}); this.setState(s => ({ grp: null, groups: g.idx < 0 ? [...s.groups, clean] : s.groups.map((x, i) => i === g.idx ? clean : x) })); this.t(`${g.name || "Group"} saved`); },
       } : null,
       closeGrp: () => this.setState({ grp: null }), stop: (e) => e.stopPropagation(),
       labels: st.custom.filter(l => !l.isNew).map((l, i) => ({ name: l.name, ar: l.ar || "Add Arabic name", arInk: l.ar ? "#5A5A57" : "#7A5300", icon: l.icon, bg: LCOL[l.color][1], ink: LCOL[l.color][2], borderTop: i ? "1px solid #EAEAE8" : "0",

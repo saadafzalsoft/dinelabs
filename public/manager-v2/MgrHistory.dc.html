@@ -86,10 +86,41 @@ for (let i = 0; i < 48; i++) {
   rows.push({ id, name, phone, t, status, card, items, sub, tip, date: `${d} · ${hh}:${mm}`, failed: i === 30,
     reason: status === "Rejected" ? ["Too busy", "Out of stock", "Closing soon"][i % 3] : status === "Cancelled" ? "Customer asked" : "" });
 }
-const money = (v) => "$" + v.toFixed(2);
+const money = (v) => (window.__dlCurrency || "€") + Number(v || 0).toFixed(2);
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
 class Component extends DCLogic {
-  state = { sort: "id", dir: "desc", q: "", type: "all", status: "all", tip: true, det: null };
+  state = { rows: [], sort: "id", dir: "desc", q: "", type: "all", status: "all", tip: true, det: null };
+  componentDidMount() {
+    fetch('/api/orders').then(r => r.ok ? r.json() : []).then(raw => {
+      if (!Array.isArray(raw)) return;
+      const doneList = raw.filter(o => ['completed', 'delivered', 'declined', 'rejected', 'cancelled'].includes(o.status)).map(o => {
+        const typeKey = o.type === 'dine-in' || o.type === 'dinein' ? ['Dine-in', '#14110F', '#14110F'] : o.type === 'delivery' ? ['Delivery', '#1F7A4D', '#1F7A4D'] : ['Pickup', '#7A5300', '#C28A00'];
+        const status = (o.status === 'completed' || o.status === 'delivered') ? 'Completed' : (o.status === 'cancelled' ? 'Cancelled' : 'Rejected');
+        const items = (o.items || []).map(it => ({
+          q: it.quantity || it.qty || 1,
+          n: typeof it.name === 'object' ? (it.name.en || it.name.de || Object.values(it.name)[0] || 'Item') : (it.name || 'Item'),
+          p: Number(it.price) || 0,
+        }));
+        const d = o.createdAt ? new Date(o.createdAt) : new Date();
+        const date = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        return {
+          id: o.orderNo || parseInt(String(o._id).slice(-4), 16) || 1000,
+          name: o.customer?.name || 'Customer',
+          phone: o.customer?.phone || '',
+          t: typeKey,
+          status,
+          card: o.paymentStatus === 'paid' || Boolean(o.isPaid),
+          items,
+          sub: Number(o.subtotal || o.total) || 0,
+          tip: Number(o.tip) || 0,
+          date,
+          failed: false,
+          reason: o.cancellationReason || o.rejectionReason || '',
+        };
+      });
+      this.setState({ rows: doneList });
+    }).catch(() => {});
+  }
   pay(r) {
     if (r.failed) return ["Card payment failed", "circle-alert", "#FFE6DE", "#C2300B", "#FFC0AC", ""];
     if (r.status !== "Completed" && r.card) return ["Paid · Card", "credit-card", "#fff", "#14110F", "#EAEAE8", `Refunded ${money(r.sub)}`];
@@ -98,7 +129,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const st = this.state, q = st.q.trim().toLowerCase().replace("#", "");
-    const list = rows.filter(r => (st.type === "all" || r.t[0] === st.type) && (st.status === "all" || r.status === st.status) && (!q || String(r.id).includes(q) || r.name.toLowerCase().includes(q) || r.phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))));
+    const list = st.rows.filter(r => (st.type === "all" || r.t[0] === st.type) && (st.status === "all" || r.status === st.status) && (!q || String(r.id).includes(q) || r.name.toLowerCase().includes(q) || r.phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))));
     const sInk = (s) => s === "Completed" ? "#14110F" : "#C2300B";
     const sDot = (s) => s === "Completed" ? "#1F7A4D" : "#C2300B";
     const K = { id: r => r.id, name: r => r.name.toLowerCase(), type: r => r.t[0], status: r => r.status, pay: r => this.pay(r)[0], total: r => r.sub + r.tip };
@@ -106,7 +137,7 @@ class Component extends DCLogic {
     list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
     const COLS = [["id","Order","left"],["name","Customer","left"],["type","Channel","left"],["status","Status","left"],["pay","Payment","left"],["total","Total","right"]];
     const tips = list.reduce((s, r) => s + r.tip, 0);
-    const d = rows.find(r => r.id === st.det);
+    const d = st.rows.find(r => r.id === st.det);
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
       showTip: st.tip, hideTip: () => this.setState({ tip: false }),
