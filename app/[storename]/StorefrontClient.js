@@ -67,6 +67,32 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       }
       link.href = tenant.logoUrl;
     }
+    if (typeof window !== 'undefined' && tenant?.theme) {
+      const th = tenant.theme;
+      const presets = [
+        ['#FFFFFF', '#14110F', '#C2300B'],
+        ['#FAFAF7', '#14110F', '#14110F'],
+        ['#FFF7F3', '#2B1410', '#C2300B'],
+        ['#FFFAEE', '#2A1E05', '#E3A21A'],
+        ['#F7F7EF', '#1E2414', '#56702F'],
+        ['#F6F9FC', '#0F2233', '#1E5FA8'],
+        ['#14110F', '#FFFFFF', '#FF6A3D'],
+        ['#0F1A15', '#EEF3EF', '#7FD1A0'],
+      ];
+      let bg = '#FFFFFF', ink = '#14110F', accent = '#C2300B';
+      if (th.mode === 'custom' && th.custom) {
+        bg = th.custom.bg || bg;
+        ink = th.custom.ink || ink;
+        accent = th.custom.accent || accent;
+      } else if (typeof th.preset === 'number' && presets[th.preset]) {
+        [bg, ink, accent] = presets[th.preset];
+      }
+      document.documentElement.style.setProperty('--dl-bg', bg);
+      document.documentElement.style.setProperty('--dl-ink', ink);
+      document.documentElement.style.setProperty('--dl-accent', accent);
+      document.body.style.backgroundColor = bg;
+      document.body.style.color = ink;
+    }
   }, [tenant]);
 
   // Load cart and details from localStorage on mount
