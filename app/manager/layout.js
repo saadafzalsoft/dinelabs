@@ -4282,6 +4282,14 @@ function ManagerLayoutContent({ children }) {
       ]
     },
     {
+      group: 'Growth & business',
+      items: [
+        { id: 'customers', name: 'Customers', icon: 'users', path: '/manager/customers' },
+        { id: 'promotions', name: 'Promotions', icon: 'badge-percent', path: '/manager/promotions' },
+        { id: 'branches', name: 'Branches', icon: 'building-2', path: '/manager/branches' },
+      ]
+    },
+    {
       group: 'Account',
       items: [
         { id: 'profile', name: 'Store profile', icon: 'settings', path: '/manager/store-profile' },
@@ -4306,6 +4314,9 @@ function ManagerLayoutContent({ children }) {
     if (pathname === '/manager/delivery') return 'Delivery';
     if (pathname === '/manager/dine-in') return 'Dine-in';
     if (pathname === '/manager/pick-up') return 'Pick-up';
+    if (pathname === '/manager/customers') return 'Customers';
+    if (pathname === '/manager/promotions') return 'Promotions';
+    if (pathname === '/manager/branches') return 'Branches';
     if (pathname === '/manager/store-profile') return 'Store profile';
     if (pathname === '/manager/notifications') return 'Notifications';
     return 'Manager';
