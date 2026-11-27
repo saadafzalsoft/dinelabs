@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div ref="{{ rootRef }}" onKeyDown="{{ onKey }}" style="position:relative;display:{{ disp }};width:{{ width }};min-width:0">
+  <button type="button" onClick="{{ toggle }}" aria-haspopup="listbox" aria-expanded="{{ open }}" style="width:100%;height:{{ h }}px;display:flex;align-items:center;gap:8px;padding:0 12px 0 12px;border:1px solid {{ border }};border-radius:10px;background:#fff;color:#14110F;font-size:{{ fs }};font-weight:{{ weight }};cursor:pointer;text-align:start;transition:border-color .12s,box-shadow .12s;box-shadow:{{ ring }}" style-hover="border-color:#5A5A57">
+    <sc-if value="{{ selFlag }}"><span style="width:22px;height:16px;flex-shrink:0;border-radius:3px;background:#EAEAE8 url({{ selFlag }}) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(20,17,15,.08)"></span></sc-if>
+    <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
+    <i class="icon-chevron-down" style="font-size:16px;color:#5A5A57;transition:transform .16s cubic-bezier(.2,0,0,1);transform:{{ chevRot }}"></i>
+  </button>
+  <sc-if value="{{ open }}">
+    <div role="listbox" style="position:absolute;top:calc(100% + 6px);{{ side }}:0;z-index:45;min-width:100%;max-height:{{ maxH }};overflow-y:auto;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:6px;display:flex;flex-direction:column;gap:2px;animation:ddin .14s cubic-bezier(.2,0,0,1) both">
+      <sc-if value="{{ searchable }}"><div style="position:sticky;top:-6px;z-index:1;margin:-6px -6px 4px;padding:6px 6px 6px;background:#fff;border-bottom:1px solid #EAEAE8"><label style="display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-radius:10px;background:#F4F4F3"><i class="icon-search" style="font-size:16px;color:#5A5A57"></i><input ref="{{ searchRef }}" data-bare="" value="{{ q }}" onChange="{{ onQ }}" placeholder="{{ searchPh }}" aria-label="{{ searchPh }}" spellcheck="false" autocomplete="off" style="flex:1;min-width:0;height:100%;border:0;background:none;font-size:{{ fs }};font-weight:400;color:#14110F"></label></div></sc-if>
+      <sc-if value="{{ empty }}"><div style="padding:16px 10px;font-size:14px;color:#5A5A57;text-align:center">No matches for “{{ q }}”</div></sc-if>
+      <sc-for list="{{ items }}" as="o" hint-placeholder-count="4">
+        <button type="button" role="option" aria-selected="{{ o.sel }}" onClick="{{ o.pick }}" onMouseEnter="{{ o.hover }}" style="display:flex;align-items:center;gap:10px;min-height:36px;padding:0 10px;border:0;border-radius:10px;background:{{ o.bg }};color:#14110F;font-size:14px;font-weight:{{ o.w }};cursor:pointer;text-align:start;white-space:nowrap">
+          <sc-if value="{{ o.flag }}"><span style="width:22px;height:16px;flex-shrink:0;border-radius:3px;background:#EAEAE8 url({{ o.flag }}) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(20,17,15,.08)"></span></sc-if>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis">{{ o.label }}</span>
+          <sc-if value="{{ o.meta }}"><span style="font-size:13px;color:#5A5A57;font-weight:400">{{ o.meta }}</span></sc-if>
+          <i class="icon-check" style="font-size:15px;opacity:{{ o.checkOp }}"></i>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;280px&quot;,&quot;height&quot;:&quot;260px&quot;},&quot;options&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;all=All categories|pizzas=Pizzas|drinks=Drinks&quot;,&quot;tsType&quot;:&quot;string | {value,label}[]&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;all&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(e:{target:{value:string}})=&gt;void&quot;},&quot;height&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;},&quot;block&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;alignRight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;searchable&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;searchPlaceholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { open: false, own: null, active: -1, q: "" };
+  rootRef = React.createRef();
+  searchRef = React.createRef();
+  componentDidUpdate() { const ps = { open: this._po, active: this._pa }; this._po = this.state.open; this._pa = this.state.active; if (this.state.open && !ps.open && this.props.searchable) setTimeout(() => this.searchRef.current && this.searchRef.current.focus(), 0); if (this.state.open && this.state.active !== ps.active) { const el = this.rootRef.current && this.rootRef.current.querySelectorAll('[role="option"]')[this.state.active]; if (el && el.parentNode) { const p = el.parentNode, t = el.offsetTop, b = t + el.offsetHeight; if (t < p.scrollTop + 50) p.scrollTop = t - 50; else if (b > p.scrollTop + p.clientHeight) p.scrollTop = b - p.clientHeight; } } }
+  componentDidMount() {
+    this.onDoc = (e) => { if (this.state.open && this.rootRef.current && !this.rootRef.current.contains(e.target)) this.setState({ open: false, q: "" }); };
+    document.addEventListener("mousedown", this.onDoc);
+    if (!document.getElementById("dd-kf")) { const s = document.createElement("style"); s.id = "dd-kf"; s.textContent = "@keyframes ddin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}"; document.head.appendChild(s); }
+  }
+  componentWillUnmount() { document.removeEventListener("mousedown", this.onDoc); }
+  opts() {
+    const raw = this.props.options;
+    const list = Array.isArray(raw) ? raw : String(raw || "").split("|");
+    return list.map(o => typeof o === "object" ? o : (o.includes("=") ? { value: o.split("=")[0].trim(), label: o.split("=").slice(1).join("=").trim() } : { value: o.trim(), label: o.trim() }));
+  }
+  cur(opts) { const v = this.props.value != null ? this.props.value : this.state.own; return v != null ? v : (opts[0] && opts[0].value); }
+  pick(v) {
+    this.setState({ open: false, own: v, q: "" });
+    this.props.onChange && this.props.onChange({ target: { value: v } });
+  }
+  renderVals() {
+    const opts = this.opts(), v = this.cur(opts), st = this.state;
+    const selIdx = Math.max(0, opts.findIndex(o => String(o.value) === String(v)));
+    const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const q = norm(st.q).trim(), list = q ? opts.filter(o => norm(o.label).includes(q) || norm(o.meta).replace(/\s/g, "").includes(q.replace(/\s/g, ""))) : opts;
+    const listSel = list.findIndex(o => String(o.value) === String(v));
+    return {
+      rootRef: this.rootRef, open: st.open,
+      h: this.props.height || 40, fs: this.props.fontSize || "14px", weight: this.props.weight || 500,
+      width: this.props.block ? "100%" : "auto", disp: this.props.block ? "flex" : "inline-flex", side: this.props.alignRight ? "inset-inline-end" : "inset-inline-start",
+      border: st.open ? "#14110F" : "#DADAD7", ring: st.open ? "0 0 0 3px #EAEAE8" : "none", chevRot: st.open ? "rotate(180deg)" : "none",
+      label: (this.props.placeholder && !opts.some(o => String(o.value) === String(v))) ? this.props.placeholder : ((opts[selIdx] || {}).label || this.props.placeholder || ""),
+      toggle: () => this.setState(s => ({ open: !s.open, active: selIdx, q: "" })),
+      searchable: !!this.props.searchable, searchRef: this.searchRef, q: st.q, searchPh: this.props.searchPlaceholder || "Search", empty: list.length === 0,
+      onQ: (e) => this.setState({ q: e.target.value, active: 0 }), maxH: this.props.searchable ? "340px" : "300px",
+      onKey: (e) => {
+        const n = list.length;
+        if (e.key === "Escape") { if (st.open) { e.preventDefault(); this.setState({ open: false, q: "" }); } return; }
+        if (!n) return;
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const d = e.key === "ArrowDown" ? 1 : -1; this.setState(s => ({ open: true, active: s.open ? (s.active + d + n) % n : Math.max(0, listSel) })); return; }
+        if ((e.key === "Enter" || (e.key === " " && !this.props.searchable)) && st.open && st.active >= 0 && list[st.active]) { e.preventDefault(); this.pick(list[st.active].value); }
+      },
+      selFlag: (opts[selIdx] || {}).flag || "",
+      items: list.map((o, i) => { const sel = String(o.value) === String(v); return { label: o.label, meta: o.meta || "", flag: o.flag || "", sel: sel ? "true" : "false", w: sel ? 600 : 400, checkOp: sel ? 1 : 0,
+        bg: i === st.active ? "#F4F4F3" : "transparent", pick: () => this.pick(o.value), hover: () => st.active !== i && this.setState({ active: i }) }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>

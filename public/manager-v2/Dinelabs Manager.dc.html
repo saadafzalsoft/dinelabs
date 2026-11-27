@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Dinelabs Manager</title>
+<link rel="icon" href="assets/dl/dinelabs-favicon.svg">
+<script src="./countries.js"></script>
+<script src="./languages.js"></script>
+<script src="./i18n-ar.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<style>
+@font-face{font-family:"Parkinsans";font-weight:300 800;font-display:swap;src:url(fonts/Parkinsans-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Parkinsans";font-weight:300 800;font-display:swap;src:url(fonts/Parkinsans-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Alexandria";font-weight:100 900;font-display:swap;ascent-override:100%;descent-override:55%;line-gap-override:0%;src:url(fonts/Alexandria-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+html,body{margin:0;-webkit-tap-highlight-color:transparent;overflow-x:hidden;background:#FAFAFA;color:#14110F;font-family:"Parkinsans","Alexandria","Helvetica Neue",Arial,sans-serif;font-feature-settings:"tnum" 1,"lnum" 1;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+[data-noscrollbar]::-webkit-scrollbar{display:none}
+input[dir="rtl"]{line-height:normal !important;padding-top:0 !important;padding-bottom:0 !important;overflow:visible}
+textarea[dir="rtl"]{line-height:1.8}
+[data-bare],[data-bare]:focus{border:0 !important;box-shadow:none !important;outline:none !important}
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translate(-50%,-4px);z-index:90;padding:6px 10px;border-radius:8px;background:#14110F;color:#fff;font:600 12px/1.3 "Parkinsans",sans-serif;letter-spacing:0;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s,transform .12s cubic-bezier(.2,0,0,1);transition-delay:0s}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;transform:translate(-50%,0);transition-delay:.25s}
+[data-tip-end]::after{left:auto;right:0;transform:translateY(-4px)}
+[data-tip-end]:hover::after,[data-tip-end]:focus-visible::after{transform:none}
+[data-tip-right]::after{top:50%;left:calc(100% + 12px);transform:translate(-4px,-50%)}
+[data-tip-right]:hover::after,[data-tip-right]:focus-visible::after{transform:translate(0,-50%)}
+html[dir="rtl"] :is(.icon-chevron-right,.icon-chevron-left,.icon-arrow-right,.icon-arrow-left,.icon-chevrons-right,.icon-chevrons-left,.icon-arrow-up-right,.icon-log-out,.icon-send,.icon-panel-left,.icon-undo-2,.icon-external-link){display:inline-block;transform:scaleX(-1)}
+html[dir="rtl"] [data-tip-end]::after{right:auto;left:0}
+html[dir="rtl"] [data-tip-right]::after{left:auto;right:calc(100% + 12px);transform:translate(4px,-50%)}
+html[dir="rtl"] [data-tip-right]:hover::after,html[dir="rtl"] [data-tip-right]:focus-visible::after{transform:translate(0,-50%)}
+html[dir="rtl"] select{padding-right:14px !important;padding-left:38px !important;background-position:left 12px center !important}
+html[dir="rtl"] :is(input[type="email"],input[type="tel"],input[type="url"],input[type="password"]){direction:ltr;text-align:right}
+html[lang="ar"] body *{letter-spacing:0 !important}
+html[dir="rtl"] input:not([dir]):not([type="checkbox"]):not([type="radio"]){unicode-bidi:plaintext}
+html[lang="ar"] body{line-height:1.5}
+input[type="checkbox"]{appearance:none;-webkit-appearance:none;flex-shrink:0;width:18px;height:18px;margin:0;border:1.5px solid #C9C9C5;border-radius:6px;background:#fff;display:inline-grid;place-content:center;cursor:pointer;transition:background .12s,border-color .12s;vertical-align:middle}
+input[type="checkbox"]:hover{border-color:#5A5A57}
+input[type="checkbox"]:checked{border-color:#14110F;background:#14110F url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' %76iewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/12px no-repeat}
+input[type="checkbox"]:focus-visible{outline:none;box-shadow:0 0 0 3px #EAEAE8}
+select{appearance:none !important;white-space:nowrap;text-overflow:ellipsis;-webkit-appearance:none !important;padding-right:38px !important;cursor:pointer;color:#14110F;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' %76iewBox='0 0 24 24' fill='none' stroke='%235A5A57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/16px !important;transition:border-color .12s}
+select:hover{border-color:#5A5A57 !important}
+a{color:#C2300B;text-decoration:underline;text-underline-offset:2px}a:hover{color:#14110F}
+button,input,select,textarea{font-family:inherit;color:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !important;box-shadow:0 0 0 3px #EAEAE8}
+[class^="icon-"],[class*=" icon-"]{line-height:1;display:inline-block}
+@keyframes rise{from{opacity:0;transform:translate3d(0,10px,0) scale(.992)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes pgout{to{opacity:0;transform:translate3d(0,-4px,0)}}
+@keyframes stepFwd{from{opacity:0;translate:24px 0}}
+@keyframes stepBack{from{opacity:0;translate:-24px 0}}
+@media (prefers-reduced-motion: reduce){@keyframes stepFwd{from{opacity:0}}@keyframes stepBack{from{opacity:0}}}
+@keyframes pgin{from{opacity:0;translate:0 8px}}
+::view-transition-group(page){animation-duration:.32s}
+::view-transition-old(page){animation:pgout .14s cubic-bezier(.4,0,1,1) both}
+::view-transition-new(page){animation:pgin .3s cubic-bezier(.16,1,.3,1) .06s both}
+::view-transition-old(root),::view-transition-new(root){animation:none}
+@keyframes dotup{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-40%);opacity:1}}
+@keyframes dlConfetti{0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg)}8%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translate3d(14px,520px,0) rotate(540deg)}}
+@keyframes dlSpin{to{transform:rotate(360deg)}}
+@keyframes dlPulse{0%{transform:scale(1);opacity:.45}100%{transform:scale(2.4);opacity:0}}
+@keyframes sheetup{from{transform:translate3d(0,100%,0)}to{transform:none}}
+@keyframes panel{from{transform:translate3d(40px,0,0);opacity:0}to{transform:none;opacity:1}}
+@keyframes goldglow{0%{box-shadow:0 0 0 0 rgba(255,197,46,.55),0 6px 18px rgba(255,197,46,.3)}70%{box-shadow:0 0 0 10px rgba(255,197,46,0),0 6px 18px rgba(255,197,46,.3)}100%{box-shadow:0 0 0 0 rgba(255,197,46,0),0 6px 18px rgba(255,197,46,.3)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
+</style>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#C2300B"></rect><text x="50" y="62" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#fff">DL</text></svg></template>
+</helmet>
+<div key="{{ lang }}" style="display:contents">
+
+<sc-if value="{{ archived }}"><div data-screen-label="Store closed" style="position:fixed;inset:0;z-index:300;background:#fff;display:grid;place-items:center;padding:24px"><div style="max-width:400px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center"><span style="width:56px;height:56px;border-radius:16px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-store" style="font-size:24px"></i></span><h1 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-0.02em">This store is closed</h1><p style="margin:0;font-size:15px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Talk to us on WhatsApp to reopen it.</p><a href="https://wa.me/96171407202" target="_blank" rel="noopener" style="height:48px;padding:0 22px;border-radius:999px;background:#14110F;color:#fff;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap"><i class="icon-message-circle" style="font-size:18px"></i>Talk to us</a></div></div></sc-if>
+<sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="{{ authLabel }}" style="display:grid;grid-template-columns:{{ authCols }};min-height:100vh;min-height:100dvh;background:#fff">
+    <div style="display:flex;align-items:{{ authAlign }};justify-content:center;padding:{{ authPad }}">
+      <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px">
+        <sc-if value="{{ mobile }}"><img src="assets/dl/dinelabs-manager-transparent.svg" alt="Dinelabs Manager" style="height:20px;align-self:flex-start;margin-bottom:28px"></sc-if>
+        <sc-if value="{{ isSignin }}" hint-placeholder-val="{{ true }}">
+        <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">Welcome back</h1>
+        <p style="margin:0 0 12px;font-size:16px;color:#5A5A57">Sign in to manage your menu, orders and storefront.</p>
+        <button onClick="{{ signIn }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 384 512" aria-hidden="true" style="margin-top:-3px"><path fill="#000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>Continue with Apple</button>
+        <button onClick="{{ signIn }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>Continue with Google</button>
+        <div style="display:flex;align-items:center;gap:12px;color:#5A5A57;font-size:13px;margin:6px 0"><span style="flex:1;height:1px;background:#EAEAE8"></span>or with email<span style="flex:1;height:1px;background:#EAEAE8"></span></div>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Email<input type="email" placeholder="you@restaurant.com" value="karim@blockparty.lb" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
+        <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500"><span style="display:flex;justify-content:space-between">Password<a href="#" style="font-weight:500;color:#14110F">Forgot password?</a></span><input type="password" value="blockparty22" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px"></label>
+        <button onClick="{{ signIn }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center">{{ signInLabel }}</button>
+        <div style="border-top:1px solid #EAEAE8;padding-top:18px;margin-top:8px;font-size:14px;color:#5A5A57">New to Dinelabs? <a href="#" onClick="{{ signUp }}" style="color:#14110F;text-decoration:underline;font-weight:600">Create your storefront</a></div>
+        </sc-if>
+        <sc-if value="{{ isSignup }}">
+          <div style="display:flex;align-items:center;gap:12px;min-height:36px;margin-bottom:10px">
+            <sc-if value="{{ suBack }}"><button onClick="{{ suPrev }}" aria-label="Back" style="width:36px;height:36px;margin-inline-start:-8px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-arrow-left" style="font-size:18px"></i></button></sc-if>
+            <div style="flex:1;display:flex;gap:4px"><sc-for list="{{ suBars }}" as="b" hint-placeholder-count="4"><span style="flex:1;height:4px;border-radius:9px;background:{{ b.c }};transition:background .4s"></span></sc-for></div>
+            <span style="font-size:13px;color:#5A5A57;white-space:nowrap">{{ suStepLabel }}</span>
+          </div>
+          <div key="{{ suKey }}" style="display:flex;flex-direction:column;gap:14px;animation:{{ suAnim }}">
+            <sc-if value="{{ su.s0 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">Create your storefront</h1>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57;text-wrap:pretty">Online ordering for your restaurant, set up in minutes.</p>
+              <button onClick="{{ suSocial }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 384 512" aria-hidden="true" style="margin-top:-3px"><path fill="#000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>Continue with Apple</button>
+              <button onClick="{{ suSocial }}" style="height:52px;border-radius:999px;background:#fff;border:1px solid #DADAD7;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer" style-hover="border-color:#5A5A57"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>Continue with Google</button>
+              <div style="display:flex;align-items:center;gap:12px;color:#5A5A57;font-size:13px;margin:6px 0"><span style="flex:1;height:1px;background:#EAEAE8"></span>or with email<span style="flex:1;height:1px;background:#EAEAE8"></span></div>
+              
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Email<input type="email" value="{{ f.email }}" onChange="{{ fx.email }}" autocomplete="email" placeholder="you@restaurant.com" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Password<input type="password" value="{{ f.pass }}" onChange="{{ fx.pass }}" autocomplete="new-password" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"><span style="font-size:12px;font-weight:400;color:#5A5A57">At least 8 characters</span></label>
+              <button onClick="{{ suNext }}" disabled="{{ suBlocked }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:{{ suCursor }};opacity:{{ suOp }};display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">Continue</button>
+              <p style="margin:4px 0 0;font-size:12px;color:#5A5A57;line-height:1.5">By continuing, you agree to the <a href="#" style="color:#14110F">Terms</a> and <a href="#" style="color:#14110F">Privacy Policy</a>.</p>
+            </sc-if>
+            <sc-if value="{{ su.s1 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">Check your email</h1>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57;text-wrap:pretty">Enter the 6-digit code we sent to <b style="color:#14110F;font-weight:600">{{ f.email }}</b></p>
+              <label dir="ltr" style="position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;cursor:text">
+                <input value="{{ f.code }}" onChange="{{ fx.code }}" autoFocus="{{ true }}" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="6-digit code" data-bare="" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;color:transparent;caret-color:transparent">
+                <sc-for list="{{ codeBoxes }}" as="c" hint-placeholder-count="6"><span style="height:58px;border-radius:12px;border:1.5px solid {{ c.border }};background:#fff;display:grid;place-items:center;font-size:24px;font-weight:600;transition:border-color .12s">{{ c.ch }}</span></sc-for>
+              </label>
+              <div style="display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;font-size:13px;color:#5A5A57"><span>{{ resendText }}<sc-if value="{{ canResend }}"> <button onClick="{{ resend }}" style="border:0;background:none;padding:0;font-size:13px;font-weight:600;color:#14110F;text-decoration:underline;cursor:pointer">Resend code</button></sc-if></span><button onClick="{{ suPrev }}" style="border:0;background:none;padding:0;font-size:13px;font-weight:600;color:#14110F;text-decoration:underline;cursor:pointer">Change email</button></div>
+              <span style="font-size:12px;color:#5A5A57;background:#F4F4F3;border-radius:8px;padding:8px 10px;align-self:flex-start">Prototype: type any 6 digits</span>
+            </sc-if>
+            <sc-if value="{{ su.s2 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">About you</h1>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57;text-wrap:pretty">So our team knows who to talk to. Customers never see this.</p>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Your full name<input value="{{ f.name }}" onChange="{{ fx.name }}" autoFocus="{{ true }}" autocomplete="name" placeholder="e.g. John Doe" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Your phone number
+                <div dir="ltr" style="display:flex;gap:8px"><div style="width:128px;flex-shrink:0"><dc-import name="Dropdown" options="{{ dialOpts }}" value="{{ f.pcountry }}" on-change="{{ fx.pcountry }}" searchable="{{ true }}" search-placeholder="Search countries" block="{{ true }}" height="{{ 48 }}" weight="{{ 400 }}" font-size="16px" hint-size="100%,48px"></dc-import></div><input type="tel" inputmode="tel" autocomplete="tel-national" value="{{ f.phone }}" onChange="{{ fx.phone }}" placeholder="{{ phoneHint }}" style="flex:1;min-width:0;height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></div>
+                <span style="font-size:12px;font-weight:400;color:#5A5A57">We reach you here on WhatsApp. Your restaurant’s phone for customers is set later in Store profile.</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">How did you hear about us?<dc-import name="Dropdown" options="{{ heardOpts }}" value="{{ f.heard }}" placeholder="Choose one" on-change="{{ fx.heard }}" block="{{ true }}" height="{{ 48 }}" weight="{{ 400 }}" font-size="16px" hint-size="100%,48px"></dc-import></div>
+              <sc-if value="{{ heardIsOther }}"><input value="{{ f.heardOther }}" onChange="{{ fx.heardOther }}" aria-label="Where did you hear about us?" placeholder="Where did you hear about us?" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></sc-if>
+              <button onClick="{{ suNext }}" disabled="{{ suBlocked }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:{{ suCursor }};opacity:{{ suOp }};display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">Continue</button>
+            </sc-if>
+            <sc-if value="{{ su.s3 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">About your restaurant</h1>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57;text-wrap:pretty">Customers see this name. You can change it later.</p>
+              <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Restaurant name<input value="{{ f.rname }}" onChange="{{ fx.rname }}" autoFocus="{{ true }}" placeholder="e.g. Block Party" style="height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px;font-weight:400"></label>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Country<dc-import name="Dropdown" options="{{ countries }}" value="{{ f.country }}" on-change="{{ fx.country }}" searchable="{{ true }}" search-placeholder="Search countries" block="{{ true }}" height="{{ 48 }}" weight="{{ 400 }}" font-size="16px" hint-size="100%,48px"></dc-import></div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Storefront link
+                <div style="display:flex;align-items:center;height:48px;border:1px solid {{ slugBorder }};border-radius:10px;background:#fff;overflow:hidden"><span style="padding-inline-start:14px;font-size:16px;font-weight:400;color:#5A5A57">dinelabs.co/</span><input data-bare="" value="{{ f.slug }}" onChange="{{ fx.slug }}" aria-label="Storefront link" spellcheck="false" style="flex:1;min-width:0;height:100%;border:0;background:none;padding-block:0 0;padding-inline:1px 8px;font-size:16px;font-weight:400"><sc-if value="{{ slugShow }}"><i class="icon-{{ slugIcon }}" style="font-size:18px;margin-inline-end:12px;color:{{ slugInk }}"></i></sc-if></div>
+                <sc-if value="{{ slugShow }}"><span style="font-size:12px;font-weight:400;color:{{ slugInk }}">{{ slugMsg }}</span></sc-if>
+              </div>
+              <button onClick="{{ suNext }}" disabled="{{ suBlocked }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:{{ suCursor }};opacity:{{ suOp }};display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">Continue</button>
+            </sc-if>
+            <sc-if value="{{ su.s4 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">What do you serve?</h1>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57">Pick the closest one.</p>
+              <div role="radiogroup" aria-label="What do you serve" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+                <sc-for list="{{ kinds }}" as="k" hint-placeholder-count="6">
+                  <button onClick="{{ k.pick }}" role="radio" aria-checked="{{ k.on }}" style="display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:16px;border-radius:16px;border:1px solid {{ k.border }};box-shadow:{{ k.ring }};background:{{ k.bg }};cursor:pointer;text-align:start;transition:border-color .12s,background .12s,box-shadow .12s" style-hover="border-color:#14110F"><i class="icon-{{ k.icon }}" style="font-size:24px"></i><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:500">{{ k.label }}</span><span style="font-size:13px;color:#5A5A57;line-height:1.4">{{ k.desc }}</span></span></button>
+                </sc-for>
+              </div>
+              <button onClick="{{ suNext }}" disabled="{{ suBlocked }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:{{ suCursor }};opacity:{{ suOp }};display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s">Continue</button>
+            </sc-if>
+            <sc-if value="{{ su.s5 }}">
+              <div style="display:flex;align-items:center;gap:10px"><h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em">Add your menu</h1><span style="height:24px;padding:0 10px;border-radius:99px;background:#F4F4F3;color:#5A5A57;font-size:12px;font-weight:600;display:grid;place-items:center">Optional</span></div>
+              <p style="margin:0 0 12px;font-size:16px;color:#5A5A57;text-wrap:pretty">Send the menu you already have. Our AI turns it into your online menu in about a minute, and you check everything in Products before it's live.</p>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-if value="{{ canCamera }}"><label style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #DADAD7;background:#fff;cursor:pointer;text-align:start;font-size:15px;font-weight:600" style-hover="border-color:#14110F"><span style="width:40px;height:40px;flex-shrink:0;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-camera" style="font-size:19px"></i></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">Take a photo<span style="font-size:13px;font-weight:400;color:#5A5A57">Snap each page, up to 5 MB each</span></span><i class="icon-chevron-right" style="font-size:18px;color:#5A5A57"></i><input type="file" accept="image/*" capture="environment" onChange="{{ addFiles }}" style="display:none"></label></sc-if>
+                <label style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #DADAD7;background:#fff;cursor:pointer;text-align:start;font-size:15px;font-weight:600" style-hover="border-color:#14110F"><span style="width:40px;height:40px;flex-shrink:0;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-images" style="font-size:19px"></i></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">Upload photos<span style="font-size:13px;font-weight:400;color:#5A5A57">JPG or PNG, up to 5 MB each</span></span><i class="icon-chevron-right" style="font-size:18px;color:#5A5A57"></i><input type="file" accept="image/*" multiple="{{ true }}" onChange="{{ addFiles }}" style="display:none"></label>
+                <label style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid #DADAD7;background:#fff;cursor:pointer;text-align:start;font-size:15px;font-weight:600" style-hover="border-color:#14110F"><span style="width:40px;height:40px;flex-shrink:0;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-file-text" style="font-size:19px"></i></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">Upload a PDF<span style="font-size:13px;font-weight:400;color:#5A5A57">Up to 10 MB each</span></span><i class="icon-chevron-right" style="font-size:18px;color:#5A5A57"></i><input type="file" accept="application/pdf" multiple="{{ true }}" onChange="{{ addFiles }}" style="display:none"></label>
+                <div style="display:flex;flex-direction:column;border-radius:14px;border:{{ linkBorder }};background:#fff;overflow:hidden">
+                  <button onClick="{{ toggleLink }}" aria-expanded="{{ linkOpen }}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:0;background:none;cursor:pointer;text-align:start;font-size:15px;font-weight:600"><span style="width:40px;height:40px;flex-shrink:0;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-link" style="font-size:19px"></i></span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">Paste a link<span style="font-size:13px;font-weight:400;color:#5A5A57">Any website that has your menu</span></span><i class="icon-chevron-down" style="font-size:18px;color:#5A5A57;transition:transform .16s;transform:{{ linkChev }}"></i></button>
+                  <sc-if value="{{ linkOpen }}"><div style="padding:0 16px 16px"><input type="url" inputmode="url" value="{{ f.menuLink }}" onChange="{{ fx.menuLink }}" autoFocus="{{ true }}" placeholder="https://" style="width:100%;height:48px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;font-size:16px"></div></sc-if>
+                </div>
+              </div>
+              <sc-if value="{{ fileErr }}"><div role="alert" style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:10px;background:#FFE6DE;color:#C2300B;font-size:13px;font-weight:500;line-height:1.45"><i class="icon-circle-alert" style="font-size:16px;margin-top:1px;flex-shrink:0"></i><span style="text-wrap:pretty">{{ fileErr }}. Try a smaller file or a photo.</span></div></sc-if>
+              <sc-if value="{{ hasFiles }}">
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                  <span style="font-size:13px;font-weight:500">{{ filesLabel }}</span>
+                  <sc-for list="{{ menuFiles }}" as="m" hint-placeholder-count="0">
+                    <div style="display:flex;align-items:center;gap:12px;padding:8px 8px 8px 8px;border-radius:12px;background:#FAFAFA;border:1px solid #EAEAE8;animation:rise .25s cubic-bezier(.22,1,.36,1) both">
+                      <span style="width:40px;height:40px;flex-shrink:0;border-radius:8px;background:#fff url({{ m.thumb }}) center/cover no-repeat;border:1px solid #EAEAE8;display:grid;place-items:center"><sc-if value="{{ m.isPdf }}"><i class="icon-file-text" style="font-size:18px;color:#C2300B"></i></sc-if></span>
+                      <span style="flex:1;min-width:0"><b style="display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</b><span style="font-size:12px;color:#5A5A57">{{ m.size }}</span></span>
+                      <button onClick="{{ m.remove }}" aria-label="Remove {{ m.name }}" style="width:32px;height:32px;flex-shrink:0;border-radius:8px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#EAEAE8"><i class="icon-x" style="font-size:16px"></i></button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <button onClick="{{ suNext }}" style="height:52px;margin-top:8px;border-radius:999px;background:#14110F;color:#fff;border:0;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">{{ menuCta }}</button>
+              <sc-if value="{{ noMenu }}"><span style="font-size:13px;color:#5A5A57;text-align:center">You can always add it later from Products.</span></sc-if>
+            </sc-if>
+            <sc-if value="{{ su.s6 }}">
+              <h1 style="margin:0;font-size:{{ authH1 }}px;font-weight:600;letter-spacing:-0.03em;text-wrap:balance">Setting up {{ suName }}</h1>
+              <p style="margin:0 0 16px;font-size:16px;color:#5A5A57">Just a few seconds.</p>
+              <sc-for list="{{ buildItems }}" as="b" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px;height:44px;font-size:15px;font-weight:{{ b.w }};color:{{ b.ink }};transition:color .2s">
+                  <span style="width:28px;height:28px;border-radius:99px;flex-shrink:0;display:grid;place-items:center;background:{{ b.bg }};color:{{ b.icInk }};border:{{ b.ring }};transition:background .2s"><i class="icon-{{ b.icon }}" style="font-size:15px;animation:{{ b.spin }}"></i></span>{{ b.label }}
+                </div>
+              </sc-for>
+            </sc-if>
+          </div>
+          <sc-if value="{{ su.footer }}"><div style="border-top:1px solid #EAEAE8;padding-top:18px;margin-top:8px;font-size:14px;color:#5A5A57">Already on Dinelabs? <a href="#" onClick="{{ goSignin }}" style="color:#14110F;text-decoration:underline;font-weight:600">Sign in</a></div></sc-if>
+        </sc-if>
+      </div>
+    </div>
+    <div style="background:#F4F4F3;display:{{ authPanel }};flex-direction:column;padding:32px 40px;gap:24px;overflow:hidden">
+      <img src="assets/dl/dinelabs-manager-transparent.svg" alt="Dinelabs Manager" style="height:22px;align-self:flex-start">
+      <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center">
+                  <div role="img" aria-label="Restaurants on Dinelabs" style="width:100%;max-width:640px;height:min(620px,72vh);position:relative">
+            <div style="position:absolute;inset:0">
+              <sc-for list="{{ storePhones }}" as="p" hint-placeholder-count="0"><div style="position:absolute;left:50%;top:50%;height:94%;aspect-ratio:296/606;background:url({{ p.src }}) center/contain no-repeat;transform:translate(calc(-50% + {{ p.dx }}%),-50%) rotate({{ p.rot }}deg) scale({{ p.s }});opacity:{{ p.o }};filter:{{ p.f }};z-index:{{ p.z }};transition:transform .95s cubic-bezier(.45,0,.25,1),opacity .95s cubic-bezier(.45,0,.25,1),filter .95s cubic-bezier(.45,0,.25,1);will-change:transform,opacity"></div></sc-for>
+            </div>
+          </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:6px">
+        <sc-for list="{{ storeDots }}" as="d" hint-placeholder-count="8"><span style="height:6px;border-radius:99px;width:{{ d.w }}px;background:{{ d.c }};transition:all .95s cubic-bezier(.45,0,.25,1)"></span></sc-for>
+      </div>
+
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;min-height:100vh;min-height:100dvh">
+  <sc-if value="{{ navOpen }}"><div onClick="{{ closeNav }}" style="position:fixed;inset:0;z-index:69;background:rgba(20,17,15,.45);animation:fadein .2s both"></div></sc-if>
+  <sc-if value="{{ rail }}">
+  <aside style="position:sticky;top:0;z-index:70;height:100dvh;width:76px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;border-inline-end:1px solid #EAEAE8;background:#FAFAFA;padding:16px 8px">
+    <button onClick="{{ goHome }}" aria-label="Home" style="width:40px;height:40px;margin-bottom:12px;border:0;background:none;cursor:pointer;padding:0"><img src="assets/dl/dinelabs-favicon.svg" alt="Dinelabs" style="width:32px;height:32px;display:block;margin:auto"></button>
+    <nav style="flex:1;display:flex;flex-direction:column;gap:4px;width:100%">
+      <sc-for list="{{ railItems }}" as="it" hint-placeholder-count="6">
+        <button onClick="{{ it.go }}" aria-label="{{ it.label }}" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 6px;border:0;background:none;cursor:pointer;color:#14110F">
+          <span style="width:44px;height:32px;border-radius:99px;display:grid;place-items:center;background:{{ it.bg }};transition:background .15s"><i class="icon-{{ it.icon }}" style="font-size:19px"></i></span>
+          <span style="font-size:11px;font-weight:{{ it.weight }};line-height:1.2">{{ it.label }}</span>
+          <sc-if value="{{ it.badge }}"><span style="position:absolute;top:4px;left:calc(50% + 8px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#C2300B;color:#fff;font-size:10px;font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 2px #FAFAFA">{{ it.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <button onClick="{{ goAccount }}" aria-label="Your account" style="width:40px;height:40px;border-radius:99px;border:0;background:#EAEAE8;color:#14110F;font-size:12px;font-weight:600;cursor:pointer">KH</button>
+  </aside>
+  </sc-if>
+  <sc-if value="{{ notRail }}" hint-placeholder-val="{{ true }}">
+  <aside style="position:{{ asidePos }};top:0;inset-inline-start:0;z-index:70;height:100dvh;width:{{ asideW }};flex-shrink:0;display:flex;flex-direction:column;gap:4px;border-inline-end:1px solid #EAEAE8;background:#FAFAFA;padding:16px 12px calc(16px + env(safe-area-inset-bottom));transform:{{ asideTf }};transition:transform .4s cubic-bezier(.32,.72,0,1),width .42s cubic-bezier(.32,.72,0,1);box-shadow:{{ asideShadow }}">
+    <div style="display:flex;align-items:center;margin-bottom:12px;height:32px"><button onClick="{{ goHome }}" aria-label="Home" style="position:relative;flex:1;min-width:0;height:32px;background:none;border:0;padding:4px 8px;cursor:pointer;text-align:start;overflow:hidden"><img src="assets/dl/dinelabs-favicon.svg" alt="" style="position:absolute;inset-inline-start:6px;top:2px;width:28px;height:28px;opacity:{{ cOn }};transform:scale({{ cScale }});transition:opacity .3s,transform .42s cubic-bezier(.32,.72,0,1)"><span style="display:flex;align-items:baseline;gap:8px;opacity:{{ cOff }};transform:translateX({{ cShift }});transition:opacity .25s,transform .42s cubic-bezier(.32,.72,0,1)"><img src="assets/dl/dinelabs-wordmark-transparent.svg" alt="Dinelabs" style="height:20px;width:auto;display:block;flex-shrink:0"><span style="display:block;width:1.5px;height:14px;border-radius:1px;background:#C9C9C5;flex-shrink:0;position:relative;top:-1px"></span><span style="font-size:15px;line-height:1;font-weight:500;color:#5A5A57;letter-spacing:-0.01em;white-space:nowrap;position:relative;top:-1px">Manager</span></span></button><sc-if value="{{ mobile }}"><button onClick="{{ closeNav }}" aria-label="Close menu" style="width:44px;height:44px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer"><i class="icon-x" style="font-size:20px"></i></button></sc-if></div>
+    <nav data-noscrollbar="" style="flex:1;display:flex;flex-direction:column;gap:16px;overflow-y:auto;scrollbar-width:none">
+      <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <sc-if value="{{ g.plainTitle }}"><p style="margin:0;padding:12px 8px 4px;border-top:1px solid #EAEAE8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#5A5A57">{{ g.title }}</p></sc-if>
+          <sc-if value="{{ g.toggleTitle }}"><button onClick="{{ g.toggle }}" aria-expanded="{{ g.open }}" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;border-radius:10px;border:0;background:none;cursor:pointer;font-size:{{ itemFs }}px;font-weight:{{ g.tWeight }};color:#14110F;text-align:start" style-hover="background:#F4F4F3"><i class="icon-{{ g.icon }}" style="font-size:18px"></i><span style="flex:1">{{ g.title }}</span><sc-if value="{{ g.badge }}"><span style="min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#C2300B;color:#fff;font-size:11px;font-weight:600;display:grid;place-items:center">{{ g.badge }}</span></sc-if><i class="icon-chevron-down" style="font-size:16px;color:#5A5A57;transition:transform .2s;transform:{{ g.chev }}"></i></button></sc-if>
+          <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:2px;padding-inline-start:{{ g.indent }}">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.go }}" aria-label="{{ it.label }}" data-tip="{{ it.tip }}" data-tip-right="" style="position:relative;display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 {{ itemPadX }};border-radius:10px;border:0;cursor:pointer;font-size:{{ itemFs }}px;text-align:start;background:{{ it.bg }};color:{{ it.color }};font-weight:{{ it.weight }}" style-hover="background:#F4F4F3">
+              <sc-if value="{{ it.showIcon }}" hint-placeholder-val="{{ true }}"><i class="icon-{{ it.icon }}" style="font-size:18px;color:{{ it.iconColor }}"></i></sc-if>
+              <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;opacity:{{ cOff }};transition:opacity .22s">{{ it.label }}</span>
+              <sc-if value="{{ it.dot }}"><span aria-label="Needs setup" data-tip="Needs setup" style="width:8px;height:8px;border-radius:99px;background:#FF4A1C;flex-shrink:0;margin-inline-end:4px"></span></sc-if><sc-if value="{{ it.badge }}"><span style="position:{{ badgePos }};top:4px;inset-inline-start:24px;min-width:{{ badgeMin }};height:{{ badgeH }};padding:0 {{ badgePadX }};border-radius:99px;background:#C2300B;color:#fff;font-size:{{ badgeFs }};font-weight:600;display:grid;place-items:center;box-shadow:0 0 0 2px #FAFAFA;transition:all .3s cubic-bezier(.32,.72,0,1)">{{ it.badge }}</span></sc-if>
+            </button>
+          </sc-for>
+          </div></sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <sc-if value="{{ showAppCard }}">
+      <div style="position:relative;margin:6px 0 4px;padding-block:8px 8px;padding-inline:10px 8px;border-radius:12px;background:#14110F;color:#fff;display:flex;align-items:center;gap:10px;flex-shrink:0;animation:rise .3s cubic-bezier(.22,1,.36,1) both">
+        <button onClick="{{ openApp }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;color:#fff;padding:0;text-align:start;cursor:pointer">
+          <img src="assets/dl/dinelabs-mark-tomato.svg" alt="" style="width:36px;height:36px;flex-shrink:0;border-radius:9px;display:block">
+          <span style="min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:13px;font-weight:600;line-height:1.3">Get the app</b><span style="font-size:12px;line-height:1.3;color:rgba(255,255,255,.75);text-wrap:pretty">Order alerts on your phone</span></span>
+        </button>
+        <button onClick="{{ dismissApp }}" aria-label="Dismiss" style="width:28px;height:28px;flex-shrink:0;border-radius:8px;border:0;background:none;color:rgba(255,255,255,.7);cursor:pointer;display:grid;place-items:center" style-hover="background:rgba(255,255,255,.1)"><i class="icon-x" style="font-size:15px"></i></button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ acctOpen }}">
+      <div onClick="{{ closeAcct }}" style="position:fixed;inset:0;z-index:1"></div>
+      <div role="menu" style="position:relative;z-index:2;margin-bottom:4px;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 12px 32px rgba(20,17,15,.12);padding:6px;display:flex;flex-direction:column;gap:2px;animation:rise .18s cubic-bezier(.22,1,.36,1) both">
+        <p style="margin:0;padding:6px 8px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#5A5A57">Block Party · 3 branches</p>
+        <sc-for list="{{ acctItems }}" as="a" hint-placeholder-count="4">
+          <sc-if value="{{ a.sep }}"><span style="height:1px;background:#EAEAE8;margin:4px 0"></span></sc-if>
+          <button onClick="{{ a.go }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;border-radius:10px;border:0;background:{{ a.bg }};cursor:pointer;font-size:{{ itemFs }}px;text-align:start;color:#14110F" style-hover="background:#F4F4F3"><i class="icon-{{ a.icon }}" style="font-size:18px"></i>{{ a.label }}</button>
+        </sc-for>
+        <button onClick="{{ acctSignOut }}" role="menuitem" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;border-radius:10px;border:0;background:none;cursor:pointer;font-size:{{ itemFs }}px;text-align:start;color:#C2300B" style-hover="background:#FFE6DE"><i class="icon-log-out" style="font-size:18px"></i>Sign out</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ mobile }}"><button onClick="{{ openHelp }}" style="display:flex;align-items:center;gap:10px;height:{{ itemH }}px;padding:0 8px;flex-shrink:0;border-radius:10px;border:0;background:none;cursor:pointer;font-size:{{ itemFs }}px;text-align:start;color:#14110F" style-hover="background:#F4F4F3"><i class="icon-life-buoy" style="font-size:18px"></i>Help and support</button></sc-if>
+    <button onClick="{{ goAccount }}" style="position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:0;background:{{ accountBg }};cursor:pointer;text-align:start" style-hover="background:#F4F4F3">
+      <span style="width:32px;height:32px;border-radius:99px;background:#F4F4F3;color:#14110F;font-size:12px;font-weight:600;display:grid;place-items:center">KH</span>
+      <span style="flex:1;min-width:0;line-height:1.25;white-space:nowrap;overflow:hidden;opacity:{{ cOff }};transition:opacity .22s"><span style="display:block;font-size:13px;font-weight:600">Karim Haddad</span><span style="display:block;font-size:12px;color:#5A5A57">Owner · Block Party</span></span>
+      <i class="icon-chevrons-up-down" style="font-size:16px;color:#5A5A57"></i>
+    </button>
+  </aside>
+  </sc-if>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <sc-if value="{{ showAppBanner }}"><div style="display:flex;align-items:center;gap:10px;padding-block:10px 10px;padding-inline:8px 12px;background:#14110F;color:#fff">
+      <button onClick="{{ dismissApp }}" aria-label="Dismiss" style="width:32px;height:32px;flex-shrink:0;border:0;background:none;color:rgba(255,255,255,.7);display:grid;place-items:center;cursor:pointer"><i class="icon-x" style="font-size:16px"></i></button>
+      <img src="assets/dl/dinelabs-favicon.svg" alt="" style="width:36px;height:36px;border-radius:9px;background:#fff;padding:4px;box-sizing:border-box;flex-shrink:0">
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><b style="font-size:14px;font-weight:600">Dinelabs Manager</b><span style="font-size:12px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Get alerts on your phone</span></span>
+      <button onClick="{{ appStore }}" style="height:36px;padding:0 16px;border-radius:99px;border:0;background:#fff;color:#14110F;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Get</button>
+    </div></sc-if>
+    <header style="position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:{{ headGap }}px;border-bottom:1px solid #EAEAE8;background:rgba(250,250,250,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:0 {{ padX }}px">
+      <sc-if value="{{ mobile }}"><button onClick="{{ openNav }}" aria-label="Open menu" style="width:44px;height:44px;margin-inline-start:-8px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer"><i class="icon-menu" style="font-size:22px"></i></button></sc-if>
+      <button onClick="{{ goBranches }}" style="display:flex;align-items:center;gap:8px;min-width:0;height:{{ swH }};border:0;background:none;border-radius:10px;padding:4px {{ swPadX }};font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F3">
+        <span style="width:22px;height:22px;flex-shrink:0;border-radius:99px;background:url(assets/dishes.jpg) 0 0/1000% 100%;border:1px solid #EAEAE8"></span><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ switcherLabel }}</span><i class="icon-chevrons-up-down" style="font-size:14px;color:#5A5A57;flex-shrink:0"></i>
+      </button>
+      <div style="margin-inline-start:auto;display:flex;align-items:center;gap:{{ headGap }}px">
+        <sc-if value="{{ branchPage }}">
+          <button onClick="{{ openPause }}" data-tip="{{ statusTip }}" style="height:{{ btnH }}px;padding-block:0;padding-inline:12px {{ pillPad }}px;white-space:nowrap;border-radius:99px;border:1px solid {{ statusBorder }};background:{{ statusBg }};color:{{ statusInk }};font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .15s,border-color .15s" style-hover="filter:brightness(.97)"><span style="position:relative;width:10px;height:10px;flex-shrink:0"><span style="position:absolute;inset:0;border-radius:99px;background:{{ statusDot }};opacity:.35;animation:{{ statusPulse }}"></span><span style="position:absolute;inset:2px;border-radius:99px;background:{{ statusDot }}"></span></span>{{ statusText }}<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><i class="icon-chevron-down" style="font-size:14px;opacity:.6;margin-inline-start:-2px"></i></sc-if></button>
+        </sc-if>
+        <button onClick="{{ toggleLang }}" aria-label="{{ langSwitchLabel }}" data-tip="{{ langSwitchLabel }}" style="width:{{ flagW }}px;height:{{ btnH }}px;flex-shrink:0;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0" style-hover="background:#F4F4F3"><span data-i18n-skip="" style="width:22px;height:22px;border-radius:99px;background:#EAEAE8 url({{ langFlag }}) center/{{ flagSize }} no-repeat;box-shadow:inset 0 0 0 1px rgba(20,17,15,.12)"></span></button>
+        <button onClick="{{ goInbox }}" aria-label="Notifications" data-tip="Notifications" style="position:relative;width:{{ btnH }}px;height:{{ btnH }}px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer" style-hover="background:#F4F4F3"><i class="icon-bell" style="font-size:18px"></i><sc-if value="{{ unread }}"><span style="position:absolute;top:7px;inset-inline-end:8px;width:8px;height:8px;border-radius:99px;background:#C2300B"></span></sc-if></button>
+        <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openHelp }}" aria-label="Help and support" data-tip="Help and support" style="width:{{ btnH }}px;height:{{ btnH }}px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer" style-hover="background:#F4F4F3"><i class="icon-life-buoy" style="font-size:18px"></i></button></sc-if>
+        <sc-if value="{{ branchPage }}">
+          <sc-if value="{{ desktop }}"><button onClick="{{ openShare }}" aria-label="View storefront" data-tip="View storefront" data-tip-end="" style="width:{{ btnH }}px;height:{{ btnH }}px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer" style-hover="background:#F4F4F3"><i class="icon-external-link" style="font-size:18px"></i></button></sc-if><sc-if value="{{ mobile }}"><button onClick="{{ openShare }}" aria-label="View storefront" style="width:44px;height:44px;margin-inline-end:-8px;border-radius:12px;border:0;background:none;display:grid;place-items:center;cursor:pointer"><i class="icon-external-link" style="font-size:19px"></i></button></sc-if>
+        </sc-if>
+      </div>
+    </header>
+    <sc-if value="{{ bnOn }}"><div role="status" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px {{ padX }}px;background:{{ bn.bg }};border-bottom:1px solid {{ bn.line }};color:#14110F"><i class="icon-{{ bn.icon }}" style="font-size:18px;color:{{ bn.ic }};flex-shrink:0"></i><span style="flex:1;min-width:200px;display:flex;flex-wrap:wrap;gap:0 5px;font-size:14px;font-weight:500;line-height:1.45"><sc-for list="{{ bn.segs }}" as="sg" hint-placeholder-count="3"><span>{{ sg.t }}</span></sc-for></span><button onClick="{{ talkSales }}" style="height:36px;padding:0 14px;border-radius:10px;border:1px solid #14110F;background:transparent;color:#14110F;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap"><i class="icon-message-circle" style="font-size:15px"></i>Talk to sales</button></div></sc-if>
+
+    <sc-if value="{{ hasSeg }}">
+      <div style="padding:{{ segPad }}">
+        <div data-noscrollbar="" role="tablist" style="display:flex;width:fit-content;max-width:100%;gap:4px;background:#F4F4F3;border-radius:14px;padding:4px;overflow-x:auto;scrollbar-width:none">
+          <sc-for list="{{ subTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.go }}" role="tab" aria-selected="{{ t.on }}" style="height:36px;padding:0 16px;border-radius:11px;border:0;cursor:pointer;font-size:14px;white-space:nowrap;flex-shrink:0;color:#14110F;background:{{ t.bg }};font-weight:{{ t.weight }};box-shadow:{{ t.sh }};transition:background .15s,box-shadow .15s">{{ t.label }}</button></sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:flex-start;min-width:0">
+    <sc-if value="{{ hasSide }}">
+      <nav aria-label="Store settings" style="position:sticky;top:64px;width:216px;flex-shrink:0;padding-block:24px 24px;padding-inline:24px 0;display:flex;flex-direction:column;gap:18px">
+        <sc-for list="{{ sideGroups }}" as="sg" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <p style="margin:0;padding:0 10px 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#5A5A57">{{ sg.title }}</p>
+            <sc-for list="{{ sg.items }}" as="it" hint-placeholder-count="4"><button onClick="{{ it.go }}" aria-current="{{ it.cur }}" style="display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:10px;border:0;cursor:pointer;font-size:14px;text-align:start;color:#14110F;background:{{ it.bg }};font-weight:{{ it.weight }};box-shadow:{{ it.sh }}" style-hover="background:#fff"><i class="icon-{{ it.icon }}" style="font-size:16px;color:{{ it.ic }}"></i>{{ it.label }}</button></sc-for>
+          </div>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <div key="{{ screen }}" ref="{{ pageRef }}" style="flex:1;min-width:0;width:100%;padding:{{ pagePad }};animation:{{ pageAnim }}">
+      <sc-if value="{{ s.home }}"><dc-import name="MgrHome" trial="{{ trial }}" lang="{{ lang }}" rtl="{{ rtl }}" open-app="{{ openApp }}" mobile="{{ mobile }}" go="{{ go }}" toast="{{ toast }}" open-share="{{ openShare }}" open-pause="{{ openPause }}" paused="{{ pausedText }}" data-state="{{ homeData }}" hint-size="100%,1400px"></dc-import></sc-if>
+      <sc-if value="{{ s.orders }}"><dc-import name="MgrOrders" lang="{{ lang }}" rtl="{{ rtl }}" open-app="{{ openApp }}" mobile="{{ mobile }}" toast="{{ toast }}" on-count="{{ setNewCount }}" hint-size="100%,1200px"></dc-import></sc-if>
+      <sc-if value="{{ s.history }}"><dc-import name="MgrHistory" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" toast="{{ toast }}" hint-size="100%,1200px"></dc-import></sc-if>
+      <sc-if value="{{ s.products }}"><dc-import name="MgrProducts" plan="{{ plan }}" over50="{{ over50 }}" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" toast="{{ toast }}" hint-size="100%,1200px"></dc-import></sc-if>
+      <sc-if value="{{ s.menu }}"><dc-import name="MgrMenu" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" hint-size="100%,900px"></dc-import></sc-if>
+      <sc-if value="{{ s.growth }}"><dc-import name="MgrGrowth" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" hint-size="100%,900px"></dc-import></sc-if>
+      <sc-if value="{{ s.service }}"><dc-import name="MgrService" lang="{{ lang }}" rtl="{{ rtl }}" new-user="{{ newUser }}" has-location="{{ hasLocation }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" hint-size="100%,900px"></dc-import></sc-if>
+      <sc-if value="{{ s.store }}"><dc-import name="MgrStore" trial="{{ trial }}" plan="{{ plan }}" set-lang="{{ setLang }}" lang="{{ lang }}" rtl="{{ rtl }}" open-app="{{ openApp }}" new-user="{{ newUser }}" on-location="{{ setLoc }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" hint-size="100%,900px"></dc-import></sc-if>
+      <sc-if value="{{ s.brand }}"><dc-import name="MgrBrand" one-branch="{{ oneBranch }}" trial="{{ trial }}" plan="{{ plan }}" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" open-share="{{ openShare }}" hint-size="100%,900px"></dc-import></sc-if>
+      <sc-if value="{{ s.account }}"><dc-import name="MgrAccount" trial="{{ trial }}" bill="{{ bill }}" set-lang="{{ setLang }}" lang="{{ lang }}" rtl="{{ rtl }}" mobile="{{ mobile }}" screen="{{ screen }}" go="{{ go }}" toast="{{ toast }}" sign-out="{{ signOut }}" on-read="{{ markRead }}" hint-size="100%,900px"></dc-import></sc-if>
+    </div>
+    </div>
+  </main>
+</div>
+<sc-if value="{{ mobile }}">
+  <nav style="position:fixed;inset-inline-start:0;inset-inline-end:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #EAEAE8;padding-bottom:env(safe-area-inset-bottom)">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+      <button onClick="{{ t.go }}" style="position:relative;height:60px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:{{ t.color }};font-size:11px;font-weight:{{ t.weight }}">
+        <i class="icon-{{ t.icon }}" style="font-size:21px"></i>{{ t.label }}
+        <sc-if value="{{ t.badge }}"><span style="position:absolute;top:6px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#C2300B;color:#fff;font-size:11px;font-weight:600;display:grid;place-items:center;border:2px solid #fff">{{ t.badge }}</span></sc-if>
+      </button>
+    </sc-for>
+  </nav>
+</sc-if>
+
+<sc-if value="{{ modal.help }}">
+  <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:480px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-life-buoy" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Help and support</b><button onClick="{{ closeModal }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+        <p style="margin:0;font-size:14px;color:#5A5A57;line-height:1.5">Our team answers on WhatsApp, 24/7. Your message starts with your store, branch, page and plan so we can help faster.</p>
+        <a href="https://wa.me/96171407202" target="_blank" style="display:flex;align-items:center;gap:12px;border:1px solid #EAEAE8;border-radius:14px;padding:12px;color:#14110F;text-decoration:none">
+          <span style="width:36px;height:36px;border-radius:99px;background:#F4F4F3;color:#14110F;display:grid;place-items:center"><i class="icon-message-circle" style="font-size:18px"></i></span>
+          <span style="flex:1"><b style="display:block;font-size:14px;font-weight:600">Chat on WhatsApp</b><span style="font-size:12px;color:#5A5A57">Opens WhatsApp with your details filled in</span></span>
+          <i class="icon-external-link" style="font-size:16px;color:#5A5A57"></i>
+        </a>
+        <div style="background:#F4F4F3;border-radius:10px;padding:10px 12px;font-size:12px;color:#5A5A57;line-height:1.5">Store: Block Party · Branch: Hamra · Page: {{ crumb }} · Plan: Premium</div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modal.pause }}">
+  <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:520px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-pause" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Pause new orders</b><button onClick="{{ closeModal }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+        <p style="margin:0;font-size:14px;color:#5A5A57;line-height:1.5">Orders already in the kitchen carry on. Your storefront stays visible and shows when you're back.</p>
+        <div style="display:flex;flex-direction:column;gap:8px"><b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Which orders</b>
+          <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ pauseWhich }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" style="height:36px;padding:0 14px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid {{ o.border }};background:{{ o.bg }};color:{{ o.color }}">{{ o.label }}</button></sc-for></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px"><b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">For how long</b>
+          <div style="display:flex;flex-direction:column;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden"><sc-for list="{{ pauseFor }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.pick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid #EAEAE8;background:{{ o.bg }};cursor:pointer;font-size:14px;text-align:start"><span style="width:18px;height:18px;border-radius:99px;border:{{ o.ring }};background:#fff"></span>{{ o.label }}</button></sc-for></div>
+          <span style="font-size:12px;color:#5A5A57">New orders resume on their own when the time is up.</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <sc-if value="{{ isPaused }}"><button onClick="{{ resume }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">Resume now</button></sc-if>
+          <button onClick="{{ confirmPause }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Pause orders</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modal.app }}">
+  <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" role="dialog" aria-modal="true" aria-labelledby="app-title" style="position:relative;width:100%;max-width:420px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+      <button onClick="{{ closeModal }}" aria-label="Close" style="position:absolute;top:14px;inset-inline-end:14px;width:36px;height:36px;border-radius:12px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-x" style="font-size:18px"></i></button>
+      <img src="assets/bill/waving.webp" alt="" style="width:88px;height:88px">
+      <div><h2 id="app-title" style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Never miss an order</h2><p style="margin:6px auto 0;max-width:320px;font-size:14px;color:#5A5A57;line-height:1.5;text-wrap:pretty">Get a loud alert on your phone for every new order and accept it in one tap, even when you're away from the counter.</p></div>
+      <sc-if value="{{ desktop }}"><div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="padding:14px;border-radius:16px;border:1px solid #EAEAE8"><img src="assets/qr-code.svg" alt="QR code to download the app" style="width:160px;height:160px;display:block"></div><span style="font-size:13px;color:#5A5A57">Scan with your phone's camera</span></div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px"><a href="#" onClick="{{ appStore }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;background:#14110F;color:#fff;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap"><svg width="16" height="16" viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg>App Store</a><a href="#" onClick="{{ playStore }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;background:#14110F;color:#fff;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap"><svg width="15" height="16" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z"></path></svg>Google Play</a></div>
+      <span style="font-size:12px;color:#5A5A57">Sign in with the same account.</span>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ modal.share }}">
+  <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:560px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-send" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Share your storefront</b><button onClick="{{ closeModal }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;gap:8px"><div style="flex:1;height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 14px;display:flex;align-items:center;font-size:14px;background:#F4F4F3">dinelabs.co/blockparty</div><button onClick="{{ copyLink }}" style="height:44px;padding:0 18px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-copy" style="font-size:16px"></i>Copy</button></div>
+        <div style="display:flex;gap:16px;align-items:center;border:1px solid #EAEAE8;border-radius:14px;padding:16px">
+          <img src="assets/qr-code.svg" alt="QR code" style="width:112px;height:112px">
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1"><b style="font-size:14px;font-weight:600">QR code</b><span style="font-size:13px;color:#5A5A57">Put it on tables, bags and your window.</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ downloadQr }}" style="height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="icon-download" style="font-size:15px"></i>Download</button><button onClick="{{ downloadQr }}" style="height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="icon-printer" style="font-size:15px"></i>Print poster</button></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <button style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">WhatsApp</button>
+          <button style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">Instagram</button>
+          <a href="https://dinelabs.co/blockparty" target="_blank" style="height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;color:#14110F;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none">View storefront</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ modal.gift }}">
+  <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" role="dialog" aria-modal="true" aria-labelledby="gift-title" style="position:relative;width:100%;max-width:{{ gift.maxW }};display:grid;grid-template-columns:{{ gift.cols }};background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;overflow-x:hidden;padding-bottom:{{ ui.safe }}">
+      <div style="position:relative;background:#FFF0C2;padding:{{ gift.leftPad }};display:flex;flex-direction:{{ gift.leftDir }};align-items:center;justify-content:center;gap:{{ gift.leftGap }};overflow:hidden">
+        <span style="position:absolute;left:8%;top:-16px;width:10px;height:10px;border-radius:2px;background:#FFC52E;opacity:0;animation:dlConfetti 3.6s 0s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:22%;top:-16px;width:7px;height:13px;border-radius:2px;background:#C2300B;opacity:0;animation:dlConfetti 4.2s 0.6s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:36%;top:-16px;width:8px;height:8px;border-radius:99px;background:#14110F;opacity:0;animation:dlConfetti 3.8s 0.2s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:50%;top:-16px;width:9px;height:9px;border-radius:2px;background:#FFC52E;opacity:0;animation:dlConfetti 4.6s 1s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:64%;top:-16px;width:9px;height:9px;border-radius:99px;background:#C2300B;opacity:0;animation:dlConfetti 3.9s 0.4s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:78%;top:-16px;width:6px;height:12px;border-radius:2px;background:#14110F;opacity:0;animation:dlConfetti 4.4s 0.9s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:90%;top:-16px;width:8px;height:8px;border-radius:99px;background:#FFC52E;opacity:0;animation:dlConfetti 4s 0.1s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:14%;top:-16px;width:8px;height:8px;border-radius:2px;background:#14110F;opacity:0;animation:dlConfetti 4.3s 1.6s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:44%;top:-16px;width:7px;height:12px;border-radius:2px;background:#C2300B;opacity:0;animation:dlConfetti 3.7s 1.9s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:70%;top:-16px;width:10px;height:10px;border-radius:2px;background:#FFC52E;opacity:0;animation:dlConfetti 4.1s 1.4s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:84%;top:-16px;width:7px;height:7px;border-radius:99px;background:#C2300B;opacity:0;animation:dlConfetti 3.9s 2.2s cubic-bezier(.25,.4,.5,1) 3 both"></span><span style="position:absolute;left:30%;top:-16px;width:6px;height:6px;border-radius:99px;background:#FFC52E;opacity:0;animation:dlConfetti 4.5s 2.6s cubic-bezier(.25,.4,.5,1) 3 both"></span>
+        <div style="position:relative;display:flex;flex-direction:column;align-items:{{ gift.numAlign }};text-align:{{ gift.leftAlign }}">
+          <b style="font-size:{{ gift.numFs }};font-weight:800;line-height:.85;letter-spacing:-0.05em">30</b>
+          <span style="font-size:17px;font-weight:700;letter-spacing:-0.01em;margin-top:6px">days of Premium</span>
+          <span style="font-size:13px;font-weight:600;color:#7A5300;margin-top:4px">Free until {{ giftEnds }}</span>
+        </div>
+        <img src="assets/bill/celebrating.webp" alt="" style="position:relative;width:{{ gift.bill }};height:auto;flex-shrink:0;animation:rise .5s .1s cubic-bezier(.22,1,.36,1) both">
+      </div>
+      <div style="position:relative;padding:{{ gift.rightPad }};display:flex;flex-direction:column;gap:20px;min-width:0">
+        <button onClick="{{ closeModal }}" aria-label="Close" style="position:absolute;top:14px;inset-inline-end:14px;width:36px;height:36px;border-radius:12px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-x" style="font-size:16px"></i></button>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-inline-end:44px">
+          <span style="display:inline-flex;align-self:flex-start;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;background:#FFC52E;color:#14110F;font-size:12px;font-weight:600;animation:goldglow 2.4s ease-out infinite"><i class="icon-gift" style="font-size:13px"></i>Welcome gift</span>
+          <h2 id="gift-title" style="margin:4px 0 0;font-size:28px;font-weight:700;letter-spacing:-0.03em;line-height:1.1;text-wrap:balance">Heyy, Premium's on us</h2>
+          <p style="margin:0;font-size:15px;color:#5A5A57;line-height:1.5;text-wrap:pretty">We switched everything on so you can launch with the full kit. Try it all, keep what works. No card, no catch.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Unlocked for you</span>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(196px,100%),1fr));gap:14px 16px">
+            <sc-for list="{{ giftPerks }}" as="p" hint-placeholder-count="6"><div style="display:flex;gap:12px;align-items:flex-start;min-width:0"><span style="width:34px;height:34px;flex-shrink:0;border-radius:10px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ p.icon }}" style="font-size:17px"></i></span><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><b style="font-size:14px;font-weight:600">{{ p.label }}</b><span style="font-size:12px;color:#5A5A57;line-height:1.4;text-wrap:pretty">{{ p.sub }}</span></span></div></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1;max-width:380px">
+            <button onClick="{{ giftPlan }}" style="height:48px;padding:0 18px;border-radius:999px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer;flex:1;white-space:nowrap" style-hover="border-color:#5A5A57">See all features</button>
+            <button onClick="{{ closeModal }}" style="height:48px;padding:0 22px;border-radius:999px;border:0;background:#14110F;color:#fff;font-size:14px;font-weight:600;cursor:pointer;flex:1;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#2E2A27">Start exploring<i class="icon-arrow-right" style="font-size:16px"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toastMsg }}">
+  <div style="position:fixed;bottom:{{ toastBottom }};left:50%;transform:translateX(-50%);z-index:80;max-width:calc(100vw - 32px);text-align:center;background:#fff;color:#14110F;border:1px solid #EAEAE8;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:12px 18px;border-radius:10px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:rise .3s cubic-bezier(.22,1,.36,1) both"><i class="icon-check" style="font-size:16px;color:#14110F"></i>{{ toastMsg }}</div>
+</sc-if>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;homeData&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Established&quot;,&quot;Few orders&quot;,&quot;No orders&quot;],&quot;default&quot;:&quot;Established&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Home data&quot;},&quot;planState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Premium&quot;,&quot;Trial&quot;,&quot;Trial ends in 7 days&quot;,&quot;Trial ends tomorrow&quot;,&quot;Free&quot;,&quot;Free, over 50 products&quot;,&quot;Payment due soon&quot;,&quot;Payment late&quot;,&quot;Suspended&quot;,&quot;Archived&quot;],&quot;default&quot;:&quot;Premium&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Plan and billing&quot;},&quot;branches&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Three branches&quot;,&quot;One branch&quot;],&quot;default&quot;:&quot;Three branches&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Branches&quot;}}">
+const NAV = [
+  { items: [["home","Home","layout-dashboard"],["orders","Orders","receipt-text"],["history","Order history","history"]] },
+  { title: "Menu", items: [["products","Products","utensils-crossed"],["categories","Categories","layers"],["addons","Add-ons","circle-plus"],["labels","Menu labels","tag"]] },
+  { title: "Growth", items: [["promotions","Promotions","badge-percent"],["customers","Customers","users"],["analysis","Menu analysis","chart-column"]] },
+  { title: "Settings", items: [["hours","Opening hours","clock"],["delivery","Delivery","bike"],["pickup","Pickup","shopping-bag"],["dinein","Dine-in","armchair"],["profile","Store profile","store"],["notifications","Notifications","bell"],["payments","Payments","credit-card"],["plan","Plan","gem"]] },
+  { title: "Block Party", items: [["branches","Branches","building-2"],["branding","Branding","palette"]] },
+];
+const SECTIONS = [["home","Home","layout-dashboard",["home"]],["orders","Orders","receipt-text",["orders","history"]],["menu","Menu","utensils-crossed",["products","categories","addons","labels"]],["growth","Growth","trending-up",["promotions","customers","analysis"]],["settings","Settings","settings",["hours","delivery","pickup","dinein","profile","notifications","payments","plan"]],["brand","Brand","building-2",["branches","branding"]]];
+const SMART = [
+  ["home","Home","layout-dashboard",["home"],0], ["orders","Orders","receipt-text",["orders"],0], ["history","Order history","history",["history"],0], ["products","Products","utensils-crossed",["products"],0],
+  ["promotions","Promotions","badge-percent",["promotions"],1], ["customers","Customers","users",["customers"],1], ["analysis","Insights","chart-column",["analysis"],1],
+  ["menusetup","Menu setup","layers",["categories","addons","labels"],2], ["settings","Store settings","settings",["hours","delivery","pickup","dinein","profile","notifications","payments","plan"],2],
+  ["brand","Block Party","building-2",["branches","branding"],3]];
+const SET_GROUPS = [["Ordering", ["hours","delivery","pickup","dinein"]], ["Business", ["profile","notifications","payments","plan"]]];
+const SET_ICON = { hours: "clock", delivery: "bike", pickup: "shopping-bag", dinein: "armchair", profile: "store", notifications: "bell", payments: "credit-card", plan: "gem" };
+const COMBINED = [
+  ["home","Home","layout-dashboard",["home"],0], ["orders","Orders","receipt-text",["orders","history"],0], ["menu","Menu","utensils-crossed",["products","categories","addons","labels"],0],
+  ["promotions","Promotions","badge-percent",["promotions"],0], ["customers","Customers","users",["customers"],0], ["analysis","Insights","chart-column",["analysis"],0],
+  ["ordering","Ordering","bike",["delivery","pickup","dinein"],1], ["hours","Opening hours","clock",["hours"],1], ["store","Store","store",["profile","branding","payments","notifications"],1],
+  ["acct","Account","user-round",["branches","plan","account","inbox"],2]];
+const TAB_LABEL = { orders: "Live", history: "History", products: "Items", categories: "Categories", addons: "Add-ons", labels: "Labels", hours: "Opening hours", profile: "Profile", branding: "Branding", payments: "Payments", notifications: "Notifications" };
+const GICON = { Menu: "utensils-crossed", Growth: "trending-up", Settings: "settings", "Block Party": "building-2" };
+const LABELS = { account: "Your account", inbox: "Notifications" };
+NAV.forEach(g => g.items.forEach(([k, l]) => (LABELS[k] = l)));
+const GROUP = { categories:"menu", addons:"menu", labels:"menu", promotions:"growth", customers:"growth", analysis:"growth", hours:"service", delivery:"service", pickup:"service", dinein:"service", profile:"store", notifications:"store", payments:"store", plan:"store", branches:"brand", branding:"brand", account:"account", inbox:"account" };
+const BRAND_WIDE = ["branches","branding","account","inbox"];
+const WHICH = ["All orders","Delivery","Pickup","Dine-in"];
+const FOR = ["15 min","30 min","1 hour","Rest of today","Until I turn it back on"];
+const KEY = "dl-mgr-v1";
+const SU_DEF = { name: "", email: "karim@blockparty.lb", pass: "blockparty22", code: "", rname: "", kind: "", country: "Lebanon", countryTouched: false, pcountry: "Lebanon", phone: "", heard: "", heardOther: "", slug: "", slugTouched: false, social: false, menuLink: "", files: [] };
+const SLUG = v => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/&/g, "and").replace(/[^a-z0-9]+/g, "").slice(0, 30);
+const RESERVED = ["pizza", "burger", "burgers", "coffee", "sushi", "test", "admin", "dinelabs", "app", "manager", "super"];
+const TAKEN = ["kuro", "casa", "forno", "juniper"];
+const FD = (d, ar, mon) => d.toLocaleDateString(ar ? "ar-LB-u-nu-latn" : "en-GB", { day: "numeric", month: mon || "long" });
+
+const KIND_CATS = { "Restaurant": ["Starters", "Mains", "Drinks"], "Coffee shop": ["Coffee", "Iced", "Bites"], "Bakery": ["Bread", "Pastries", "Cakes"], "Cloud kitchen": ["Popular", "Mains", "Sides"], "Bar": ["Cocktails", "Beer and wine", "Bites"], "Dessert shop": ["Ice cream", "Crêpes", "Chocolate"] };
+const COUNTRIES = [["Lebanon", "+961", "71 123 456"], ["United Arab Emirates", "+971", "50 123 4567"], ["Saudi Arabia", "+966", "50 123 4567"], ["Qatar", "+974", "3312 3456"], ["Kuwait", "+965", "5012 3456"], ["Jordan", "+962", "7 9012 3456"], ["Egypt", "+20", "100 123 4567"], ["Cyprus", "+357", "96 123456"], ["France", "+33", "6 12 34 56 78"], ["United Kingdom", "+44", "7400 123456"], ["United States", "+1", "201 555 0123"]];
+const CLIST = () => window.DL_COUNTRIES ? window.DL_COUNTRIES : COUNTRIES.map(([n, d]) => ({ value: n, label: n, meta: d }));
+const DIALS = () => CLIST().map(c => ({ value: c.value, label: c.meta, meta: c.value, flag: c.flag }));
+const HEARD = ["Instagram", "Facebook", "TikTok", "Google search", "A friend or another restaurant", "The Dinelabs team contacted me", "Other"];
+const MAX_IMG = 5 * 1048576, MAX_PDF = 10 * 1048576, MAX_FILES = 20;
+const KINDS = [["Restaurant", "utensils", "Dine-in, takeaway or delivery"], ["Coffee shop", "coffee", "Coffee, drinks and light bites"], ["Bakery", "croissant", "Bread, pastries and baked goods"], ["Cloud kitchen", "cooking-pot", "Delivery and pickup only, no seating"], ["Bar", "wine", "Drinks first, food on the side"], ["Dessert shop", "ice-cream-cone", "Sweets, ice cream and chocolate"]];
+const PHONES = ["blockparty","juniper","kuro","cloudnine","frankies","casa","maisoncacao","forno"];
+const BP = 860;
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0" };
+const TABS = [["home", "Home", "layout-dashboard"], ["orders", "Orders", "receipt-text"], ["products", "Menu", "utensils-crossed"], ["history", "History", "history"], ["more", "More", "menu"]];
+
+class Component extends DCLogic {
+  state = { auth: "signin", su: 0, suDir: "fwd", f: { ...SU_DEF }, build: 0, resent: false, screen: "home", signedOut: false, modal: null, toastMsg: "", newCount: 3, paused: null, pw: 0, pf: 1, unread: true, storeIdx: 0, signingIn: false, mobile: typeof window !== "undefined" && window.innerWidth < BP, navOpen: false, lang: (() => { try { return JSON.parse(localStorage.getItem(KEY) || "{}").lang === "ar" ? "ar" : "en"; } catch (e) { return "en"; } })() };
+  applyLang() { if (window.DLI18N) window.DLI18N.set(this.state.lang); else setTimeout(() => this.applyLang(), 50); }
+  componentDidUpdate() { if (this._lang !== this.state.lang) { this._lang = this.state.lang; this.applyLang(); } }
+  setLang = (l) => { this.setState({ lang: l }); this.save({ lang: l }); if (window.DLI18N) window.DLI18N.set(l); };
+  componentDidMount() {
+    this.applyLang();
+    if (this.props.startScreen && LABELS[this.props.startScreen]) this.setState({ screen: this.props.startScreen, signedOut: false });
+    else try { const s = JSON.parse(localStorage.getItem(KEY) || "{}"); if (s.screen && LABELS[s.screen]) this.setState({ screen: s.screen, signedOut: !!s.signedOut }); } catch (e) {}
+    this.onResize = () => { const m = window.innerWidth < BP, sh = window.innerHeight < 700; if (m !== this.state.mobile || sh !== !!this.state.short) this.setState({ mobile: m, short: sh, navOpen: m === this.state.mobile && this.state.navOpen }); };
+    window.addEventListener("resize", this.onResize); this.onResize();
+    try { const s3 = JSON.parse(localStorage.getItem(KEY) || "{}"); if (s3.appDismissed) this.setState({ appDismissed: true }); } catch (e) {}
+    setTimeout(() => ["MgrHome","MgrOrders","MgrHistory","MgrProducts","MgrMenu","MgrGrowth","MgrService","MgrStore","MgrBrand","MgrAccount","Dropdown"].forEach(n => fetch(`./${n}.dc.html`).catch(() => {})), 800);
+    this.iv = setInterval(() => this.setState(s => ({ storeIdx: (s.storeIdx + 1) % 8 })), 3600);
+  }
+  componentWillUnmount() { window.removeEventListener("resize", this.onResize); clearInterval(this.iv); clearTimeout(this.tt); (this.bt || []).forEach(clearTimeout); }
+  suGo(n) { this.setState(s => ({ su: n, suDir: n > s.su ? "fwd" : "back" })); }
+  startBuild() { this.suGo(6); this.setState({ build: 0 }); this.bt = [650, 1300, 1950].map((t, i) => setTimeout(() => this.setState({ build: i + 1 }), t));
+    this.bt.push(setTimeout(() => { this.setState({ signedOut: false, auth: "signin", su: 0, screen: "home", modal: "gift", fresh: true }); this.save({ signedOut: false, screen: "home" }); }, 2600)); }
+  signupVals() {
+    const st = this.state, f = st.f, su = st.su;
+    const slugRes = RESERVED.includes(f.slug), slugOk = /^[a-z0-9]{3,30}$/.test(f.slug) && !TAKEN.includes(f.slug) && !slugRes;
+    const heardOk = !!f.heard && (f.heard !== "Other" || !!f.heardOther.trim());
+    const valid = [/.+@.+\..+/.test(f.email) && f.pass.length >= 8, f.code.length === 6, f.name.trim().length > 1 && f.phone.replace(/\D/g, "").length >= 7 && heardOk, f.rname.trim() && slugOk, !!f.kind, true, false][su];
+    const setF = (k, v) => this.setState(s => ({ f: { ...s.f, [k]: v } }));
+    const fx = {};
+    ["email", "pass", "menuLink", "name", "heardOther"].forEach(k => fx[k] = e => setF(k, e.target.value));
+    fx.heard = e => setF("heard", e.target.value);
+    fx.pcountry = e => { const v = e.target.value; this.setState(s => ({ f: { ...s.f, pcountry: v, phone: "", country: s.f.countryTouched ? s.f.country : v } })); };
+    fx.country = e => { const v = e.target.value; this.setState(s => ({ f: { ...s.f, country: v, countryTouched: true } })); };
+    fx.code = e => { const v = e.target.value.replace(/\D/g, "").slice(0, 6); setF("code", v); if (v.length === 6) { clearTimeout(this.ct); this.ct = setTimeout(() => this.state.su === 1 && this.suGo(2), 450); } };
+    fx.rname = e => { const v = e.target.value; this.setState(s => ({ f: { ...s.f, rname: v, slug: s.f.slugTouched ? s.f.slug : SLUG(v) } })); };
+    fx.phone = e => { if (f.pcountry === "Lebanon") { const d = e.target.value.replace(/\D/g, "").slice(0, 8); setF("phone", d.length > 5 ? `${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5)}` : d.length > 2 ? `${d.slice(0, 2)} ${d.slice(2)}` : d); } else setF("phone", e.target.value.replace(/[^\d\s-]/g, "").slice(0, 16)); };
+    fx.slug = e => { const v = SLUG(e.target.value); this.setState(s => ({ f: { ...s.f, slug: v, slugTouched: true } })); };
+
+    const hasMenu = f.files.length > 0 || /\S+\.\S+/.test(f.menuLink);
+    const fmt = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+    const pvName = f.rname.trim();
+    return {      isSignin: st.auth !== "signup", isSignup: st.auth === "signup", authLabel: st.auth === "signup" ? "Sign up" : "Sign in",
+            su: { s0: su === 0, s1: su === 1, s2: su === 2, s3: su === 3, s4: su === 4, s5: su === 5, s6: su === 6, footer: su === 0 },
+      suKey: "su" + su, suAnim: (st.suDir === "back" ? "stepBack" : "stepFwd") + " .35s cubic-bezier(.22,1,.36,1) both",
+      suBack: su > 0 && su < 6, suPrev: () => this.suGo(su === 2 && f.social ? 0 : su - 1),
+      suBars: [0, 1, 2, 3, 4, 5].map(i => ({ c: i <= Math.min(su, 5) ? "#14110F" : "#EAEAE8" })), suStepLabel: su < 6 ? `Step ${su + 1} of 6` : "Almost there",
+      suBlocked: !valid, suOp: valid ? 1 : 0.35, suCursor: valid ? "pointer" : "not-allowed",
+      suNext: () => { if (!valid) return; if (su === 5) this.startBuild(); else this.suGo(su + 1); },
+      suSocial: () => { this.setState(s => ({ f: { ...s.f, social: true } })); this.suGo(2); },
+      f, fx,
+      codeBoxes: [0, 1, 2, 3, 4, 5].map(i => ({ ch: f.code[i] || "", border: i === Math.min(f.code.length, 5) ? "#14110F" : f.code[i] ? "#C9C9C5" : "#DADAD7" })),
+      canResend: !st.resent, resendText: st.resent ? "Sent again. Check your spam folder too." : "Didn't get it?", resend: () => this.setState({ resent: true }),
+      countries: CLIST(), dial: (CLIST().find(c => c.value === f.country) || { meta: "+961" }).meta, dialFlag: (CLIST().find(c => c.value === f.country) || { flag: "https://flagcdn.com/w40/lb.png" }).flag || "https://flagcdn.com/w40/lb.png", phoneHint: (COUNTRIES.find(c => c[0] === f.pcountry) || [0, 0, "Phone number"])[2], dialOpts: DIALS(),
+      heardOpts: HEARD.map(h => ({ value: h, label: h })), heardIsOther: f.heard === "Other",
+      kinds: KINDS.map(([label, icon, desc]) => { const on = f.kind === label; return { label, icon, desc, on, border: on ? "#14110F" : "#DADAD7", ring: on ? "inset 0 0 0 1px #14110F" : "none", bg: on ? "#F4F4F3" : "#fff", pick: () => setF("kind", label) }; }),
+      slugShow: f.slug.length > 0, slugIcon: slugOk ? "circle-check" : "circle-alert", slugInk: slugOk ? "#1F7A4D" : "#C2300B", slugBorder: f.slug && !slugOk ? "#C2300B" : "#DADAD7",
+      slugMsg: slugOk ? "Available" : f.slug.length < 3 ? "At least 3 letters or numbers" : slugRes ? "That word is reserved. Try another." : "Already taken. Try another.",
+      canCamera: !!(st.mobile || (typeof matchMedia !== "undefined" && matchMedia("(pointer:coarse)").matches)),
+      addFiles: e => { const all = [...(e.target.files || [])], room = MAX_FILES - f.files.length, errs = [];
+        const ok = all.filter(x => { const pdf = x.type === "application/pdf", lim = pdf ? MAX_PDF : MAX_IMG; if (x.size > lim) { errs.push(`${x.name} is over ${lim / 1048576} MB`); return false; } return true; });
+        if (ok.length > room) errs.push(`You can add up to ${MAX_FILES} files`);
+        const list = ok.slice(0, Math.max(0, room)).map(x => ({ id: Math.random().toString(36).slice(2), name: x.name, size: fmt(x.size), isPdf: x.type === "application/pdf", thumb: x.type.startsWith("image/") ? URL.createObjectURL(x) : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" })); e.target.value = ""; this.setState(s => ({ fileErr: errs.join(". "), f: { ...s.f, files: [...s.f.files, ...list] } })); },
+      fileErr: st.fileErr || "",
+      menuFiles: f.files.map(m => ({ ...m, remove: (e) => { e.preventDefault(); this.setState(s => ({ fileErr: "", f: { ...s.f, files: s.f.files.filter(x => x.id !== m.id) } })); } })),
+      hasFiles: f.files.length > 0, filesLabel: (f.files.length === 1 ? "1 file added" : f.files.length + " files added") + ` · up to ${MAX_FILES}`,
+      linkOpen: !!st.linkOpen || !!f.menuLink, toggleLink: () => this.setState(s => ({ linkOpen: !(s.linkOpen || s.f.menuLink) })), linkChev: (st.linkOpen || f.menuLink) ? "rotate(180deg)" : "none", linkBorder: (st.linkOpen || f.menuLink) ? "1px solid #14110F" : "1px solid #DADAD7",
+      menuCta: hasMenu ? "Create my storefront" : "Skip for now", noMenu: !hasMenu,
+      suName: pvName || "your storefront",
+      buildItems: [["Creating your storefront", "store"], [hasMenu ? "Reading your menu with AI" : "Preparing an empty menu", "receipt-text"], ["Unwrapping a little gift", "gift"]].map(([label, icon], i) => { const done = st.build > i, act = st.build === i;
+        return { label, icon: done ? "check" : act ? "loader-circle" : icon, spin: act ? "dlSpin 1s linear infinite" : "none", bg: done ? "#14110F" : "#fff", icInk: done ? "#fff" : act ? "#14110F" : "#C9C9C5", ring: done ? "0" : act ? "1.5px solid #14110F" : "1.5px solid #EAEAE8", ink: done || act ? "#14110F" : "#5A5A57", w: act ? 600 : 500 }; }),
+    };
+  }
+  save(p) { try { const s = JSON.parse(localStorage.getItem(KEY) || "{}"); localStorage.setItem(KEY, JSON.stringify({ ...s, ...p })); } catch (e) {} }
+  go = (screen) => { if (!LABELS[screen]) return; const apply = () => { this.setState({ screen, modal: null, navOpen: false }); try { window.scrollTo(0, 0); } catch (e) {} }; this.save({ screen });
+    if (screen === this.state.screen) return apply();
+    apply(); };
+  pageRef = React.createRef();
+  toast = (msg) => { clearTimeout(this.tt); this.setState({ toastMsg: msg }); this.tt = setTimeout(() => this.setState({ toastMsg: "" }), 2600); };
+  renderVals() {
+    const st = this.state, scr = st.screen;
+    const pageAnim = "pgin .24s cubic-bezier(.16,1,.3,1) backwards";
+    const ns = ({ Smart: "smart", Collapsible: "collapse", Sections: "sections", Rail: "rail" })["Combined"] || "combined";
+    const SECS = ns === "combined" ? COMBINED : ns === "smart" ? SMART : SECTIONS;
+    const secOf = k => SECS.find(x => x[3].includes(k));
+    const curSec = secOf(scr);
+    const secGo = (x) => () => this.go((st.lastIn || {})[x[0]] && x[3].includes(st.lastIn[x[0]]) ? st.lastIn[x[0]] : x[3][0]);
+    const badgeN = st.newCount > 0 ? st.newCount : 0;
+    const mkItem = (k, label, icon, showIcon) => { const on = scr === k; return { label, icon, showIcon, go: () => this.go(k), badge: k === "orders" ? badgeN : 0, bg: on ? "#EAEAE8" : "transparent", color: "#14110F", weight: on ? 600 : 400, iconColor: "#14110F" }; };
+    const isRail = ns === "rail" && !st.mobile;
+    const secItem = (x) => { const on = curSec && curSec[0] === x[0]; return { label: x[1], icon: x[2], showIcon: true, go: secGo(x), badge: x[0] === "orders" ? badgeN : 0, bg: on ? "#EAEAE8" : "transparent", color: "#14110F", weight: on ? 600 : 400, iconColor: "#14110F" }; };
+    const isNew = !!st.fresh || this.props.homeData === "No orders";
+    const nav = ns === "combined" ? [["", 0], ["Setup", 1]].map(([title, tier]) => ({ title, plainTitle: !!title, toggleTitle: false, open: true, indent: "0", items: COMBINED.filter(x => x[4] === tier).map(x => ({ ...secItem(x), dot: isNew && ["menu", "ordering", "store"].includes(x[0]) && !(curSec && curSec[0] === x[0]) })) }))
+      : ns === "smart" ? [["", 0], ["Grow", 1], ["Set up", 2]].map(([title, tier]) => ({ title, plainTitle: !!title, toggleTitle: false, open: true, indent: "0", items: SMART.filter(x => x[4] === tier).map(secItem) }))
+      : (ns === "sections" || (ns === "rail" && st.mobile))
+      ? [{ title: "", plainTitle: false, toggleTitle: false, open: true, indent: "0", items: SECTIONS.map(x => { const on = curSec && curSec[0] === x[0]; return { label: x[1], icon: x[2], showIcon: true, go: secGo(x), badge: x[0] === "orders" ? badgeN : 0, bg: on ? "#EAEAE8" : "transparent", color: "#14110F", weight: on ? 600 : 400, iconColor: "#14110F" }; }) }]
+      : NAV.map(gr => { const t = gr.title || "", col = ns === "collapse" && !!t, hasCur = gr.items.some(i => i[0] === scr), open = !col || ((st.navOpenG || {})[t] ?? hasCur);
+          return { title: t, plainTitle: !!t && !col, toggleTitle: col, open, indent: col ? "28px" : "0", icon: GICON[t] || "folder", chev: open ? "rotate(180deg)" : "none", tWeight: hasCur && !open ? 600 : 500,
+            badge: col && !open ? 0 : 0, toggle: () => this.setState(s => ({ navOpenG: { ...(s.navOpenG || {}), [t]: !open } })),
+            items: gr.items.map(([k, label, icon]) => mkItem(k, label, icon, !col)) }; });
+    const tipOn = !st.mobile && !!false;
+    nav.forEach(gr => { gr.plainTitle = gr.plainTitle && !tipOn; gr.items.forEach(it => { it.tip = tipOn ? it.label : undefined; }); });
+    const tabbed = (ns === "sections" || ns === "rail" || ns === "smart" || (ns === "combined" && curSec && curSec[0] !== "acct")) && curSec && curSec[3].length > 1;
+    const sideOn = ns === "smart" && !!curSec && curSec[0] === "settings" && !st.mobile;
+    const grp = GROUP[scr];
+    const s = { home: scr === "home", orders: scr === "orders", history: scr === "history", products: scr === "products",
+      menu: grp === "menu", growth: grp === "growth", service: grp === "service", store: grp === "store", brand: grp === "brand", account: grp === "account" };
+    const paused = st.paused;
+    const close = () => this.setState({ modal: null });
+    const m = st.mobile, menuScreens = ["home", "orders", "products", "history"];
+    if (curSec && (st.lastIn || {})[curSec[0]] !== scr && (ns === "sections" || ns === "rail" || ns === "smart" || ns === "combined")) setTimeout(() => this.setState(s => ({ lastIn: { ...(s.lastIn || {}), [curSec[0]]: scr } })), 0);
+    return {
+      lang: st.lang, rtl: st.lang === "ar", setLang: this.setLang,
+      flagW: st.mobile ? 32 : 36, flagSize: st.lang === "ar" ? "auto 150%" : "auto 140%",
+      toggleLang: () => this.setLang(st.lang === "ar" ? "en" : "ar"),
+      langFlag: st.lang === "ar" ? "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1f8-1f1e6.svg" : "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f1ec-1f1e7.svg",
+      langSwitchLabel: st.lang === "ar" ? "Switch to English" : "التبديل إلى العربية",
+      rail: isRail, notRail: !isRail,
+      railItems: SECTIONS.map(x => { const on = curSec && curSec[0] === x[0]; return { label: x[1], icon: x[2], go: secGo(x), badge: x[0] === "orders" ? badgeN : 0, bg: on ? "#EAEAE8" : "transparent", weight: on ? 600 : 500 }; }),
+      hasSeg: !!tabbed && !sideOn, hasSide: sideOn,
+      segPad: m ? "16px 16px 0" : "24px 24px 0",
+      pagePad: tabbed && !sideOn ? (m ? "16px 16px calc(96px + env(safe-area-inset-bottom))" : "20px 24px 64px") : (m ? "20px 16px calc(96px + env(safe-area-inset-bottom))" : "24px 24px 64px"),
+      subTabs: tabbed ? curSec[3].map(k => { const on = k === scr; return { label: TAB_LABEL[k] || LABELS[k], on, go: () => this.go(k), weight: on ? 600 : 500, bg: on ? "#fff" : "transparent", sh: on ? "0 1px 3px rgba(0,0,0,.08)" : "none" }; }) : [],
+      sideGroups: sideOn ? SET_GROUPS.map(([title, ks]) => ({ title, items: ks.map(k => { const on = k === scr; return { label: LABELS[k], icon: SET_ICON[k], cur: on ? "page" : undefined, go: () => this.go(k), bg: on ? "#fff" : "transparent", weight: on ? 600 : 400, sh: on ? "0 1px 2px rgba(20,17,15,.08)" : "none", ic: on ? "#14110F" : "#5A5A57" }; }) })) : [],
+      mobile: m, desktop: !m, ui: UI(m), pageAnim, pageRef: this.pageRef,
+      authCols: m ? "minmax(0,1fr)" : "minmax(0,1fr) minmax(0,1fr)", authPanel: m ? "none" : "flex", authAlign: m ? "flex-start" : "center", authPad: m ? "28px 20px calc(28px + env(safe-area-inset-bottom))" : "48px 24px", authH1: m ? 30 : 36,
+      navOpen: m && st.navOpen, openNav: () => this.setState({ navOpen: true }), closeNav: () => this.setState({ navOpen: false }),
+      asidePos: m ? "fixed" : "sticky", asideW: m ? "min(300px,86vw)" : (false ? "72px" : "232px"),
+      toggleCollapse: () => { const c = !false; this.setState({ collapsed: c, acctOpen: false }); this.save({ collapsed: c }); },
+      collapseLabel: false ? "Expand sidebar" : "Collapse sidebar", collapseRot: false ? "rotate(180deg)" : "none",
+      cOn: !m && false ? 1 : 0, cOff: !m && false ? 0 : 1, cScale: !m && false ? 1 : 0.6, cShift: !m && false ? "-12px" : "0",
+      itemPadX: !m && false ? "15px" : "8px",
+      badgePos: !m && false ? "absolute" : "static", badgeMin: !m && false ? "16px" : "20px", badgeH: !m && false ? "16px" : "20px", badgePadX: !m && false ? "4px" : "6px", badgeFs: !m && false ? "10px" : "11px", asideTf: m && !st.navOpen ? (st.lang === "ar" ? "translate3d(105%,0,0)" : "translate3d(-105%,0,0)") : "none", asideShadow: m && st.navOpen ? "0 0 40px rgba(0,0,0,.2)" : "none",
+      itemH: m ? 44 : 36, itemFs: m ? 15 : 14, headGap: m ? 4 : 12, padX: m ? 12 : 24, btnH: m ? 44 : 36, swH: m ? "44px" : "auto", swPadX: m ? "4px" : "8px", pillPad: m ? 12 : 14,
+      contentPad: m ? "20px 16px calc(96px + env(safe-area-inset-bottom))" : "24px 24px 64px",
+      toastBottom: m ? "calc(76px + env(safe-area-inset-bottom))" : "24px",
+      statusText: m && st.paused ? "Paused" : (st.paused ? `Paused · ${st.paused}` : "Open"),
+      tabs: TABS.map(([k, label, icon]) => { const on = k === "more" ? (st.navOpen || !menuScreens.includes(scr)) : scr === k;
+        return { label, icon, color: on ? "#14110F" : "#5A5A57", weight: on ? 600 : 500, badge: k === "orders" && st.newCount > 0 ? st.newCount : 0,
+          go: () => k === "more" ? this.setState({ navOpen: true }) : this.go(k) }; }),
+      signedOut: st.signedOut, signedIn: !st.signedOut,
+      signInLabel: st.signingIn ? "…" : "Sign in",
+      signIn: () => { this.setState({ signingIn: true }); setTimeout(() => { this.setState({ signedOut: false, signingIn: false, screen: "home", fresh: false }); this.save({ signedOut: false, screen: "home" }); }, 700); },
+      signUp: (e) => { e && e.preventDefault && e.preventDefault(); this.setState({ auth: "signup", su: 0, suDir: "fwd", f: { ...SU_DEF } }); },
+      goSignin: (e) => { e && e.preventDefault && e.preventDefault(); this.setState({ auth: "signin" }); },
+      ...this.signupVals(),
+      giftPerks: [["Unlimited products", "Your whole menu, no 50-item cap", "utensils-crossed"], ["Delivery and dine-in", "Take orders at the door and the table", "bike"], ["Online payments", "Get paid by card at checkout", "credit-card"], ["Promotions", "Discounts, promo codes, free delivery", "badge-percent"], ["Customer insights", "See who orders and who comes back", "users"], ["Full branding", "Your colors, fonts and menu layout", "palette"]].map(([label, sub, icon]) => ({ label, sub, icon })),
+      gift: m ? { maxW: "520px", cols: "minmax(0,1fr)", leftPad: "28px 24px 20px", leftDir: "row", leftGap: "20px", leftAlign: "start", bill: "116px", numAlign: "flex-start", numFs: "60px", rightPad: "24px 20px 20px" }
+        : { maxW: "880px", cols: "360px minmax(0,1fr)", leftPad: "40px 32px", leftDir: "column", leftGap: "16px", leftAlign: "center", bill: "230px", numAlign: "center", numFs: "88px", rightPad: "32px 32px 28px" },
+      giftEnds: new Date(Date.now() + 30 * 864e5).toLocaleDateString(st.lang === "ar" ? "ar-LB-u-nu-latn" : "en-US", { month: "long", day: "numeric" }),
+      giftPlan: () => this.go("plan"),
+      ...(() => { const PS = this.props.planState || "Premium", ar = st.lang === "ar", inD = n => FD(new Date(Date.now() + n * 864e5), ar);
+        const T = (n, left) => ({ left, ends: inD(n) });
+        const trial = st.fresh || PS === "Trial" ? T(30, "30 days left") : PS === "Trial ends in 7 days" ? T(7, "7 days left") : PS === "Trial ends tomorrow" ? T(1, "1 day left") : null;
+        const plan = trial ? "trial" : PS === "Free" || PS === "Free, over 50 products" ? "free" : PS === "Suspended" ? "suspended" : "premium";
+        const S = a => a.map(t => ({ t }));
+        const amber = { bg: "#FFF0C2", line: "#FFC52E", ic: "#7A5300" }, grey = { bg: "#F4F4F3", line: "#EAEAE8", ic: "#14110F" }, red = { bg: "#FDE3DB", line: "#F5B5A3", ic: "#C2300B" };
+        const due = FD(new Date(2026, 11, 1), ar), grace = FD(new Date(2026, 11, 15), ar);
+        const bn = st.fresh ? null : PS === "Trial ends in 7 days" ? { ...amber, icon: "gem", segs: S(["Your Premium trial ends on", inD(7), "·", "Then it moves to Free."]) }
+          : PS === "Trial ends tomorrow" ? { ...amber, icon: "gem", segs: S(["Your Premium trial ends tomorrow.", "Then it moves to Free."]) }
+          : PS === "Payment due soon" ? { ...grey, icon: "receipt", segs: S(["Payment due on", due, "·", "Hamra", "·", "$37"]) }
+          : PS === "Payment late" ? { ...amber, icon: "clock-alert", segs: S(["Payment for Hamra is late.", "Premium stays on until", grace]) }
+          : PS === "Suspended" ? { ...red, icon: "circle-pause", segs: S(["Premium is off for Hamra until payment.", "Your storefront stays open."]) } : null;
+        return { trial, plan, bill: PS, bn: bn || { segs: [] }, bnOn: !!bn, archived: PS === "Archived", over50: PS === "Free, over 50 products", talkSales: () => window.open("https://wa.me/96171407202", "_blank") }; })(),
+      signOut: () => { this.setState({ signedOut: true }); this.save({ signedOut: true }); },
+      storePhones: PHONES.map((n, i) => { const d = ((i - st.storeIdx + 12) % 8) - 4, a = Math.abs(d), sh = (b, y, r, o) => `blur(${b}px) drop-shadow(0 ${y}px ${r}px rgba(20,17,15,${o}))`;
+        return { src: `assets/phones/${n}.webp`, dx: d * 74, rot: 0, s: a === 0 ? 1 : a === 1 ? 0.8 : 0.66, o: a === 0 ? 1 : a === 1 ? 0.5 : 0, z: 10 - a, f: a === 0 ? sh(0, 24, 40, 0.18) : sh(1.5, 12, 20, 0.08) }; }),
+      storeDots: Array.from({ length: 8 }, (_, i) => ({ w: i === st.storeIdx ? 22 : 6, c: i === st.storeIdx ? "#14110F" : "#DADAD7" })),
+      nav, s, screen: scr, crumb: LABELS[scr],
+      go: this.go, toast: this.toast,
+      showAppCard: !m && !st.appDismissed && !st.short, showAppBanner: m && !st.appDismissed,
+      dismissApp: () => { this.setState({ appDismissed: true }); this.save({ appDismissed: true }); },
+      openApp: () => this.setState({ modal: "app", navOpen: false }),
+      appStore: (e) => { e && e.preventDefault && e.preventDefault(); this.toast("Opening the App Store"); }, playStore: (e) => { e && e.preventDefault && e.preventDefault(); this.toast("Opening Google Play"); },
+      goHome: () => this.go("home"), goAccount: () => ns === "smart" || ns === "combined" ? this.setState(s => ({ acctOpen: !s.acctOpen })) : this.go("account"),
+      acctOpen: (ns === "smart" || ns === "combined") && !!st.acctOpen, closeAcct: () => this.setState({ acctOpen: false }),
+      acctItems: (ns === "combined" ? [["branches", "Branches", "building-2"], ["plan", "Plan", "gem"], ["account", "Your account", "user-round"]] : [["branches", "Branches", "building-2"], ["branding", "Branding", "palette"], ["account", "Your account", "user-round"]]).map(([k, label, icon]) => ({ label, icon, sep: k === "account", on: scr === k, bg: scr === k ? "#F4F4F3" : "transparent", go: () => { this.setState({ acctOpen: false, navOpen: false }); this.go(k); } })),
+      acctSignOut: () => { this.setState({ acctOpen: false, signedOut: true }); this.save({ signedOut: true }); }, goBranches: () => this.go("branches"), goInbox: () => this.go("inbox"),
+      accountBg: scr === "account" ? "#F4F4F3" : "transparent",
+      branchPage: !BRAND_WIDE.includes(scr),
+      switcherLabel: BRAND_WIDE.includes(scr) ? "Block Party" : "Hamra",
+      unread: st.unread, markRead: () => this.setState({ unread: false }),
+      setNewCount: (n) => { if (n !== st.newCount) this.setState({ newCount: n }); },
+      statusTip: paused ? "Resume new orders" : "Pause new orders",
+      statusLabel: paused ? `Paused · ${paused}` : "Open",
+      statusDot: paused ? "#C28A00" : "#1F7A4D", statusBg: paused ? "#FFF0C2" : "#E6F4EC", statusInk: paused ? "#7A5300" : "#14532D", statusBorder: paused ? "#FFC52E" : "#BFE3CC", statusPulse: paused ? "none" : "dlPulse 1.8s ease-out infinite",
+      openPause: () => this.setState({ modal: "pause" }), pausedText: st.paused || "", newUser: !!st.fresh || this.props.homeData === "No orders", hasLocation: !(st.fresh || this.props.homeData === "No orders") || !!st.locSet, setLoc: (v) => this.setState({ locSet: !!v }), oneBranch: this.props.branches === "One branch", homeData: st.fresh ? "none" : ({ "Few orders": "few", "No orders": "none" }[this.props.homeData] || "established"), openHelp: () => this.setState({ modal: "help", navOpen: false }), openShare: () => this.setState({ modal: "share" }),
+      modal: { app: st.modal === "app", help: st.modal === "help", pause: st.modal === "pause", share: st.modal === "share", gift: st.modal === "gift" },
+      closeModal: close, stop: (e) => e.stopPropagation(),
+      pauseWhich: WHICH.map((label, i) => ({ label, pick: () => this.setState({ pw: i }), bg: st.pw === i ? "#F4F4F3" : "#fff", color: st.pw === i ? "#14110F" : "#14110F", border: st.pw === i ? "#14110F" : "#DADAD7" })),
+      pauseFor: FOR.map((label, i) => ({ label, pick: () => this.setState({ pf: i }), bg: st.pf === i ? "#FAFAFA" : "#fff", ring: st.pf === i ? "6px solid #14110F" : "1.5px solid #DADAD7" })),
+      isPaused: !!paused,
+      resume: () => { this.setState({ paused: null, modal: null }); this.toast("New orders are back on"); },
+      confirmPause: () => { const w = st.pw === 0 ? "" : WHICH[st.pw].toLowerCase() + " "; const f = FOR[st.pf]; this.setState({ paused: st.pf === 4 ? "until resumed" : f.toLowerCase(), modal: null }); this.toast(`New ${w}orders paused`); },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/blockparty"); } catch (e) {} this.toast("Link copied"); },
+      downloadQr: () => this.toast("QR code downloaded"),
+      toastMsg: st.toastMsg,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<div data-screen-label="Order history" style="display:flex;flex-direction:column;gap:16px">
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Order history</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Finished, rejected and cancelled orders from the last 90 days. Search and filter.</p></div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;border-bottom:1px solid #EAEAE8">
+      <label style="flex:1;min-width:220px;display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;background:#F4F4F3"><i class="icon-search" style="font-size:16px;color:#5A5A57"></i><input value="{{ q }}" onInput="{{ onQ }}" placeholder="Search by number, name or phone" style="flex:1;border:0;background:none;font-size:{{ ui.fs }};box-shadow:none !important"></label>
+      <dc-import name="Dropdown" options="Last 7 days|Today|Last 30 days|Last 90 days" height="{{ 40 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" hint-size="160px,40px"></dc-import>
+      <dc-import name="Dropdown" options="all=All order types|Delivery|Pickup|Dine-in" value="{{ type }}" on-change="{{ onType }}" height="{{ 40 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" hint-size="160px,40px"></dc-import>
+      <dc-import name="Dropdown" options="all=All statuses|Completed|Rejected|Cancelled" value="{{ status }}" on-change="{{ onStatus }}" height="{{ 40 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" hint-size="160px,40px"></dc-import>
+      <dc-import name="Dropdown" options="All payments|Card|Cash" height="{{ 40 }}" weight="{{ 500 }}" font-size="{{ ui.fs }}" hint-size="160px,40px"></dc-import>
+    </div>
+    <sc-if value="{{ mobile }}"><div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+        <button onClick="{{ r.open }}" style="width:100%;display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:0;border-top:1px solid #EAEAE8;background:#fff;text-align:start;cursor:pointer">
+          <span style="display:flex;align-items:center;gap:8px;width:100%"><b style="font-size:15px;font-weight:600">#{{ r.id }}</b><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:{{ r.tInk }}"><span style="width:7px;height:7px;border-radius:99px;background:{{ r.tDot }}"></span>{{ r.type }}</span><span style="flex:1"></span><b style="font-size:15px;font-weight:600;color:#14110F">{{ r.total }}</b></span>
+          <span style="display:flex;align-items:center;gap:8px;width:100%;font-size:13px;color:#14110F"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }} · {{ r.date }}</span><span style="display:inline-flex;align-items:center;gap:5px;color:{{ r.sInk }};font-weight:500"><span style="width:6px;height:6px;border-radius:99px;background:{{ r.sInk }}"></span>{{ r.status }}</span></span>
+          <span style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:99px;border:1px solid {{ r.payBorder }};background:{{ r.payBg }};color:{{ r.payInk }};font-size:12px;white-space:nowrap"><i class="icon-{{ r.payIcon }}" style="font-size:13px"></i>{{ r.pay }}</span><sc-if value="{{ r.refund }}"><span style="font-size:12px;color:#5A5A57">{{ r.refund }}</span></sc-if><sc-if value="{{ r.tip }}"><span style="font-size:12px;color:#5A5A57;white-space:nowrap">{{ r.tip }}</span></sc-if></span>
+        </button>
+      </sc-for>
+    </div></sc-if>
+    <sc-if value="{{ desktop }}"><div style="overflow-x:auto">
+    <table style="width:100%;min-width:760px;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:#F4F4F3;height:40px;text-align:start"><sc-for list="{{ cols }}" as="c" hint-placeholder-count="4"><th aria-sort="{{ c.aria }}" style="padding-block:0 0;padding-inline:{{ c.padL }} {{ c.padR }};text-align:{{ c.align }};font-weight:500"><button onClick="{{ c.sort }}" style="display:inline-flex;align-items:center;gap:4px;height:28px;margin:0 -6px;padding:0 6px;border:0;border-radius:8px;background:none;cursor:pointer;font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:{{ c.ink }};flex-direction:{{ c.dir }}" style-hover="background:#EAEAE8;color:#14110F">{{ c.label }}<i class="icon-{{ c.icon }}" style="font-size:13px;opacity:{{ c.iconOp }}"></i></button></th></sc-for></tr></thead>
+      <tbody>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="12">
+          <tr onClick="{{ r.open }}" style="border-top:1px solid #EAEAE8;cursor:pointer;height:56px" style-hover="background:#FAFAFA">
+            <td style="padding-block:0 0;padding-inline:16px 12px"><b style="display:block;font-weight:600">#{{ r.id }}</b><span style="color:#5A5A57;font-size:12px;white-space:nowrap">{{ r.date }}</span></td>
+            <td style="padding:0 12px"><span style="display:block">{{ r.name }}</span><span style="color:#5A5A57;font-size:12px;white-space:nowrap">{{ r.phone }}</span></td>
+            <td style="padding:0 12px"><span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#14110F"><span style="width:8px;height:8px;border-radius:99px;background:{{ r.tDot }}"></span>{{ r.type }}</span></td>
+            <td style="padding:0 12px"><span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:{{ r.sInk }}"><span style="width:8px;height:8px;border-radius:99px;background:{{ r.sDot }}"></span>{{ r.status }}</span></td>
+            <td style="padding:0 12px"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:99px;border:1px solid {{ r.payBorder }};background:{{ r.payBg }};color:{{ r.payInk }};font-size:12px;white-space:nowrap"><i class="icon-{{ r.payIcon }}" style="font-size:13px"></i>{{ r.pay }}</span><sc-if value="{{ r.refund }}"><span style="display:block;font-size:12px;color:#5A5A57;margin-top:2px">{{ r.refund }}</span></sc-if></td>
+            <td style="padding-block:0 0;padding-inline:12px 16px;text-align:end"><b style="display:block;font-weight:600;color:#14110F">{{ r.total }}</b><sc-if value="{{ r.tip }}"><span style="font-size:12px;color:#5A5A57;white-space:nowrap">{{ r.tip }}</span></sc-if></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    </div></sc-if>
+    <sc-if value="{{ none }}"><div style="padding:32px 40px 40px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font-size:14px;color:#5A5A57"><img src="assets/bill/thinking.webp" alt="" style="width:80px;height:80px;opacity:.4">No orders match. Try another name, number or filter.</div></sc-if>
+    <div style="padding:14px 16px;border-top:1px solid #EAEAE8;font-size:13px;color:#5A5A57">{{ footer }}</div>
+  </section>
+</div>
+
+<sc-if value="{{ det }}">
+  <div onClick="{{ close }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:520px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-receipt-text" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Order #{{ det.id }}</b><button onClick="{{ close }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:12px;font-size:14px">
+        <div style="display:flex;gap:10px;align-items:center;color:#14110F"><span style="color:{{ det.sInk }};font-weight:600">{{ det.status }}</span>·<span>{{ det.type }}</span>·<span>{{ det.date }}</span></div>
+        <sc-if value="{{ det.reason }}"><div style="background:#FFE6DE;color:#C2300B;border-radius:10px;padding:10px 12px;font-size:13px">Reason: {{ det.reason }}</div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid #EAEAE8;padding-top:12px"><span style="display:flex;gap:10px;align-items:center"><i class="icon-user" style="font-size:16px;color:#5A5A57"></i>{{ det.name }}</span><span style="display:flex;gap:10px;align-items:center"><i class="icon-phone" style="font-size:16px;color:#5A5A57"></i>{{ det.phone }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid #EAEAE8;padding-top:12px"><sc-for list="{{ det.items }}" as="i" hint-placeholder-count="2"><div style="display:flex;gap:8px"><span style="min-width:20px;height:20px;border-radius:5px;background:#F4F4F3;font-size:11px;font-weight:600;display:grid;place-items:center">{{ i.q }}</span><span style="flex:1">{{ i.n }}</span><span>{{ i.p }}</span></div></sc-for></div>
+        <div style="display:flex;justify-content:space-between;font-weight:600;font-size:16px;border-top:1px dashed #DADAD7;padding-top:12px"><span>Total</span><span>{{ det.total }}</span></div>
+        <span style="font-size:13px;color:#5A5A57">{{ det.pay }}</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NAMES = [["Lina Saad","+961 3 412 908"],["Rami Khoury","+961 70 555 214"],["Maya Rizk","+961 71 323 482"],["Omar Aoun","+961 75 766 248"],["Sami Tabet","+961 79 979 769"],["Joelle Abi Nader","+961 76 766 246"],["Tarek Mansour","+961 75 979 769"],["Yara Nassar","+961 70 106 991"],["Fadi Chamoun","+961 72 139 341"],["Rita Gemayel","+961 78 313 492"],["Hadi Salem","+961 73 433 109"],["Nour Saad","+961 71 808 872"]];
+const TYPES = [["Delivery","#1F7A4D","#1F7A4D"],["Pickup","#7A5300","#FFC52E"],["Dine-in","#14110F","#14110F"]];
+const ITEMS = [["Pepperoni Party",10],["Tomato & Cheese",14],["Philly Steak",12],["BBQ Chicken",12],["Four Cheese Melt",14],["Strawberry Dream Crêpe",12],["Coca-Cola",2.5]];
+const MON = ["Oct","Nov"];
+const rows = [];
+let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+for (let i = 0; i < 48; i++) {
+  const id = 1040 - i - 1, [name, phone] = NAMES[Math.floor(rnd() * NAMES.length)], t = TYPES[Math.floor(rnd() * 3)];
+  const r = rnd(), status = r < 0.82 ? "Completed" : r < 0.92 ? "Rejected" : "Cancelled";
+  const card = rnd() < 0.55;
+  const items = Array.from({ length: 1 + Math.floor(rnd() * 3) }, () => { const [n, p] = ITEMS[Math.floor(rnd() * ITEMS.length)]; return { q: 1 + Math.floor(rnd() * 2), n, p }; });
+  const sub = items.reduce((s, x) => s + x.q * x.p, 0);
+  const tip = status === "Completed" && card && rnd() < 0.45 ? +(sub * 0.12).toFixed(2) : 0;
+  const day = 13 - Math.floor(i / 4), d = day > 0 ? `${day} Nov` : `${31 + day} Oct`;
+  const hh = String(11 + Math.floor(rnd() * 11)).padStart(2, "0"), mm = String(Math.floor(rnd() * 60)).padStart(2, "0");
+  rows.push({ id, name, phone, t, status, card, items, sub, tip, date: `${d} · ${hh}:${mm}`, failed: i === 30,
+    reason: status === "Rejected" ? ["Too busy", "Out of stock", "Closing soon"][i % 3] : status === "Cancelled" ? "Customer asked" : "" });
+}
+const money = (v) => "$" + v.toFixed(2);
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { sort: "id", dir: "desc", q: "", type: "all", status: "all", tip: true, det: null };
+  pay(r) {
+    if (r.failed) return ["Card payment failed", "circle-alert", "#FFE6DE", "#C2300B", "#FFC0AC", ""];
+    if (r.status !== "Completed" && r.card) return ["Paid · Card", "credit-card", "#fff", "#14110F", "#EAEAE8", `Refunded ${money(r.sub)}`];
+    if (r.status !== "Completed") return ["Cash · to collect", "banknote", "#fff", "#5A5A57", "#EAEAE8", ""];
+    return r.card ? ["Paid · Card", "credit-card", "#fff", "#14110F", "#EAEAE8", ""] : ["Paid · Cash", "banknote", "#fff", "#14110F", "#EAEAE8", ""];
+  }
+  renderVals() {
+    const st = this.state, q = st.q.trim().toLowerCase().replace("#", "");
+    const list = rows.filter(r => (st.type === "all" || r.t[0] === st.type) && (st.status === "all" || r.status === st.status) && (!q || String(r.id).includes(q) || r.name.toLowerCase().includes(q) || r.phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))));
+    const sInk = (s) => s === "Completed" ? "#14110F" : "#C2300B";
+    const sDot = (s) => s === "Completed" ? "#1F7A4D" : "#C2300B";
+    const K = { id: r => r.id, name: r => r.name.toLowerCase(), type: r => r.t[0], status: r => r.status, pay: r => this.pay(r)[0], total: r => r.sub + r.tip };
+    const dir = st.dir === "asc" ? 1 : -1, key = K[st.sort] || K.id;
+    list.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+    const COLS = [["id","Order","left"],["name","Customer","left"],["type","Channel","left"],["status","Status","left"],["pay","Payment","left"],["total","Total","right"]];
+    const tips = list.reduce((s, r) => s + r.tip, 0);
+    const d = rows.find(r => r.id === st.det);
+    return {
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile,
+      showTip: st.tip, hideTip: () => this.setState({ tip: false }),
+      q: st.q, onQ: (e) => this.setState({ q: e.target.value }), type: st.type, onType: (e) => this.setState({ type: e.target.value }), status: st.status, onStatus: (e) => this.setState({ status: e.target.value }),
+      rows: list.map(r => { const p = this.pay(r); return { id: r.id, date: r.date, name: r.name, phone: r.phone, type: r.t[0], tInk: r.t[1], tDot: r.t[2], status: r.status, sInk: sInk(r.status), sDot: sDot(r.status),
+        pay: p[0], payIcon: p[1], payBg: p[2], payInk: p[3], payBorder: p[4], refund: p[5], total: money(r.sub + r.tip), tip: r.tip ? `incl. ${money(r.tip)} tip` : "", open: () => this.setState({ det: r.id }) }; }),
+      cols: COLS.map(([k, label, align], i) => { const on = (st.sort || "id") === k; return { label, align: align === "right" ? "end" : "start", padL: i === 0 ? "16px" : "12px", padR: i === COLS.length - 1 ? "16px" : "12px", dir: align === "right" ? "row-reverse" : "row",
+        ink: on ? "#14110F" : "#5A5A57", icon: on ? (st.dir === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down", iconOp: on ? 1 : 0.45, aria: on ? (st.dir === "asc" ? "ascending" : "descending") : "none",
+        sort: () => this.setState(s => ({ sort: k, dir: (s.sort || "id") === k ? (s.dir === "asc" ? "desc" : "asc") : (k === "name" || k === "type" || k === "status" || k === "pay" ? "asc" : "desc") })) }; }),
+      none: list.length === 0, footer: `${list.length} orders · Tips ${money(tips)}`,
+      det: d ? { id: d.id, status: d.status, sInk: sInk(d.status), type: d.t[0], date: d.date, reason: d.reason, name: d.name, phone: d.phone,
+        items: d.items.map(i => ({ q: i.q, n: i.n, p: money(i.q * i.p) })), total: money(d.sub + d.tip), pay: this.pay(d)[0] + (this.pay(d)[5] ? " · " + this.pay(d)[5] : "") } : null,
+      close: () => this.setState({ det: null }), stop: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

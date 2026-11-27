@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<div data-screen-label="Live orders" style="display:flex;flex-direction:column;gap:16px">
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Live orders</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">New orders arrive here in real time. Move each one through the kitchen.</p></div>
+  <sc-if value="{{ showAppTip }}"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:12px 12px;padding-inline:16px 12px;border-radius:14px;background:#FFF0E9;border:1px solid #FFD5C4">
+    <span style="width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#fff;color:#C2300B;display:grid;place-items:center"><i class="icon-bell-ring" style="font-size:17px"></i></span>
+    <span style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:1px"><b style="font-size:14px;font-weight:600">Away from this screen?</b><span style="font-size:13px;color:#5A5A57">Get an alert on your phone for every new order.</span></span>
+    <button onClick="{{ openApp }}" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#14110F;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">Get the app</button>
+    <button onClick="{{ hideAppTip }}" aria-label="Dismiss" style="width:32px;height:32px;border-radius:9px;border:0;background:none;cursor:pointer;display:grid;place-items:center;color:#5A5A57" style-hover="background:#fff"><i class="icon-x" style="font-size:15px"></i></button>
+  </div></sc-if>
+
+  <div style="display:grid;grid-template-columns:{{ countCols }};gap:{{ countGap }}px">
+    <sc-for list="{{ counts }}" as="c" hint-placeholder-count="4">
+      <div style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="flex-shrink:0;width:40px;height:40px;border-radius:10px;background:#F4F4F3;color:#14110F;display:grid;place-items:center"><i class="icon-{{ c.icon }}" style="font-size:19px"></i></span><div style="min-width:0"><b style="display:block;font-size:24px;font-weight:600;line-height:1.1">{{ c.n }}</b><span style="display:block;font-size:13px;color:#14110F;line-height:1.3;text-wrap:pretty">{{ c.label }}</span></div></div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-wrap:{{ chipWrap }};gap:8px;overflow-x:auto;margin:0 {{ chipBleed }};padding:0 {{ chipPadX }};scrollbar-width:none">
+    <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.pick }}" style="flex-shrink:0;white-space:nowrap;height:{{ chipH }}px;padding:0 14px;border-radius:99px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:1px solid {{ f.border }};background:{{ f.bg }};color:{{ f.color }}"><i class="icon-{{ f.icon }}" style="font-size:15px;color:{{ f.iconColor }}"></i>{{ f.label }}</button></sc-for>
+  </div>
+
+  <sc-if value="{{ mobile }}"><div style="position:sticky;top:64px;z-index:5;display:flex;gap:4px;background:#F4F4F3;border-radius:14px;padding:4px;box-shadow:0 0 0 6px #FAFAFA"><sc-for list="{{ colTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.pick }}" style="flex:1;height:44px;border-radius:12px;border:0;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;background:{{ t.bg }};color:{{ t.color }};font-weight:600;box-shadow:{{ t.shadow }}">{{ t.label }}<span style="min-width:20px;height:20px;padding:0 6px;border-radius:99px;font-size:11px;display:grid;place-items:center;background:{{ t.pillBg }};color:{{ t.pillInk }}">{{ t.n }}</span></button></sc-for></div></sc-if>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:16px;align-items:start">
+    <sc-for list="{{ columns }}" as="col" hint-placeholder-count="3">
+      <div style="background:#F4F4F3;border:1px solid #EAEAE8;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 6px 2px"><span style="width:8px;height:8px;border-radius:99px;background:{{ col.dot }}"></span><b style="font-size:14px;font-weight:600;flex:1">{{ col.label }}</b><span style="min-width:22px;height:22px;border-radius:99px;background:#fff;border:1px solid #EAEAE8;font-size:12px;font-weight:600;display:grid;place-items:center">{{ col.n }}</span></div>
+        <sc-if value="{{ col.empty }}"><div style="padding:20px 12px 28px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font-size:13px;color:#5A5A57"><sc-if value="{{ col.bill }}"><img src="assets/bill/sleepy.webp" alt="" style="width:72px;height:72px;opacity:.4"></sc-if>{{ col.emptyText }}</div></sc-if>
+        <sc-for list="{{ col.cards }}" as="o" hint-placeholder-count="2">
+          <article onClick="{{ o.details }}" style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:border-color .12s,box-shadow .12s;animation:rise .35s cubic-bezier(.22,1,.36,1) backwards" style-hover="border-color:#DADAD7;box-shadow:0 1px 2px rgba(20,17,15,.06),0 4px 12px rgba(20,17,15,.06)">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px"><b style="font-size:15px;font-weight:600">#{{ o.id }}</b><span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:99px;font-size:12px;font-weight:600;background:{{ o.tBg }};color:{{ o.tInk }}"><i class="icon-{{ o.tIcon }}" style="font-size:13px"></i>{{ o.tLabel }}</span><span style="flex:1"></span><sc-if value="{{ o.late }}"><span style="height:22px;padding:0 8px;border-radius:99px;background:#FFE6DE;color:#C2300B;font-size:12px;font-weight:600;display:grid;place-items:center;white-space:nowrap">{{ o.late }}</span></sc-if><span style="font-size:12px;color:#5A5A57;white-space:nowrap">{{ o.ago }}</span></div>
+            <span style="font-size:13px;color:#14110F">{{ o.who }}</span>
+            <div style="display:flex;flex-direction:column;gap:5px"><sc-for list="{{ o.items }}" as="it" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:8px;font-size:14px"><span style="min-width:20px;height:20px;border-radius:5px;background:#F4F4F3;font-size:11px;font-weight:600;display:grid;place-items:center">{{ it.qty }}</span>{{ it.name }}</div></sc-for></div>
+            <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:500;border:1px solid {{ o.payBorder }};background:{{ o.payBg }};color:{{ o.payInk }}"><i class="icon-{{ o.payIcon }}" style="font-size:13px"></i>{{ o.pay }}</span>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-top:1px solid #EAEAE8;padding-top:10px">
+              <b style="flex:1 0 auto;font-size:16px;font-weight:600;color:#14110F">{{ o.total }}</b>
+              <sc-if value="{{ o.isNew }}"><button onClick="{{ o.reject }}" style="height:{{ actH }}px;padding:0 12px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer">Reject</button></sc-if>
+              <button onClick="{{ o.next }}" style="height:{{ actH }}px;padding:0 14px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#14110F"><sc-if value="{{ o.isReady }}"><i class="icon-check" style="font-size:14px"></i></sc-if>{{ o.nextLabel }}<sc-if value="{{ o.arrow }}"><i class="icon-arrow-right" style="font-size:14px"></i></sc-if></button>
+            </div>
+          </article>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+<sc-if value="{{ det }}">
+  <div onClick="{{ close }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:860px;overflow:auto;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-receipt-text" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">Order details</b><button onClick="{{ close }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="display:grid;grid-template-columns:{{ detCols }}">
+        <div style="padding:20px;border-inline-end:{{ detBorderR }};border-bottom:{{ detBorderB }};display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:8px"><b style="font-size:20px;font-weight:600;flex:1">Order #{{ det.id }}</b><span style="display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:99px;background:#F4F4F3;font-size:12px;font-weight:600"><span style="width:7px;height:7px;border-radius:99px;background:{{ det.dot }}"></span>{{ det.statusLabel }}</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#14110F"><span style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:99px;font-size:12px;font-weight:600;background:{{ det.tBg }};color:{{ det.tInk }}"><i class="icon-{{ det.tIcon }}" style="font-size:13px"></i>{{ det.tLabel }}</span><i class="icon-clock" style="font-size:14px"></i>Placed {{ det.ago }}</div>
+          <sc-if value="{{ det.showPrep }}">
+          <div style="border-top:1px solid #EAEAE8;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+            <b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Prep time</b>
+            <span style="font-size:13px;color:#14110F">Starts from the {{ det.tLabel }} default. Change it for this order:</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{ prepOpts }}" as="p" hint-placeholder-count="4"><button onClick="{{ p.pick }}" style="height:36px;padding:0 14px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid {{ p.border }};background:{{ p.bg }};color:{{ p.color }}">{{ p.label }}</button></sc-for></div>
+          </div>
+          </sc-if>
+          <div style="border-top:1px solid #EAEAE8;padding-top:14px;display:flex;flex-direction:column;gap:10px;font-size:14px">
+            <b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Customer</b>
+            <span style="display:flex;align-items:center;gap:10px"><i class="icon-user" style="font-size:16px;color:#5A5A57"></i>{{ det.customer }}</span>
+            <sc-if value="{{ det.phone }}"><span style="display:flex;align-items:center;gap:10px"><i class="icon-phone" style="font-size:16px;color:#5A5A57"></i>{{ det.phone }}</span></sc-if>
+            <sc-if value="{{ det.email }}"><span style="display:flex;align-items:center;gap:10px"><i class="icon-mail" style="font-size:16px;color:#5A5A57"></i>{{ det.email }}</span></sc-if>
+          </div>
+          <sc-if value="{{ det.address }}"><div style="border-top:1px solid #EAEAE8;padding-top:14px;display:flex;flex-direction:column;gap:10px;font-size:14px"><b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Delivery address</b><span style="display:flex;align-items:center;gap:10px;font-weight:500"><i class="icon-map-pin" style="font-size:16px;color:#5A5A57"></i>{{ det.address }}</span></div></sc-if>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+          <b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Items · {{ det.itemCount }}</b>
+          <sc-for list="{{ det.items }}" as="it" hint-placeholder-count="2">
+            <div style="display:flex;gap:12px"><span style="width:44px;height:44px;flex-shrink:0;border-radius:10px;background:{{ it.photo }}"></span><div style="flex:1;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:8px"><span style="min-width:20px;height:20px;border-radius:5px;background:#F4F4F3;font-size:11px;font-weight:600;display:grid;place-items:center">{{ it.qty }}</span><b style="flex:1;font-size:14px;font-weight:500">{{ it.name }}</b><b style="font-size:14px;font-weight:600;color:#14110F">{{ it.price }}</b></div><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ it.addons }}" as="a" hint-placeholder-count="0"><span style="height:24px;padding:0 9px;border-radius:99px;background:#F4F4F3;font-size:12px;display:grid;place-items:center">{{ a }}</span></sc-for></div></div></div>
+          </sc-for>
+          <div style="display:flex;justify-content:space-between;font-size:14px;color:#14110F;padding-top:6px"><span>Subtotal</span><span>{{ det.subtotal }}</span></div>
+          <sc-if value="{{ det.tip }}"><div style="display:flex;justify-content:space-between;font-size:14px;color:#14110F"><span>Tip</span><span>{{ det.tip }}</span></div></sc-if>
+          <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:600;border-top:1px dashed #DADAD7;padding-top:12px"><span>Total</span><span>{{ det.total }}</span></div>
+          <sc-if value="{{ det.failed }}"><div style="display:flex;gap:10px;background:#FFE6DE;border:1px solid #FFC0AC;border-radius:14px;padding:14px;color:#14110F;font-size:13px"><i class="icon-circle-alert" style="font-size:17px;color:#C2300B"></i><div><b style="display:block;color:#C2300B;font-size:14px;font-weight:600;margin-bottom:2px">Card payment failed</b>The card was declined. Collect {{ det.total }} in cash or reject the order.</div></div></sc-if>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid #EAEAE8;position:sticky;bottom:0;background:#fff">
+        <button onClick="{{ det.cancel }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">{{ det.cancelLabel }}</button>
+        <button onClick="{{ det.next }}" style="height:44px;padding:0 28px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">{{ det.nextLabel }}<i class="icon-arrow-right" style="font-size:15px"></i></button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ rej }}">
+  <div onClick="{{ closeRej }}" style="position:fixed;inset:0;z-index:55;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:480px;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><b style="font-size:15px;font-weight:600;flex:1">{{ rej.title }}</b><button onClick="{{ closeRej }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:14px;color:#14110F">Pick a reason. The customer gets an SMS or WhatsApp message with the reason.</span>
+        <div style="display:flex;flex-direction:column;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden"><sc-for list="{{ reasons }}" as="r" hint-placeholder-count="5"><button onClick="{{ r.pick }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;border-bottom:1px solid #EAEAE8;background:#fff;cursor:pointer;font-size:14px;text-align:start"><span style="width:18px;height:18px;border-radius:99px;border:{{ r.ring }}"></span>{{ r.label }}</button></sc-for></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px"><button onClick="{{ closeRej }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">Keep order</button><button onClick="{{ confirmRej }}" disabled="{{ noReason }}" style="height:44px;padding:0 20px;border-radius:99px;border:0;background:{{ rejBg }};color:{{ rejInk }};font-size:14px;font-weight:600;cursor:pointer">{{ rej.cta }}</button></div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const T = {
+  delivery: { label: "Delivery", icon: "bike", bg: "#D5EEDD", ink: "#1F7A4D", prep: 30 },
+  pickup: { label: "Pickup", icon: "shopping-bag", bg: "#FFF0C2", ink: "#7A5300", prep: 20 },
+  dinein: { label: "Dine-in", icon: "utensils", bg: "#F4F4F3", ink: "#14110F", prep: 20 },
+};
+const PH = { "Pepperoni Party": 1, "Philly Steak": 2, "Tomato & Cheese": 3, "BBQ Chicken": 4, "Buffalo Ranch": 5, "Four Cheese Melt": 6, "Chocolate Hazelnut Crêpe": 7, "Strawberry Dream Crêpe": 8, "Margherita": 9 };
+const ORDERS = [
+  { id: 1048, type: "pickup", status: "new", min: 1, customer: "Rami Khoury", phone: "+961 70 555 214", email: "rami.k@gmail.com", items: [[2, "Pepperoni Party", 10, ["Large · +$3.00"]], [1, "Chocolate Hazelnut Crêpe", 10, []]], pay: "paid", tip: 0, ready: 9 },
+  { id: 1047, type: "delivery", status: "new", min: 11, customer: "Lina Saad", phone: "+961 3 412 908", address: "Bliss St, Hamra", km: 1.2, items: [[2, "Tomato & Cheese", 14, []], [2, "Strawberry Dream Crêpe", 12, []]], pay: "cash", tip: 0 },
+  { id: 1046, type: "dinein", status: "new", min: 2, customer: "Table 6", table: 6, items: [[1, "Philly Steak", 12, ["No onion"]], [1, "Margherita", 12, []]], pay: "cash", tip: 0 },
+  { id: 1045, type: "delivery", status: "preparing", min: 6, customer: "Maya Rizk", phone: "+961 71 323 482", email: "maya.rizk@outlook.com", address: "Makdessi St, Hamra", km: 0.8, items: [[1, "Four Cheese Melt", 14, ["Medium", "Jalapeños · +$1.00"]], [2, "Tomato & Cheese", 14, []]], pay: "failed", tip: 0 },
+  { id: 1043, type: "pickup", status: "preparing", min: 24, customer: "Omar Aoun", phone: "+961 75 766 248", items: [[2, "Margherita", 12, []]], pay: "paid", tip: 1.2, ready: 0 },
+  { id: 1042, type: "dinein", status: "preparing", min: 9, customer: "Table 2", table: 2, items: [[1, "Pepperoni Party", 10, []], [1, "BBQ Chicken", 12, []]], pay: "paid", tip: 2.2 },
+  { id: 1044, type: "dinein", status: "ready", min: 18, customer: "Table 4", table: 4, items: [[2, "Pepperoni Party", 10, []], [2, "Coca-Cola", 2.5, []]], pay: "cash", tip: 0 },
+  { id: 1041, type: "delivery", status: "ready", min: 22, customer: "Dana Haddad", phone: "+961 76 119 302", address: "Clemenceau St", km: 1.6, items: [[1, "Buffalo Ranch", 12.5, []], [1, "Still Water", 1.5, []]], pay: "cash", tip: 0 },
+];
+const money = (v) => "$" + v.toFixed(2);
+const sub = (o) => o.items.reduce((s, [q, , p, a]) => s + q * p + a.reduce((x, s2) => x + (+(s2.match(/\+\$(\d+\.\d+)/) || [0, 0])[1]), 0) * q, 0);
+const total = (o) => sub(o) + (o.tip || 0);
+const REASONS = ["Out of stock", "Too busy", "Closing soon", "Customer asked", "Other"];
+const NEXT = { new: ["Accept", "preparing"], preparing: ["Ready", "ready"], ready: ["Complete", "done"] };
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { col: 0, orders: ORDERS, filter: "all", tip: true, det: null, rej: null, reason: null, prep: {}, completed: 47 };
+  componentDidMount() { this.report(); }
+  componentDidUpdate() { this.report(); }
+  report() { const n = this.state.orders.filter(o => o.status === "new").length; this.props.onCount && this.props.onCount(n); }
+  advance(id) {
+    const o = this.state.orders.find(x => x.id === id); if (!o) return;
+    const [label, to] = NEXT[o.status];
+    if (to === "done") this.setState(s => ({ orders: s.orders.filter(x => x.id !== id), completed: s.completed + 1, det: null }));
+    else this.setState(s => ({ orders: s.orders.map(x => x.id === id ? { ...x, status: to, min: to === "preparing" ? 0 : x.min } : x), det: null }));
+    this.props.toast && this.props.toast(`#${id} ${to === "done" ? "completed" : to === "preparing" ? "accepted · Preparing" : "is ready"}`);
+  }
+  view(o) {
+    const t = T[o.type], late = o.status === "new" ? o.min >= 10 : o.status === "preparing" && o.min > (this.state.prep[o.id] || t.prep) - 10 ? false : false;
+    const lateTxt = o.status === "new" && o.min >= 10 ? `Late · ${o.min} min` : o.id === 1043 && o.status === "preparing" ? "Late · 4 min" : "";
+    const who = o.type === "dinein" ? `Table ${o.table}` : o.type === "delivery" ? `${o.customer} · ${o.address} · ${o.km} km` : `${o.customer} · ready in ${o.ready ?? 15} min`;
+    const pay = o.pay === "paid" ? ["Paid · Card", "credit-card", "#fff", "#14110F", "#EAEAE8"] : o.pay === "failed" ? ["Card payment failed", "circle-alert", "#FFE6DE", "#C2300B", "#FFC0AC"] : ["Cash · to collect", "banknote", "#fff", "#14110F", "#EAEAE8"];
+    const [nextLabel] = NEXT[o.status];
+    return { id: o.id, tLabel: t.label, tIcon: t.icon, tBg: t.bg, tInk: t.ink, ago: o.min === 0 ? "now" : `${o.min}m ago`, late: lateTxt, who,
+      items: o.items.map(([qty, name]) => ({ qty, name })), pay: pay[0], payIcon: pay[1], payBg: pay[2], payInk: pay[3], payBorder: pay[4],
+      total: money(total(o)), isNew: o.status === "new", isReady: o.status === "ready", arrow: o.status !== "ready", nextLabel,
+      details: (e) => { e && e.stopPropagation(); this.setState({ det: o.id }); }, reject: (e) => { e && e.stopPropagation(); this.setState({ rej: o.id, reason: null }); }, next: (e) => { e && e.stopPropagation(); this.advance(o.id); } };
+  }
+  renderVals() {
+    const st = this.state, f = st.filter;
+    const list = st.orders.filter(o => f === "all" || o.type === f);
+    const cols = [["new", "New", "#FF4A1C"], ["preparing", "Preparing", "#14110F"], ["ready", "Ready", "#1F7A4D"]].map(([k, label, dot]) => {
+      const cards = list.filter(o => o.status === k).map(o => this.view(o));
+      return { label, dot, n: cards.length, cards, empty: cards.length === 0, bill: k === "new",
+        emptyText: { new: "No new orders right now. They show up here the moment they come in.", preparing: "Nothing cooking.", ready: "Nothing waiting for pickup." }[k] };
+    });
+    const by = (k) => st.orders.filter(o => o.status === k).length;
+    const d = st.orders.find(o => o.id === st.det);
+    let det = null;
+    if (d) {
+      const t = T[d.type];
+      det = { id: d.id, tLabel: t.label, tIcon: t.icon, tBg: t.bg, tInk: t.ink, ago: d.min === 0 ? "just now" : `${d.min}m ago`,
+        statusLabel: { new: "New", preparing: "Preparing", ready: "Ready" }[d.status], dot: { new: "#FF4A1C", preparing: "#14110F", ready: "#1F7A4D" }[d.status],
+        showPrep: d.status !== "ready", customer: d.customer, phone: d.phone || "", email: d.email || "", address: d.address ? `${d.address} · ${d.km} km` : "",
+        itemCount: d.items.length,
+        items: d.items.map(([qty, name, p, addons]) => ({ qty, name, addons, price: money(qty * p), photo: PH[name] ? `url(assets/dishes.jpg) ${(PH[name] / 9) * 100}% 0/1000% 100%` : "#F4F4F3" })),
+        subtotal: money(sub(d)), tip: d.tip ? money(d.tip) : "", total: money(total(d)), failed: d.pay === "failed",
+        cancelLabel: d.status === "new" ? "Reject" : "Cancel order", cancel: () => this.setState({ rej: d.id, reason: null }),
+        nextLabel: NEXT[d.status][0], next: () => this.advance(d.id) };
+    }
+    const cur = st.prep[st.det] || (d ? T[d.type].prep : 20);
+    const r = st.orders.find(o => o.id === st.rej);
+    return {
+      showAppTip: !this.state.appTipOff, hideAppTip: () => this.setState({ appTipOff: true }), openApp: () => this.props.openApp && this.props.openApp(),
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile, actH: this.props.mobile ? 44 : 36, countCols: this.props.mobile ? "repeat(2,minmax(0,1fr))" : "repeat(4,minmax(0,1fr))", countGap: this.props.mobile ? 10 : 16, detCols: this.props.mobile ? "minmax(0,1fr)" : "minmax(0,5fr) minmax(0,7fr)", detBorderR: this.props.mobile ? "0" : "1px solid #EAEAE8", detBorderB: this.props.mobile ? "1px solid #EAEAE8" : "0",
+      showTip: st.tip, hideTip: () => this.setState({ tip: false }),
+      counts: [["inbox", by("new"), "New"], ["chef-hat", by("preparing"), "Preparing"], ["package", by("ready"), "Ready"], ["check-check", st.completed, "Completed today"]].map(([icon, n, label]) => ({ icon, n, label })),
+      filters: [["all", "All order types", "layout-grid", "#14110F"], ["delivery", "Delivery", "bike", "#1F7A4D"], ["pickup", "Pickup", "shopping-bag", "#7A5300"], ["dinein", "Dine-in", "utensils", "#14110F"]].map(([k, label, icon, ic]) => {
+        const on = f === k; return { label, icon, iconColor: ic, pick: () => this.setState({ filter: k }), bg: on ? "#EAEAE8" : "#fff", color: on ? "#14110F" : "#14110F", border: on ? "#14110F" : "#DADAD7" }; }),
+      columns: this.props.mobile ? cols.filter((_, i) => i === st.col) : cols, det,
+      colTabs: cols.map((c, i) => { const on = st.col === i; return { label: c.label, n: c.n, pick: () => this.setState({ col: i }), bg: on ? "#fff" : "transparent", color: on ? "#14110F" : "#14110F", shadow: on ? "0 1px 3px rgba(0,0,0,.08)" : "none", pillBg: i === 0 && c.n ? "#C2300B" : "#EAEAE8", pillInk: i === 0 && c.n ? "#fff" : "#14110F" }; }),
+      chipWrap: this.props.mobile ? "nowrap" : "wrap", chipBleed: this.props.mobile ? "-16px" : "0", chipPadX: this.props.mobile ? "16px" : "0", chipH: this.props.mobile ? 40 : 36,
+      prepOpts: [20, 30, 45].map(m => ({ label: m + " min", pick: () => this.setState(s => ({ prep: { ...s.prep, [s.det]: m } })), on: cur === m })).concat([{ label: "+10 min", pick: () => this.setState(s => ({ prep: { ...s.prep, [s.det]: cur + 10 } })), on: false }])
+        .map(p => ({ ...p, bg: p.on ? "#14110F" : "#fff", color: p.on ? "#fff" : "#14110F", border: p.on ? "#14110F" : "#DADAD7" })),
+      close: () => this.setState({ det: null }), stop: (e) => e.stopPropagation(),
+      rej: r ? { title: r.status === "new" ? `Reject order #${r.id}` : `Cancel order #${r.id}`, cta: r.status === "new" ? "Reject" : "Cancel order" } : null,
+      reasons: REASONS.map((label, i) => ({ label, pick: () => this.setState({ reason: i }), ring: st.reason === i ? "6px solid #14110F" : "1.5px solid #DADAD7" })),
+      noReason: st.reason === null, rejBg: st.reason === null ? "#EAEAE8" : "#C2300B", rejInk: st.reason === null ? "#5A5A57" : "#fff",
+      closeRej: () => this.setState({ rej: null }),
+      confirmRej: () => { const id = st.rej; this.setState(s => ({ orders: s.orders.filter(o => o.id !== id), rej: null, det: null })); this.props.toast && this.props.toast(`#${id} rejected · customer notified`); },
+    };
+  }
+}
+</script>
+</body>
+</html>

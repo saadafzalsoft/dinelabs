@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<sc-if value="{{ isCategories }}">
+<div data-screen-label="Categories" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Categories</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">The sections of your menu, in the order customers see them.</p></div>
+    <button onClick="{{ addCategory }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-plus" style="font-size:16px"></i>Add category</button>
+  </div>
+  <div style="display:grid;grid-template-columns:{{ lay21 }};gap:16px;align-items:start">
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+      <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+        <div draggable="{{ c.drag }}" onDragStart="{{ c.dragStart }}" onDragOver="{{ c.dragOver }}" onDrop="{{ c.drop }}" onDragEnd="{{ dragEnd }}" style="display:grid;grid-template-columns:{{ catCols }};gap:10px;padding:12px 16px;align-items:center;border-top:{{ c.borderTop }};background:{{ c.bg }};opacity:{{ c.op }};box-shadow:{{ c.dropLine }}">
+          <span onMouseDown="{{ c.arm }}" onMouseUp="{{ disarm }}" title="Drag to reorder" style="width:24px;height:32px;display:grid;place-items:center;border-radius:6px;cursor:grab;color:#5A5A57" style-hover="background:#F4F4F3;color:#14110F"><i class="icon-grip-vertical" style="font-size:16px"></i></span>
+          <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;color:#5A5A57">{{ c.n }}</span></sc-if>
+          <sc-if value="{{ c.editing }}">
+            <div onKeyDown="{{ c.editKey }}" style="display:flex;flex-direction:column;min-width:0">
+              <input data-bare="" value="{{ c.draftName }}" onInput="{{ c.onDraftName }}" onBlur="{{ c.blurSave }}" autoFocus="{{ true }}" onFocus="{{ selAll }}" placeholder="Category name" aria-label="Category name" style="height:22px;min-width:0;border:0;border-radius:0;padding:0;background:none;font-size:14px;font-weight:600;color:#14110F;outline:none;caret-color:#C2300B">
+              <input data-bare="" dir="rtl" value="{{ c.draftAr }}" onInput="{{ c.onDraftAr }}" onBlur="{{ c.blurSave }}" placeholder="الاسم بالعربية" aria-label="Arabic name" style="height:22px;min-width:0;border:0;border-radius:0;padding:0;background:none;font-size:13px;color:#5A5A57;font-family:'Alexandria',sans-serif;text-align:start;outline:none;caret-color:#C2300B">
+            </div>
+          </sc-if>
+          <sc-if value="{{ c.notEditing }}">
+            <button onClick="{{ c.rename }}" title="Rename" style="border:0;background:none;padding:4px 8px;margin:-4px -8px;border-radius:10px;text-align:start;cursor:text;min-width:0;justify-self:start;max-width:100%" style-hover="background:#F4F4F3">
+              <b style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:14px;font-weight:600">{{ c.name }}<sc-if value="{{ mobile }}"><span style="font-size:13px;font-weight:400;color:#5A5A57">{{ c.count }}</span></sc-if><sc-if value="{{ c.hidden }}"><span style="height:22px;padding:0 8px;border-radius:99px;background:#F4F4F3;font-size:12px;font-weight:500;color:#5A5A57;display:grid;place-items:center">Hidden</span></sc-if></b>
+              <span dir="rtl" style="display:block;font-family:'Alexandria',sans-serif;font-size:13px;line-height:1.7;color:{{ c.arInk }};text-align:start">{{ c.arShown }}</span>
+            </button>
+          </sc-if>
+          <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;color:#5A5A57;white-space:nowrap">{{ c.count }}</span></sc-if>
+          <button onClick="{{ c.toggleFeat }}" data-tip="Featured" style="width:44px;height:26px;border-radius:99px;border:0;padding:2px;cursor:pointer;background:{{ c.swBg }};display:flex;justify-content:{{ c.swJ }}"><span style="width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></button>
+          <button onClick="{{ c.toggleHide }}" data-tip="{{ c.hideLabel }}" style="width:32px;height:32px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-{{ c.hideIcon }}" style="font-size:17px"></i></button>
+          <span style="position:relative">
+            <button onClick="{{ c.menu }}" aria-label="More" style="width:32px;height:32px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-ellipsis" style="font-size:18px"></i></button>
+            <sc-if value="{{ c.menuOpen }}"><div style="position:absolute;inset-inline-end:0;top:36px;z-index:20;width:180px;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:6px;display:flex;flex-direction:column">
+              <button onClick="{{ c.rename }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;text-align:start" style-hover="background:#F4F4F3"><i class="icon-pencil" style="font-size:15px"></i>Rename</button>
+              <button onClick="{{ c.up }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;text-align:start" style-hover="background:#F4F4F3"><i class="icon-arrow-up" style="font-size:15px"></i>Move up</button>
+              <button onClick="{{ c.down }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;text-align:start" style-hover="background:#F4F4F3"><i class="icon-arrow-down" style="font-size:15px"></i>Move down</button>
+              <button onClick="{{ c.del }}" style="display:flex;gap:10px;align-items:center;padding:9px 10px;border:0;background:none;border-radius:10px;cursor:pointer;font-size:13px;color:#C2300B;text-align:start" style-hover="background:#FFE6DE"><i class="icon-trash-2" style="font-size:15px"></i>Delete</button>
+            </div></sc-if>
+          </span>
+        </div>
+      </sc-for>
+    </section>
+    <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-star" style="font-size:18px"></i><b style="font-size:15px;font-weight:600">Where Featured shows</b></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:13px;color:#5A5A57;line-height:1.5">Featured categories sit at the top of your storefront as large photo cards.</span>
+        <div style="border:1px solid #EAEAE8;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;background:#FAFAFA;min-width:0;overflow:hidden">
+          <b style="font-size:14px;font-weight:600">{{ featuredName }}</b>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px"><div style="min-width:0;display:flex;flex-direction:column;gap:4px"><span style="display:block;aspect-ratio:4/3;border-radius:10px;background:url(assets/dishes.jpg) 11.11% 0/1000% 100%"></span><span style="font-size:12px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 75%,transparent);mask-image:linear-gradient(90deg,#000 75%,transparent)">Pepperoni Party</span></div><div style="min-width:0;display:flex;flex-direction:column;gap:4px"><span style="display:block;aspect-ratio:4/3;border-radius:10px;background:url(assets/dishes.jpg) 22.22% 0/1000% 100%"></span><span style="font-size:12px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 75%,transparent);mask-image:linear-gradient(90deg,#000 75%,transparent)">Philly Steak</span></div></div>
+          <div style="display:flex;gap:6px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 70%,transparent);mask-image:linear-gradient(90deg,#000 70%,transparent)"><sc-for list="{{ chips }}" as="ch" hint-placeholder-count="3"><span style="height:26px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;display:grid;place-items:center;white-space:nowrap;flex-shrink:0;background:{{ ch.bg }};color:{{ ch.color }}">{{ ch.name }}</span></sc-for></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAddons }}">
+<div data-screen-label="Add-ons" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Add-ons</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Add-on groups hold the options customers pick, such as a size or extras.</p></div>
+    <button onClick="{{ newGroup }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-plus" style="font-size:16px"></i>New add-on group</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:16px">
+    <sc-for list="{{ addonGroups }}" as="g" hint-placeholder-count="3">
+      <div onClick="{{ g.edit }}" style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .12s,box-shadow .12s" style-hover="border-color:#DADAD7;box-shadow:0 1px 2px rgba(20,17,15,.06),0 4px 12px rgba(20,17,15,.06)">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:18px 20px 14px">
+          <span style="flex-shrink:0;width:40px;height:40px;border-radius:12px;background:#F4F4F3;display:grid;place-items:center"><i class="icon-{{ g.icon }}" style="font-size:18px"></i></span>
+          <div style="flex:1;min-width:0"><b style="display:block;font-size:16px;font-weight:600;line-height:1.3">{{ g.name }}</b><span dir="rtl" style="display:block;text-align:start;font-family:'Alexandria',sans-serif;font-size:13px;line-height:1.7;color:#5A5A57">{{ g.ar }}</span></div>
+          <span style="flex-shrink:0;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:600;display:grid;place-items:center;background:{{ g.reqBg }};color:{{ g.reqInk }}">{{ g.reqLabel }}</span>
+        </div>
+        <div style="padding:0 20px 6px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">{{ g.ruleShort }}</div>
+        <div style="margin:0 20px;border-top:1px solid #EAEAE8">
+          <sc-for list="{{ g.optList }}" as="o" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px;height:38px;border-bottom:1px dashed #EAEAE8;font-size:14px"><span style="width:14px;height:14px;flex-shrink:0;border:1.5px solid #C9C9C5;border-radius:{{ g.shape }}"></span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.name }}</span><span style="color:{{ o.priceInk }};font-variant-numeric:tabular-nums">{{ o.price }}</span></div></sc-for>
+          <sc-if value="{{ g.more }}"><div style="height:34px;display:flex;align-items:center;font-size:13px;color:#5A5A57">{{ g.more }}</div></sc-if>
+        </div>
+        <div onClick="{{ stop }}" style="margin-top:auto;padding:12px 20px 16px;display:flex;align-items:center">
+        <span onMouseEnter="{{ g.usedEnter }}" onMouseLeave="{{ usedLeave }}" style="position:relative;white-space:nowrap;font-size:13px;color:#14110F;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#DADAD7;cursor:default">Used by {{ g.used }} products
+          <sc-if value="{{ g.usedOpen }}"><span style="position:absolute;inset-inline-start:-12px;bottom:calc(100% + 8px);z-index:25;width:240px;max-height:280px;overflow-y:auto;background:#fff;border:1px solid #EAEAE8;border-radius:14px;box-shadow:0 1px 2px rgba(20,17,15,.06),0 8px 24px rgba(20,17,15,.10);padding:6px;display:flex;flex-direction:column;animation:fadein .12s both">
+            <span style="padding:6px 10px 4px;font-size:12px;color:#5A5A57">{{ g.used }} products use this group</span>
+            <sc-for list="{{ g.prods }}" as="pr" hint-placeholder-count="4"><span style="display:block;padding:7px 10px;border-radius:10px;font-size:13px;font-weight:500;color:#14110F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ pr }}</span></sc-for>
+          </span></sc-if>
+        </span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isLabels }}">
+<div data-screen-label="Menu labels" style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+    <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Menu labels</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">Small tags on products that help customers choose, like Spicy or Vegetarian.</p></div>
+    <button onClick="{{ addLabel }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px"><i class="icon-plus" style="font-size:16px"></i>Add label</button>
+  </div>
+  <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+    <sc-for list="{{ labels }}" as="l" hint-placeholder-count="8">
+      <button onClick="{{ l.open }}" style="width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto 20px;gap:16px;align-items:center;padding:12px 20px;border:0;border-top:{{ l.borderTop }};background:#fff;cursor:pointer;text-align:start;font:inherit;color:#14110F" style-hover="background:#FAFAFA">
+        <span style="justify-self:start;height:28px;padding-block:0 0;padding-inline:9px 11px;border-radius:99px;background:{{ l.bg }};color:{{ l.ink }};display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;white-space:nowrap"><i class="icon-{{ l.icon }}" style="font-size:14px"></i>{{ l.name }}</span>
+        <span dir="rtl" style="display:block;min-width:0;text-align:start;font-family:'Alexandria',sans-serif;font-size:13px;line-height:1.7;color:{{ l.arInk }};white-space:nowrap;overflow:hidden">{{ l.ar }}</span>
+        <span style="font-size:13px;color:#5A5A57;white-space:nowrap">{{ l.used }}</span>
+        <i class="icon-chevron-right" style="font-size:16px;color:#5A5A57"></i>
+      </button>
+    </sc-for>
+  </section>
+</div>
+<sc-if value="{{ lOpen }}">
+  <div onClick="{{ lCancel }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" onKeyDown="{{ lKey }}" style="width:100%;max-width:820px;display:flex;flex-direction:column;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow:hidden;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-tag" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">{{ lTitle }}</b><button onClick="{{ lCancel }}" aria-label="Close" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+          <div style="flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))">
+            <div style="padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:12px">
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Name<input value="{{ lDraft.name }}" onInput="{{ lName }}" autoFocus="{{ true }}" onFocus="{{ selAll }}" placeholder="e.g. Chef's pick" style="height:44px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:14px;font-weight:500"></label>
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600">Arabic name<input dir="rtl" value="{{ lDraft.ar }}" onInput="{{ lAr }}" placeholder="مثال: اختيار الشيف" style="height:44px;min-width:0;border:1px solid #DADAD7;border-radius:12px;padding:0 14px;font-size:14px;font-family:'Alexandria',sans-serif;line-height:1.7"></label>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span style="font-size:13px;font-weight:600">Color</span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ lColors }}" as="c" hint-placeholder-count="5"><button onClick="{{ c.pick }}" data-tip="{{ c.name }}" aria-label="{{ c.name }}" style="width:36px;height:36px;border-radius:99px;border:0;cursor:pointer;background:{{ c.bg }};display:grid;place-items:center;box-shadow:{{ c.ring }}"><span style="width:16px;height:16px;border-radius:99px;background:{{ c.ink }}"></span></button></sc-for>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600">Icon</span><span style="position:relative;display:flex;align-items:center"><i class="icon-search" style="position:absolute;inset-inline-start:10px;font-size:14px;color:#5A5A57;pointer-events:none"></i><input value="{{ lQuery }}" onInput="{{ lSearch }}" placeholder="Search icons" style="height:34px;width:180px;border:1px solid #DADAD7;border-radius:10px;padding-block:0 0;padding-inline:30px 10px;font-size:13px"></span></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,40px);gap:6px;max-height:184px;overflow-y:auto;padding:2px">
+                  <sc-for list="{{ lIcons }}" as="ic" hint-placeholder-count="24"><button onClick="{{ ic.pick }}" title="{{ ic.name }}" aria-label="{{ ic.name }}" style="width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;display:grid;place-items:center;background:{{ ic.bg }};color:{{ ic.ink }};box-shadow:{{ ic.ring }}" style-hover="box-shadow:inset 0 0 0 1px #DADAD7"><i class="icon-{{ ic.name }}" style="font-size:18px"></i></button></sc-for>
+                  <sc-if value="{{ lNoIcons }}"><span style="grid-column:1 / -1;font-size:13px;color:#5A5A57;padding:8px 0">No icons match “{{ lQuery }}”</span></sc-if>
+                </div>
+              </div>
+            </div>
+            <div style="background:#FAFAFA;border-inline-start:1px solid #EAEAE8;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0">
+              <span style="font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">Preview</span>
+              <div style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="width:64px;height:64px;flex-shrink:0;border-radius:10px;background:url(assets/dishes.jpg) 22.22% 0/1000% 100%"></span>
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:0"><b style="font-size:14px;font-weight:600">Pepperoni Party</b><span style="align-self:flex-start;height:24px;padding-block:0 0;padding-inline:7px 9px;border-radius:99px;background:{{ lPrev.bg }};color:{{ lPrev.ink }};display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap"><i class="icon-{{ lPrev.icon }}" style="font-size:13px"></i>{{ lPrev.name }}</span></div>
+              </div>
+              <div dir="rtl" style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center">
+                <span style="width:64px;height:64px;flex-shrink:0;border-radius:10px;background:url(assets/dishes.jpg) 22.22% 0/1000% 100%"></span>
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:0;font-family:'Alexandria',sans-serif"><b style="font-size:14px;font-weight:600;line-height:1.7">بيتزا بيبروني</b><span style="align-self:flex-start;height:26px;padding:0 9px;border-radius:99px;background:{{ lPrev.bg }};color:{{ lPrev.ink }};display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;line-height:1.7;white-space:nowrap"><i class="icon-{{ lPrev.icon }}" style="font-size:13px"></i>{{ lPrev.ar }}</span></div>
+              </div>
+            </div>
+          </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid #EAEAE8;background:#fff">
+        <sc-if value="{{ lCanDelete }}"><button onClick="{{ lDelete }}" style="height:44px;padding:0 14px;border-radius:12px;border:0;background:none;color:#C2300B;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px" style-hover="background:#FFE6DE"><i class="icon-trash-2" style="font-size:15px"></i>Delete</button></sc-if>
+        <span style="flex:1"></span>
+        <button onClick="{{ lCancel }}" style="height:44px;padding:0 18px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F3">Cancel</button>
+        <button onClick="{{ lSave }}" style="height:44px;padding:0 20px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer">{{ lSaveLabel }}</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ grp }}">
+  <div onClick="{{ closeGrp }}" style="position:fixed;inset:0;z-index:75;background:rgba(20,17,15,.45);display:grid;place-items:{{ ui.place }};padding:{{ ui.pad }};animation:fadein .2s both">
+    <div onClick="{{ stop }}" style="width:100%;max-width:960px;display:flex;flex-direction:column;background:#fff;border-radius:{{ ui.radius }};animation:{{ ui.anim }};max-height:92dvh;overflow-y:auto;padding-bottom:{{ ui.safe }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-circle-plus" style="font-size:18px"></i><b style="font-size:15px;font-weight:600;flex:1">{{ grp.title }}</b><button onClick="{{ closeGrp }}" style="width:32px;height:32px;border-radius:10px;border:1px solid #EAEAE8;background:#fff;cursor:pointer;display:grid;place-items:center"><i class="icon-x" style="font-size:16px"></i></button></div>
+      <div style="flex:1;overflow:auto;display:grid;grid-template-columns:{{ lay32 }}">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:18px;border-inline-end:{{ bR }};border-bottom:{{ bB }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:10px"><label style="display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500">Name in English<input value="{{ grp.name }}" onInput="{{ grp.onName }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400"></label><label style="display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500">Name in Arabic<input dir="rtl" value="{{ grp.ar }}" onInput="{{ grp.onAr }}" style="height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;font-size:{{ ui.fs }};font-weight:400;font-family:'Alexandria',sans-serif"></label></div>
+          <div style="display:flex;flex-direction:column;gap:8px"><b style="font-size:13px;font-weight:500">Type</b><div style="display:flex;gap:4px;background:#F4F4F3;border-radius:14px;padding:4px"><sc-for list="{{ grp.types }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.pick }}" style="flex:1;height:36px;border-radius:12px;border:0;font-size:13px;cursor:pointer;background:{{ t.bg }};color:{{ t.color }};font-weight:{{ t.weight }};box-shadow:{{ t.shadow }}">{{ t.label }}</button></sc-for></div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #EAEAE8;border-radius:14px"><span style="flex:1"><b style="display:block;font-size:14px;font-weight:600">Required</b><span style="font-size:12px;color:#5A5A57">Customers must pick before adding to basket</span></span><button onClick="{{ grp.toggleReq }}" style="width:44px;height:26px;border-radius:99px;border:0;padding:2px;cursor:pointer;background:{{ grp.reqBg }};display:flex;justify-content:{{ grp.reqJ }}"><span style="width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></button></div>
+          <div style="display:flex;flex-direction:column;gap:8px"><b style="font-size:13px;font-weight:500">Options</b>
+            <div style="border:1px solid #EAEAE8;border-radius:14px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 64px 32px;gap:8px;padding:8px 12px;background:#F4F4F3;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57"><span>English</span><span>Arabic</span><span>Adds</span><span></span></div>
+              <sc-for list="{{ grp.opts }}" as="o" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 64px 32px;gap:8px;padding:8px 12px;border-top:1px solid #EAEAE8;align-items:center"><input value="{{ o.en }}" onInput="{{ o.onEn }}" style="height:36px;border:1px solid #DADAD7;border-radius:10px;padding:0 10px;font-size:{{ ui.fs }};min-width:0"><input dir="rtl" value="{{ o.ar }}" onInput="{{ o.onAr }}" style="height:36px;border:1px solid #DADAD7;border-radius:10px;padding:0 10px;font-size:{{ ui.fs }};min-width:0;font-family:'Alexandria',sans-serif"><input value="{{ o.price }}" onInput="{{ o.onPrice }}" style="height:36px;border:1px solid #DADAD7;border-radius:10px;padding:0 10px;font-size:{{ ui.fs }};min-width:0"><button onClick="{{ o.del }}" style="width:32px;height:32px;border-radius:10px;border:0;background:none;cursor:pointer;display:grid;place-items:center"><i class="icon-trash-2" style="font-size:15px;color:#5A5A57"></i></button></div></sc-for>
+            </div>
+            <button onClick="{{ grp.addOpt }}" style="align-self:flex-start;height:36px;padding:0 14px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="icon-plus" style="font-size:14px"></i>Add option</button>
+          </div>
+        </div>
+        <div style="padding:20px;background:#FAFAFA;display:flex;flex-direction:column;gap:12px">
+          <b style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A5A57">Customer preview</b>
+          <div style="background:#fff;border:1px solid #EAEAE8;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;font-weight:600">{{ grp.previewName }}</b><span style="height:22px;padding:0 8px;border-radius:99px;font-size:11px;font-weight:600;display:grid;place-items:center;background:{{ grp.reqTagBg }};color:{{ grp.reqTagInk }}">{{ grp.reqTag }}</span></div>
+            <span style="font-size:12px;color:#5A5A57">{{ grp.previewRule }}</span>
+            <sc-for list="{{ grp.preview }}" as="o" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #EAEAE8;font-size:14px"><span style="width:18px;height:18px;border-radius:{{ grp.shape }};border:1.5px solid #DADAD7"></span><span style="flex:1">{{ o.en }}</span><span style="color:#5A5A57">{{ o.p }}</span></div></sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid #EAEAE8"><button onClick="{{ closeGrp }}" style="height:44px;padding:0 20px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer">Cancel</button><button onClick="{{ grp.save }}" style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Save group</button></div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const C0 = [
+  { name: "Popular", ar: "الأكثر طلباً", count: 2, feat: true, hidden: false },
+  { name: "Pizzas", ar: "بيتزا", count: 7, feat: false, hidden: false },
+  { name: "Crêpes", ar: "كريب", count: 2, feat: false, hidden: false },
+  { name: "Drinks", ar: "مشروبات", count: 2, feat: false, hidden: false },
+  { name: "Late night", ar: "سهرة", count: 0, feat: false, hidden: true },
+];
+const G0 = [
+  { name: "Choose your size", ar: "اختر الحجم", type: 0, req: true, used: 6, opts: [["Small", "صغير", "0"], ["Medium", "وسط", "2"], ["Large", "كبير", "4"]] },
+  { name: "Extras", ar: "إضافات", type: 1, req: false, used: 9, opts: [["Extra cheese", "جبنة إضافية", "2"], ["Mushrooms", "فطر", "1.5"], ["Pepperoni", "بيبروني", "2"], ["Jalapeños", "هالابينو", "1"]] },
+  { name: "Remove", ar: "بدون", type: 2, req: false, used: 6, opts: [["No onion", "بدون بصل", "0"], ["No garlic", "بدون ثوم", "0"], ["No olives", "بدون زيتون", "0"]] },
+];
+const PRODS = ["Pepperoni Party","Philly Steak","Tomato & Cheese","BBQ Chicken","Four Cheese Melt","Margherita","Veggie Supreme","Chicken Ranch","Nutella Crêpe","Strawberry Dream Crêpe","Coca-Cola","Water"];
+const USED = { 0: [0,1,2,3,4,5], 1: [0,1,2,3,4,5,6,7,8], 2: [0,1,2,3,6,7] };
+const LCOL = { red: ["Red", "#FDE8E4", "#B42318"], green: ["Green", "#E2F3E9", "#1F7A4D"], mustard: ["Yellow", "#FFF0C2", "#7A5300"], blue: ["Blue", "#E3EDFA", "#1D4E89"], orange: ["Orange", "#FFE6D6", "#A63A0A"], purple: ["Purple", "#EEE7FA", "#5B3A9E"], pink: ["Pink", "#FBE4EE", "#A3265E"], neutral: ["Neutral", "#F4F4F3", "#14110F"] };
+const LICONS = ["flame","leaf","sprout","star","sparkles","award","crown","chef-hat","thumbs-up","heart","beef","drumstick","fish","shell","egg","nut","wheat-off","milk-off","salad","clock","percent","snowflake"];
+const TYPES = ["Choose one", "Choose several", "Remove"];
+const RULES = ["Choose 1", "Choose up to 3", "Choose any"];
+const fmt = (p) => +p ? ` · +$${(+p).toFixed(2)}` : "";
+const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
+class Component extends DCLogic {
+  state = { cats: C0.map((c, i) => ({ ...c, id: i + 1 })), groups: G0, editing: null, draft: null, cmenu: null, armed: null, dragging: null, over: null, overPos: null, grp: null, custom: [["Spicy", "حار", "flame", "red", 2], ["Vegetarian", "نباتي", "leaf", "green", 3], ["Popular", "الأكثر طلباً", "star", "mustard", 4]].map(([name, ar, icon, color, n], i) => ({ id: i + 1, name, ar, icon, color, n })), lEdit: null, lDraft: null, lQuery: "" };
+  t(m) { this.props.toast && this.props.toast(m); }
+  openLabel(l) { this.setState(s => ({ custom: s.custom.filter(x => !x.isNew), lEdit: l.id, lDraft: { name: l.name, ar: l.ar, color: l.color, icon: l.icon }, lQuery: "" })); }
+  saveLabel() { const d = this.state.lDraft, name = d.name.trim(); if (!name) { this.t("Give the label a name"); return; }
+    const isNew = this.state.custom.find(l => l.id === this.state.lEdit)?.isNew;
+    this.setState(s => ({ custom: s.custom.map(l => l.id === s.lEdit ? { ...l, ...d, name, ar: d.ar.trim(), isNew: false } : l), lEdit: null, lDraft: null }));
+    this.t(isNew ? `${name} added` : "Label saved"); }
+  cancelLabel() { this.setState(s => ({ custom: s.custom.filter(l => !(l.id === s.lEdit && l.isNew)), lEdit: null, lDraft: null })); }
+  nameRef = React.createRef();
+  componentDidUpdate(_, ps) { if (this.state.editing != null && ps.editing !== this.state.editing && this.nameRef.current) { this.nameRef.current.focus(); this.nameRef.current.select(); } }
+  setCats(fn) { this.setState(s => ({ cats: fn(s.cats) })); }
+  saveCat() { const { editing, draft } = this.state; if (editing == null) return; const name = (draft.name || "").trim();
+    if (!name) { this.t("Give the category a name"); return; }
+    const cur = this.state.cats.find(c => c.id === editing) || {}, isNew = cur.isNew, changed = name !== cur.name || (draft.ar || "").trim() !== (cur.ar || "");
+    this.setState(s => ({ cats: s.cats.map(c => c.id === editing ? { ...c, name, ar: (draft.ar || "").trim(), isNew: false } : c), editing: null, draft: null }));
+    if (isNew) this.t(`${name} added`); else if (changed) this.t("Category renamed"); }
+  cancelCat() { const id = this.state.editing; this.setState(s => ({ cats: s.cats.filter(c => !(c.id === id && c.isNew)), editing: null, draft: null })); }
+  moveCat(id, dir) { this.setState(s => { const a = [...s.cats], i = a.findIndex(c => c.id === id), j = i + dir; if (j < 0 || j >= a.length) return { cmenu: null }; [a[i], a[j]] = [a[j], a[i]]; return { cats: a, cmenu: null }; }); }
+  dropCat(dragId, targetId, pos) { this.setState(s => { const a = s.cats.filter(c => c.id !== dragId), d = s.cats.find(c => c.id === dragId); let i = a.findIndex(c => c.id === targetId); if (pos === "after") i++; a.splice(i, 0, d); return { cats: a, dragging: null, armed: null, over: null, overPos: null }; }); }
+  renderVals() {
+    const st = this.state, scr = this.props.screen || "categories";
+    const setG = (patch) => this.setState(s => ({ grp: { ...s.grp, ...patch } }));
+    const g = st.grp;
+    const setOpt = (i, k, v) => setG({ opts: g.opts.map((o, j) => j === i ? Object.assign([...o], { [k]: v }) : o) });
+    return {
+      ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile, catCols: this.props.mobile ? "24px minmax(0,1fr) 44px 32px 32px" : "24px 18px minmax(0,1fr) auto 44px 32px 32px", lay21: this.props.mobile ? "minmax(0,1fr)" : "minmax(0,2fr) minmax(0,1fr)", lay32: this.props.mobile ? "minmax(0,1fr)" : "minmax(0,3fr) minmax(0,2fr)", bR: this.props.mobile ? "0" : "1px solid #EAEAE8", bB: this.props.mobile ? "1px solid #EAEAE8" : "0",
+      isCategories: scr === "categories", isAddons: scr === "addons", isLabels: scr === "labels",
+      selAll: (e) => { const el = e.target; el.select(); const r = el.getBoundingClientRect(); let p = el.parentElement; while (p && p !== document.body && !(p.scrollHeight > p.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(p).overflowY))) p = p.parentElement; const sc = p && p !== document.body ? p : document.scrollingElement; const vb = sc === document.scrollingElement ? window.innerHeight : sc.getBoundingClientRect().bottom; if (r.bottom > vb - 24) sc.scrollBy({ top: r.bottom - vb + 120, behavior: "smooth" }); },
+      dragEnd: () => this.setState({ dragging: null, armed: null, over: null, overPos: null }), disarm: () => !st.dragging && this.setState({ armed: null }),
+      cats: st.cats.map((c, i) => ({ ...c, n: i + 1, count: c.count === 1 ? "1 product" : `${c.count} products`, op: st.dragging === c.id ? 0.4 : c.hidden ? 0.6 : 1,
+        borderTop: i === 0 ? "0" : "1px solid #EAEAE8", bg: st.editing === c.id ? "#FAFAFA" : "#fff",
+        arShown: c.ar || "Add Arabic name", arInk: c.ar ? "#5A5A57" : "#7A5300",
+        editing: st.editing === c.id, notEditing: st.editing !== c.id, nameRef: this.nameRef,
+        draftName: st.editing === c.id ? st.draft.name : "", draftAr: st.editing === c.id ? st.draft.ar : "",
+        onDraftName: (e) => this.setState({ draft: { ...st.draft, name: e.target.value } }), onDraftAr: (e) => this.setState({ draft: { ...st.draft, ar: e.target.value } }),
+        editKey: (e) => { if (e.key === "Enter") { e.preventDefault(); this.saveCat(); } if (e.key === "Escape") this.cancelCat(); },
+        rename: () => { if (st.editing != null && st.editing !== c.id) this.cancelCat(); this.setState({ editing: c.id, draft: { name: c.name, ar: c.ar }, cmenu: null }); },
+        save: () => this.saveCat(), cancel: () => this.cancelCat(),
+        blurSave: (e) => { const row = e.currentTarget.parentElement; setTimeout(() => { if (this.state.editing !== c.id || row.contains(document.activeElement)) return; (this.state.draft.name || "").trim() ? this.saveCat() : this.cancelCat(); }, 0); },
+        menu: () => this.setState({ cmenu: st.cmenu === c.id ? null : c.id }), menuOpen: st.cmenu === c.id,
+        up: () => this.moveCat(c.id, -1), down: () => this.moveCat(c.id, 1),
+        del: () => { this.setState(s => ({ cats: s.cats.filter(x => x.id !== c.id), cmenu: null })); this.t(`${c.name} deleted. Its products stay in your menu.`); },
+        drag: st.armed === c.id || st.dragging === c.id ? "true" : "false", arm: () => this.setState({ armed: c.id }),
+        dragStart: (e) => { e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", String(c.id)); } catch (_) {} this.setState({ dragging: c.id }); },
+        dragOver: (e) => { if (st.dragging == null || st.dragging === c.id) return; e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(), pos = e.clientY < r.top + r.height / 2 ? "before" : "after"; if (st.over !== c.id || st.overPos !== pos) this.setState({ over: c.id, overPos: pos }); },
+        drop: (e) => { e.preventDefault(); if (st.dragging == null || st.dragging === c.id) return; this.dropCat(st.dragging, c.id, st.overPos || "before"); },
+        dropLine: st.over === c.id ? (st.overPos === "before" ? "inset 0 2px 0 #14110F" : "inset 0 -2px 0 #14110F") : "none",
+        swBg: c.feat ? "#14110F" : "#DADAD7", swJ: c.feat ? "flex-end" : "flex-start", hideIcon: c.hidden ? "eye-off" : "eye", hideLabel: c.hidden ? "Show" : "Hide",
+        toggleFeat: () => this.setState(s => ({ cats: s.cats.map((x, j) => j === i ? { ...x, feat: !x.feat } : x) })),
+        toggleHide: () => { this.setState(s => ({ cats: s.cats.map((x, j) => j === i ? { ...x, hidden: !x.hidden } : x) })); this.t(c.hidden ? `${c.name} is visible` : `${c.name} is hidden from your storefront`); } })),
+      featuredName: (st.cats.find(c => c.feat) || { name: "No featured category" }).name,
+      chips: st.cats.filter(c => !c.hidden).slice(0, 4).map((c, i) => ({ name: c.name, bg: i === 0 ? "#14110F" : "#F4F4F3", color: i === 0 ? "#fff" : "#14110F" })),
+      addCategory: () => { if (st.editing != null) this.cancelCat(); const id = Date.now(); this.setState(s => ({ cats: [...s.cats.filter(c => !c.isNew), { id, name: "", ar: "", count: 0, feat: false, hidden: false, isNew: true }], editing: id, draft: { name: "", ar: "" } })); },
+      usedLeave: () => st.usedHover != null && this.setState({ usedHover: null }),
+      addonGroups: st.groups.map((x, i) => ({ prods: (USED[i] || []).slice(0, x.used).map(j => PRODS[j]), usedOpen: st.usedHover === i && x.used > 0, usedEnter: () => this.setState({ usedHover: i }), name: x.name, ar: x.ar,
+        icon: ["circle-dot", "list-plus", "circle-minus"][x.type], shape: x.type === 0 ? "99px" : "4px", ruleShort: RULES[x.type],
+        reqLabel: x.req ? "Required" : "Optional", reqBg: x.req ? "#14110F" : "#F4F4F3", reqInk: x.req ? "#fff" : "#5A5A57",
+        optList: x.opts.slice(0, 4).map(o => ({ name: o[0], price: +o[2] ? "+$" + (+o[2]).toFixed(2) : "Free", priceInk: +o[2] ? "#14110F" : "#5A5A57" })),
+        more: x.opts.length > 4 ? `+${x.opts.length - 4} more` : "", rule: `${TYPES[x.type]} · ${RULES[x.type]} · ${x.req ? "Required" : "Optional"}`, opts: x.opts.map(o => o[0] + fmt(o[2])), used: x.used,
+        edit: () => this.setState({ grp: { ...x, idx: i, opts: x.opts.map(o => [...o]) } }) })),
+      newGroup: () => this.setState({ grp: { name: "", ar: "", type: 0, req: true, used: 0, idx: -1, opts: [["", "", "0"]] } }),
+      grp: g ? {
+        title: g.idx < 0 ? "New add-on group" : "Edit add-on group", name: g.name, ar: g.ar,
+        onName: (e) => setG({ name: e.target.value }), onAr: (e) => setG({ ar: e.target.value }),
+        types: TYPES.map((label, i) => { const on = g.type === i; return { label, pick: () => setG({ type: i }), bg: on ? "#fff" : "transparent", color: on ? "#14110F" : "#14110F", weight: on ? 600 : 500, shadow: on ? "0 1px 3px rgba(0,0,0,.08)" : "none" }; }),
+        reqBg: g.req ? "#14110F" : "#DADAD7", reqJ: g.req ? "flex-end" : "flex-start", toggleReq: () => setG({ req: !g.req }),
+        opts: g.opts.map((o, i) => ({ en: o[0], ar: o[1], price: o[2], onEn: (e) => setOpt(i, 0, e.target.value), onAr: (e) => setOpt(i, 1, e.target.value), onPrice: (e) => setOpt(i, 2, e.target.value), del: () => setG({ opts: g.opts.filter((_, j) => j !== i) }) })),
+        addOpt: () => setG({ opts: [...g.opts, ["", "", "0"]] }),
+        previewName: g.name || "Add-on group name", previewRule: RULES[g.type], shape: g.type === 0 ? "99px" : "5px",
+        reqTag: g.req ? "Required" : "Optional", reqTagBg: g.req ? "#14110F" : "#F4F4F3", reqTagInk: g.req ? "#fff" : "#14110F",
+        preview: g.opts.filter(o => o[0]).map(o => ({ en: o[0], p: +o[2] ? `+$${(+o[2]).toFixed(2)}` : "" })),
+        save: () => { const clean = { ...g, opts: g.opts.filter(o => o[0]) }; this.setState(s => ({ grp: null, groups: g.idx < 0 ? [...s.groups, clean] : s.groups.map((x, i) => i === g.idx ? clean : x) })); this.t(`${g.name || "Group"} saved`); },
+      } : null,
+      closeGrp: () => this.setState({ grp: null }), stop: (e) => e.stopPropagation(),
+      labels: st.custom.filter(l => !l.isNew).map((l, i) => ({ name: l.name, ar: l.ar || "Add Arabic name", arInk: l.ar ? "#5A5A57" : "#7A5300", icon: l.icon, bg: LCOL[l.color][1], ink: LCOL[l.color][2], borderTop: i ? "1px solid #EAEAE8" : "0",
+        used: l.n ? `${l.n} product${l.n > 1 ? "s" : ""}` : "Not used yet", open: () => this.openLabel(l) })),
+      lOpen: st.lEdit != null, lTitle: st.custom.find(l => l.id === st.lEdit)?.isNew ? "New label" : "Edit label",
+      lKey: (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.placeholder !== "Search icons") { e.preventDefault(); this.saveLabel(); } if (e.key === "Escape") this.cancelLabel(); },
+      lDraft: st.lDraft || { name: "", ar: "" }, lQuery: st.lQuery,
+      lName: (e) => this.setState({ lDraft: { ...st.lDraft, name: e.target.value } }), lAr: (e) => this.setState({ lDraft: { ...st.lDraft, ar: e.target.value } }),
+      lSearch: (e) => this.setState({ lQuery: e.target.value }),
+      lColors: Object.entries(LCOL).map(([k, [name, bg, ink]]) => ({ name, bg, ink, ring: st.lDraft && st.lDraft.color === k ? "0 0 0 2px #fff, 0 0 0 4px " + ink : "none", pick: () => this.setState({ lDraft: { ...st.lDraft, color: k } }) })),
+      lIcons: LICONS.filter(n => n.includes(st.lQuery.trim().toLowerCase().replace(/\s+/g, "-"))).map(name => { const on = st.lDraft && st.lDraft.icon === name, c = st.lDraft ? LCOL[st.lDraft.color] : LCOL.neutral; return { name, bg: on ? c[1] : "#F4F4F3", ink: on ? c[2] : "#14110F", ring: on ? "inset 0 0 0 1.5px " + c[2] : "none", pick: () => this.setState({ lDraft: { ...st.lDraft, icon: name } }) }; }),
+      lNoIcons: !LICONS.some(n => n.includes(st.lQuery.trim().toLowerCase().replace(/\s+/g, "-"))),
+      lPrev: st.lDraft ? { name: st.lDraft.name.trim() || "Label name", ar: st.lDraft.ar.trim() || "اسم الملصق", icon: st.lDraft.icon, bg: LCOL[st.lDraft.color][1], ink: LCOL[st.lDraft.color][2] } : {},
+      lSave: () => this.saveLabel(), lCancel: () => this.cancelLabel(),
+      lSaveLabel: st.custom.find(l => l.id === st.lEdit)?.isNew ? "Add label" : "Save",
+      lCanDelete: !!st.custom.find(l => l.id === st.lEdit && !l.isNew),
+      lDelete: () => { const l = st.custom.find(x => x.id === st.lEdit); this.setState(s => ({ custom: s.custom.filter(x => x.id !== s.lEdit), lEdit: null, lDraft: null })); this.t(`${l.name} deleted`); },
+      addLabel: () => { const id = Date.now(); this.setState(s => ({ custom: [...s.custom.filter(l => !l.isNew), { id, name: "", ar: "", color: "neutral", icon: "tag", n: 0, isNew: true }], lEdit: id, lDraft: { name: "", ar: "", color: "neutral", icon: "tag" }, lQuery: "" })); },
+    };
+  }
+}
+</script>
+</body>
+</html>
