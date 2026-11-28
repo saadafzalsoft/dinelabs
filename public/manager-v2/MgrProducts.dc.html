@@ -296,7 +296,7 @@ class Component extends DCLogic {
       showTip: st.tip, hideTip: () => this.setState({ tip: false }),
       q: st.q, onQ: (ev) => this.setState({ q: ev.target.value }), cat: st.cat, onCat: (ev) => this.setState({ cat: ev.target.value }), avail: st.avail, onAvail: (ev) => this.setState({ avail: ev.target.value }),
       catOpts: CL, catDd: ["all=All categories", ...CL].join("|"),
-      over, hidN, overSub: st.keep ? "You picked which 50 customers see. Change it any time." : "Hamra is on Free, which shows up to 50. For now customers see the first 50 in menu order.", pkCta: st.keep ? "Change" : "Choose 50",
+      over, hidN, overSub: st.keep ? "You picked which 50 customers see. Change it any time." : "This store is on Free, which shows up to 50. For now customers see the first 50 in menu order.", pkCta: st.keep ? "Change" : "Choose 50",
       pkStart: () => this.setState({ pick: [...keepIds], pq: "" }), pkOpen: !!st.pick, pkClose: () => this.setState({ pick: null }),
       pkN, pkFull, pkRoom: !pkFull, pkLeft: 50 - pkN, pkPct: Math.min(100, pkN * 2), pkBar: pkFull ? "#FFC52E" : "#14110F", pkHidden: st.items.length - pkN, pkGroups,
       pq: st.pq || "", onPq: (ev) => this.setState({ pq: ev.target.value }),

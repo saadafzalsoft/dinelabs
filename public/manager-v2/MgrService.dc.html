@@ -176,7 +176,7 @@
       <span style="position:absolute;left:50%;top:50%;z-index:2;box-sizing:border-box;width:32px;height:32px;margin-block:-38.6px 0;margin-inline:-16px 0;border-radius:99px 99px 99px 0;transform:rotate(-45deg);background:#FF4A1C;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.25);display:grid;place-items:center"><span style="width:10px;height:10px;border-radius:99px;background:#fff"></span></span>
       <div style="position:absolute;inset-inline-start:12px;inset-inline-end:12px;bottom:12px;z-index:3;display:flex;align-items:center;gap:10px;padding-block:8px 8px;padding-inline:12px 8px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(20,17,15,.15)">
         <i class="icon-map-pin" style="font-size:16px;color:#FF4A1C;flex-shrink:0"></i>
-        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hamra Street, Beirut</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Customers collect their order here</span></span>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column"><b style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ storeAddress }}</b><span style="font-size:12px;color:#5A5A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Customers collect their order here</span></span>
         <button onClick="{{ goProfile }}" style="height:32px;padding:0 12px;border-radius:9px;border:1px solid #DADAD7;background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="border-color:#5A5A57">Change</button>
       </div>
     </div>
@@ -262,7 +262,7 @@
       <button onClick="{{ closeQr }}" aria-label="Close" style="position:absolute;top:14px;inset-inline-end:14px;width:36px;height:36px;border-radius:12px;border:0;background:none;cursor:pointer;display:grid;place-items:center" style-hover="background:#F4F4F3"><i class="icon-x" style="font-size:18px"></i></button>
       <div style="flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding-inline-end:40px"><b style="font-size:18px;font-weight:600;white-space:nowrap">Table {{ qr }}</b><span style="font-size:13px;color:#5A5A57">Print it and place it on the table.</span></div>
       <div style="flex-shrink:0;align-self:center;padding:16px;border-radius:16px;border:1px solid #EAEAE8;background:#fff"><img src="assets/qr-code.svg" alt="QR code for table {{ qr }}" style="width:180px;height:180px;display:block"></div>
-      <span style="flex-shrink:0;align-self:center;font-size:13px;color:#5A5A57;white-space:nowrap">dinelabs.co/blockparty?table={{ qr }}</span>
+      <span style="flex-shrink:0;align-self:center;font-size:13px;color:#5A5A57;white-space:nowrap">dinelabs.co/store/{{ storeSlug }}?table={{ qr }}</span>
       <div style="flex-shrink:0;display:flex;gap:8px;width:100%"><button onClick="{{ printQr }}" style="flex:1;height:44px;border-radius:12px;border:1px solid #DADAD7;background:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" style-hover="border-color:#5A5A57"><i class="icon-printer" style="font-size:15px"></i>Print</button><button onClick="{{ dlQr }}" style="flex:1;height:44px;border-radius:12px;border:0;background:#C2300B;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="icon-download" style="font-size:15px"></i>Download</button></div>
     </div>
   </div>
@@ -310,7 +310,7 @@ class Component extends DCLogic {
       beyond: `Beyond ${maxKm} km, customers can only order pickup.`,
     };
   }
-  state = { hours: H0, specials: [{ id: 1, date: "2026-11-22", name: "Independence Day", closed: false, from: "14:00", to: "23:00" }, { id: 2, date: "2026-12-02", name: "", closed: true, from: "11:00", to: "22:00" }], sp: null,
+  state = { hours: H0, specials: [], sp: null,
     del: true, zones: [{ km: "3", fee: "2.00", min: "", time: "20–30 min" }, { km: "6", fee: "3.50", min: "15", time: "30–45 min" }, { km: "10", fee: "5.00", min: "25", time: "45–60 min" }], zOpen: null,
     pick: true, pf: "15", pt: "20", dine: true, tables: [1, 2, 3, 4, 5, 6], tab: 0, qr: null };
   t(m) { this.props.toast && this.props.toast(m); }
@@ -350,6 +350,7 @@ class Component extends DCLogic {
     return {
       ui: UI(this.props.mobile), mobile: !!this.props.mobile, desktop: !this.props.mobile, dayW: this.props.mobile ? "100%" : "150px",
       storeAddress: window.__dlTenant?.address || "Your store location",
+      storeSlug: window.__dlTenant?.slug || "store",
       isHours: scr === "hours", isDelivery: scr === "delivery", isPickup: scr === "pickup", isDinein: scr === "dinein",
       copyMonday: () => { const m0 = st.hours[0]; this.setState(s => ({ hours: s.hours.map(() => ({ mode: m0.mode, shifts: m0.shifts.map(p => [...p]) })) })); this.t("Monday's hours copied to every day"); },
       weekSummary: `${openDays} of 7 days · ${Math.round(total)} hrs a week`,

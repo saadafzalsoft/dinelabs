@@ -361,7 +361,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#14110F !impor
           <span style="flex:1"><b style="display:block;font-size:14px;font-weight:600">Chat on WhatsApp</b><span style="font-size:12px;color:#5A5A57">Opens WhatsApp with your details filled in</span></span>
           <i class="icon-external-link" style="font-size:16px;color:#5A5A57"></i>
         </a>
-        <div style="background:#F4F4F3;border-radius:10px;padding:10px 12px;font-size:12px;color:#5A5A57;line-height:1.5">Store: Block Party · Branch: Hamra · Page: {{ crumb }} · Plan: Premium</div>
+        <div style="background:#F4F4F3;border-radius:10px;padding:10px 12px;font-size:12px;color:#5A5A57;line-height:1.5">Store: {{ storeName }} · Page: {{ crumb }}</div>
       </div>
     </div>
   </div>
@@ -471,14 +471,14 @@ const NAV = [
   { title: "Menu", items: [["products","Products","utensils-crossed"],["categories","Categories","layers"],["addons","Add-ons","circle-plus"],["labels","Menu labels","tag"]] },
   { title: "Growth", items: [["promotions","Promotions","badge-percent"],["customers","Customers","users"],["analysis","Menu analysis","chart-column"]] },
   { title: "Settings", items: [["hours","Opening hours","clock"],["delivery","Delivery","bike"],["pickup","Pickup","shopping-bag"],["dinein","Dine-in","armchair"],["profile","Store profile","store"],["notifications","Notifications","bell"],["payments","Payments","credit-card"],["plan","Plan","gem"]] },
-  { title: "Block Party", items: [["branches","Branches","building-2"],["branding","Branding","palette"]] },
+  { title: "Brand", items: [["branches","Branches","building-2"],["branding","Branding","palette"]] },
 ];
 const SECTIONS = [["home","Home","layout-dashboard",["home"]],["orders","Orders","receipt-text",["orders","history"]],["menu","Menu","utensils-crossed",["products","categories","addons","labels"]],["growth","Growth","trending-up",["promotions","customers","analysis"]],["settings","Settings","settings",["hours","delivery","pickup","dinein","profile","notifications","payments","plan"]],["brand","Brand","building-2",["branches","branding"]]];
 const SMART = [
   ["home","Home","layout-dashboard",["home"],0], ["orders","Orders","receipt-text",["orders"],0], ["history","Order history","history",["history"],0], ["products","Products","utensils-crossed",["products"],0],
   ["promotions","Promotions","badge-percent",["promotions"],1], ["customers","Customers","users",["customers"],1], ["analysis","Insights","chart-column",["analysis"],1],
   ["menusetup","Menu setup","layers",["categories","addons","labels"],2], ["settings","Store settings","settings",["hours","delivery","pickup","dinein","profile","notifications","payments","plan"],2],
-  ["brand","Block Party","building-2",["branches","branding"],3]];
+  ["brand","Brand","building-2",["branches","branding"],3]];
 const SET_GROUPS = [["Ordering", ["hours","delivery","pickup","dinein"]], ["Business", ["profile","notifications","payments","plan"]]];
 const SET_ICON = { hours: "clock", delivery: "bike", pickup: "shopping-bag", dinein: "armchair", profile: "store", notifications: "bell", payments: "credit-card", plan: "gem" };
 const COMBINED = [
@@ -487,7 +487,7 @@ const COMBINED = [
   ["ordering","Ordering","bike",["delivery","pickup","dinein"],1], ["hours","Opening hours","clock",["hours"],1], ["store","Store","store",["profile","branding","payments","notifications"],1],
   ["acct","Account","user-round",["branches","plan","account","inbox"],2]];
 const TAB_LABEL = { orders: "Live", history: "History", products: "Items", categories: "Categories", addons: "Add-ons", labels: "Labels", hours: "Opening hours", profile: "Profile", branding: "Branding", payments: "Payments", notifications: "Notifications" };
-const GICON = { Menu: "utensils-crossed", Growth: "trending-up", Settings: "settings", "Block Party": "building-2" };
+const GICON = { Menu: "utensils-crossed", Growth: "trending-up", Settings: "settings", Brand: "building-2" };
 const LABELS = { account: "Your account", inbox: "Notifications" };
 NAV.forEach(g => g.items.forEach(([k, l]) => (LABELS[k] = l)));
 const GROUP = { categories:"menu", addons:"menu", labels:"menu", promotions:"growth", customers:"growth", analysis:"growth", hours:"service", delivery:"service", pickup:"service", dinein:"service", profile:"store", notifications:"store", payments:"store", plan:"store", branches:"brand", branding:"brand", account:"account", inbox:"account" };
@@ -495,7 +495,7 @@ const BRAND_WIDE = ["branches","branding","account","inbox"];
 const WHICH = ["All orders","Delivery","Pickup","Dine-in"];
 const FOR = ["15 min","30 min","1 hour","Rest of today","Until I turn it back on"];
 const KEY = "dl-mgr-v1";
-const SU_DEF = { name: "", email: "karim@blockparty.lb", pass: "blockparty22", code: "", rname: "", kind: "", country: "Lebanon", countryTouched: false, pcountry: "Lebanon", phone: "", heard: "", heardOther: "", slug: "", slugTouched: false, social: false, menuLink: "", files: [] };
+const SU_DEF = { name: "", email: "", pass: "", code: "", rname: "", kind: "", country: "Germany", countryTouched: false, pcountry: "Germany", phone: "", heard: "", heardOther: "", slug: "", slugTouched: false, social: false, menuLink: "", files: [] };
 const SLUG = v => v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/&/g, "and").replace(/[^a-z0-9]+/g, "").slice(0, 30);
 const RESERVED = ["pizza", "burger", "burgers", "coffee", "sushi", "test", "admin", "dinelabs", "app", "manager", "super"];
 const TAKEN = ["kuro", "casa", "forno", "juniper"];
@@ -713,9 +713,9 @@ class Component extends DCLogic {
         const due = FD(new Date(2026, 11, 1), ar), grace = FD(new Date(2026, 11, 15), ar);
         const bn = st.fresh ? null : PS === "Trial ends in 7 days" ? { ...amber, icon: "gem", segs: S(["Your Premium trial ends on", inD(7), "·", "Then it moves to Free."]) }
           : PS === "Trial ends tomorrow" ? { ...amber, icon: "gem", segs: S(["Your Premium trial ends tomorrow.", "Then it moves to Free."]) }
-          : PS === "Payment due soon" ? { ...grey, icon: "receipt", segs: S(["Payment due on", due, "·", "Hamra", "·", "$37"]) }
-          : PS === "Payment late" ? { ...amber, icon: "clock-alert", segs: S(["Payment for Hamra is late.", "Premium stays on until", grace]) }
-          : PS === "Suspended" ? { ...red, icon: "circle-pause", segs: S(["Premium is off for Hamra until payment.", "Your storefront stays open."]) } : null;
+          : PS === "Payment due soon" ? { ...grey, icon: "receipt", segs: S(["Payment due on", due]) }
+          : PS === "Payment late" ? { ...amber, icon: "clock-alert", segs: S(["Payment is late.", "Premium stays on until", grace]) }
+          : PS === "Suspended" ? { ...red, icon: "circle-pause", segs: S(["Premium is off until payment.", "Your storefront stays open."]) } : null;
         return { trial, plan, bill: PS, bn: bn || { segs: [] }, bnOn: !!bn, archived: PS === "Archived", over50: PS === "Free, over 50 products", talkSales: () => window.open("https://wa.me/96171407202", "_blank") }; })(),
       signOut: () => { fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); window.__dlTenant = null; this.setState({ signedOut: true, tenant: null }); this.save({ signedOut: true }); },
       storePhones: PHONES.map((n, i) => { const d = ((i - st.storeIdx + 12) % 8) - 4, a = Math.abs(d), sh = (b, y, r, o) => `blur(${b}px) drop-shadow(0 ${y}px ${r}px rgba(20,17,15,${o}))`;

@@ -1122,8 +1122,9 @@ class Component extends DCLogic {
       try {
         const res = await fetch('/api/super/tenants');
         if (res.ok) {
-          const tenants = await res.json();
-          if (Array.isArray(tenants)) {
+          const data = await res.json();
+          const tenants = Array.isArray(data) ? data : (Array.isArray(data?.tenants) ? data.tenants : []);
+          if (tenants.length > 0 || (data && Array.isArray(data.tenants))) {
             const stores = tenants.map(t => ({
               id: t.slug || t._id,
               rawId: t._id,
@@ -1133,12 +1134,14 @@ class Component extends DCLogic {
               area: t.address || '',
               plan: t.tier || 'Free',
               status: t.status === 'active' ? 'live' : 'suspended',
+              health: t.status === 'active' ? 'good' : 'at-risk',
+              bill: { st: t.status === 'active' ? 'paid' : 'suspended', dueNote: '' },
               created: t.createdAt ? t.createdAt.slice(0, 10) : '2026-01-01',
-              last: 'Today',
-              orders30: t.ordersCount || 0,
-              sales30: t.revenue || 0,
-              ownerName: t.ownerEmail || '',
-              ownerEmail: t.ownerEmail || '',
+              last: t.lastOrderTime ? new Date(t.lastOrderTime).toLocaleDateString() : 'Today',
+              orders30: t.totalOrders ?? t.ordersCount ?? 0,
+              sales30: t.totalRevenue ?? t.revenue ?? 0,
+              ownerName: t.managerEmail || t.ownerEmail || '',
+              ownerEmail: t.managerEmail || t.ownerEmail || '',
               open: t.status === 'active' ? 'Open' : 'Paused',
               cycle: 'monthly',
             }));

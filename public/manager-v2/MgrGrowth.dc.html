@@ -309,7 +309,7 @@ class Component extends DCLogic {
     const usd = (n) => (window.__dlCurrency || "€") + Math.round(n).toLocaleString("en-US");
     const openPromo = (prods) => { window.__dlPendingPromo = prods; this.props.go && this.props.go("promotions"); };
     const low = AP.filter(p => p.pct < 7 && p.v > 300).sort((a, b) => b.v - a.v).slice(0, 2);
-    const TIPS = { "Philly Steak": "People open it and leave. Show what's inside in the photo and description.", "Buffalo Ranch": "Curious but not convinced. A week-long discount can get people to try it." };
+    const TIPS = {};
     const sortK = st.pfSort || "rev", dir = st.pfDir || "desc";
     const catF = st.aCat || "All";
     const rows = SORTBY(AP.filter(p => catF === "All" || p.cat === catF), { name: x => x.name.toLowerCase(), views: x => x.v, pct: x => x.pct, sold: x => x.s, trend: x => x.ch, rev: x => x.rev }[sortK], dir);
@@ -326,12 +326,7 @@ class Component extends DCLogic {
       ...(() => {
         const hid = st.todoHidden || [];
         const L = [
-          ...low.map(p => ({ id: "low-" + p.name, photo: true, imgA: p.img, title: p.name === "Philly Steak" ? `Fix the photo and description of ${p.name}` : `Give ${p.name} a push`, why: `${p.v.toLocaleString("en-US")} people opened it, only ${Math.round(p.pct)}% ordered. Your menu average is ${Math.round(AP.reduce((a, x) => a + x.s, 0) / AP.reduce((a, x) => a + x.v, 0) * 100)}%.`, cta: p.name === "Philly Steak" ? "Edit product" : "Create a deal", act: p.name === "Philly Steak" ? go("products") : () => openPromo([p.name]) })),
-          { id: "pair", pair: true, imgA: IMG(1), imgB: IMG(-1), title: "Bundle Pepperoni Party with Fresh Lemonade", why: `They're ordered together in ${Math.round(82 * f)} orders. A small combo discount can make it a habit.`, cta: "Make a combo", act: () => openPromo(["Pepperoni Party", "Fresh Lemonade"]) },
-          { id: "quiet", glyph: true, icon: "clock-3", title: "Fill your quietest hours", why: "Tuesday 15:00–17:00 is your slowest time. A happy-hour deal brings in orders when the kitchen is free.", cta: "Create happy hour", act: () => { window.__dlPendingPromo = MPRODS.map(x => x[0]); this.props.go && this.props.go("promotions"); } },
-          { id: "photo", glyph: true, icon: "image-plus", title: "Add photos to 2 products", why: "Coca-Cola and Still Water have no photo. Products with photos get ordered more.", cta: "Add photos", act: go("products") },
-          { id: "desc", glyph: true, icon: "text", title: "Write 3 missing descriptions", why: "Margherita, Buffalo Ranch and Still Water have none.", cta: "Write them", act: go("products") },
-          { id: "ar", glyph: true, icon: "languages", title: "Add 2 Arabic names", why: "Margherita and Still Water show in English to Arabic readers.", cta: "Add names", act: go("products") },
+          ...low.map(p => ({ id: "low-" + p.name, photo: true, imgA: p.img, title: `Give ${p.name} a push`, why: `${p.v.toLocaleString("en-US")} people opened it, only ${Math.round(p.pct)}% ordered. Your menu average is ${Math.round((AP.reduce((a, x) => a + x.s, 0) / (AP.reduce((a, x) => a + x.v, 0) || 1)) * 100)}%.`, cta: "Create a deal", act: () => openPromo([p.name]) })),
         ].filter(x => !hid.includes(x.id)).map(x => ({ pair: false, photo: false, glyph: false, ...x, dismiss: () => { this.setState(s => ({ todoHidden: [...(s.todoHidden || []), x.id] })); this.t("Suggestion hidden"); } }));
         const open = !!st.todoAll, shown = open ? L : L.slice(0, 4);
         return { todos: shown, hasTodo: L.length > 0, noTodo: !L.length, todoSub: L.length ? `${L.length} suggestion${L.length > 1 ? "s" : ""} based on the last ${per} days` : "Nothing for now",
@@ -373,14 +368,14 @@ class Component extends DCLogic {
           quietPromo: () => { window.__dlPendingPromo = MPRODS.map(x => x[0]); this.props.go && this.props.go("promotions"); } }; })(),
       catTotal: usd(total),
       catBars: Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([name, v], i, arr) => { const n = AP.filter(p => p.cat === name).length; return { name, items: n + (n === 1 ? " item" : " items"), w: (v / arr[0][1] * 100).toFixed(2), share: Math.round(v / total * 100) + "%", money: usd(v), color: i === 0 ? "#FF4A1C" : "#14110F", borderTop: i ? "1px solid #EAEAE8" : "0" }; }),
-      pairs: [["Pepperoni Party", "Fresh Lemonade", 82, 1, -1], ["Strawberry Dream Crêpe", "Fresh Lemonade", 41, 8, -1], ["BBQ Chicken", "Tomato & Cheese", 33, 5, 3]].map(([a, b, n, ia, ib], i) => ({ a, b, n: Math.round(n * f), imgA: IMG(ia), imgB: IMG(ib), aShort: a.replace(/ Crêpe$/, ""), share: Math.round(n / ((AP.find(x => x.name === a) || { s: n * 4 / f }).s / f) * 100) + "%", borderTop: i ? "1px solid #EAEAE8" : "0", promo: () => openPromo([a, b]) })),
-      qTotal, qDone: qTotal - missing.size, qPct: Math.round((qTotal - missing.size) / qTotal * 100),
-      quality: Q.map(([icon, label, names, cta], i) => ({ icon, label, names: names.join(", "), cta, borderTop: i ? "1px solid #EAEAE8" : "0" })),
+      pairs: [],
+      qTotal: AP.length, qDone: AP.length, qPct: 100,
+      quality: [],
     };
   }
   blankPromo(idea, step) { const kind = idea === "% off everything" || idea === "% off products" ? "Percent off" : idea; const scoped = ["Percent off", "Promo code", "Buy one get one free"].includes(kind);
     return { kind, step: step != null ? step : scoped ? 1 : 2, more: false, pq: "", prods: idea === "% off everything" ? MPRODS.map(x => x[0]) : idea === "% off products" ? MPRODS.filter(x => x[1] === "Pizzas").map(x => x[0]) : [], value: kind === "Amount off the order" ? "5" : kind === "Free delivery" || kind === "Buy one get one free" ? "" : kind === "Promo code" ? "15" : "10", when: 0, from: "", to: "", types: ["Delivery", "Pickup", "Dine-in"], min: kind === "Free delivery" ? "30" : "", code: kind === "Promo code" ? this.genCode() : "", name: "" }; }
-  genCode() { const w = ["PIZZA", "CREPE", "HELLO", "TREAT", "YUM", "BLOCK"][Math.floor(Math.random() * 6)]; return w + (10 + Math.floor(Math.random() * 15)); }
+  genCode() { const w = ["SAVE", "DEAL", "HELLO", "TREAT", "YUM", "ORDER"][Math.floor(Math.random() * 6)]; return w + (10 + Math.floor(Math.random() * 15)); }
   promoVals(p, setP) {
     const K = p.kind, step = p.step || 0, isPct = ["Percent off", "Promo code"].includes(K), isAmount = K === "Amount off the order", hasValue = isPct || isAmount;
     const scoped = ["Percent off", "Promo code", "Buy one get one free"].includes(K), steps = scoped ? [0, 1, 2] : [0, 2], si = steps.indexOf(step);

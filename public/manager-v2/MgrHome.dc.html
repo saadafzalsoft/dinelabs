@@ -217,16 +217,16 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const P = {
-  today: { label: "Today", word: "today", sales: 486.5, orders: 31, avg: 15.69, prep: 16, views: 342, d: [8.2, 6.0, 2, -1, 9], vs: "vs last Thursday",
-    pts: [0,0,12,48,96,64,38,52,88,124,96,40], x: ["11","13","15","17","19","21"], split: [44,33,23], cust: [27, 18] },
-  week: { label: "This week", word: "this week", sales: 3142.4, orders: 184, avg: 17.08, prep: 17, views: 2148, d: [12.4, 9.1, 3, -2, 11], vs: "vs last week",
-    pts: [380,410,500,470,520,690,610], x: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], split: [46,26,28], cust: [146, 88] },
-  month: { label: "This month", word: "this month", sales: 12904.8, orders: 772, avg: 16.72, prep: 18, views: 9311, d: [6.8, 5.2, 1, -1, 14], vs: "vs last month",
-    pts: [2600,2900,3300,4100], x: ["Week 1","Week 2","Week 3","Week 4"], split: [43,30,27], cust: [512, 309] },
+  today: { label: "Today", word: "today", sales: 0, orders: 0, avg: 0, prep: 0, views: 0, d: [0, 0, 0, 0, 0], vs: "vs last period",
+    pts: [0,0,0,0,0,0], x: ["11","13","15","17","19","21"], split: [0,0,0], cust: [0, 0] },
+  week: { label: "This week", word: "this week", sales: 0, orders: 0, avg: 0, prep: 0, views: 0, d: [0, 0, 0, 0, 0], vs: "vs last week",
+    pts: [0,0,0,0,0,0,0], x: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], split: [0,0,0], cust: [0, 0] },
+  month: { label: "This month", word: "this month", sales: 0, orders: 0, avg: 0, prep: 0, views: 0, d: [0, 0, 0, 0], vs: "vs last month",
+    pts: [0,0,0,0], x: ["Week 1","Week 2","Week 3","Week 4"], split: [0,0,0], cust: [0, 0] },
 };
-const FEW = { sales: 68.5, orders: 3, avg: 22.83, prep: 14, views: 96 };
+const FEW = { sales: 0, orders: 0, avg: 0, prep: 0, views: 0 };
 const NEED = 10;
-const money = (v) => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (v) => (window.__dlCurrency || "€") + Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const STEPS = [
   ["Add your logo", "It shows on your storefront and receipts.", "Add logo", "branding"],
   ["Add your menu", "Add products or let us import your menu.", "Add products", "products"],
@@ -240,11 +240,19 @@ const STEPS = [
 const DONE = { established: [1,1,1,1,1,1,1,1], few: [1,1,1,1,1,1,0,0], none: [0,0,1,0,0,0,0,0] };
 const SEV = { red: ["#FFE6DE", "#C2300B"], amber: ["#FFF0C2", "#7A5300"], grey: ["#F4F4F3", "#14110F"] };
 class Component extends DCLogic {
-  state = { period: "week", test: false, shared: false, menuTab: "top", liveStats: null };
+  state = { period: "week", test: false, shared: false, menuTab: "top", liveStats: null, liveOrders: null, liveProducts: null };
   componentDidMount() {
-    fetch('/api/manager/stats').then(r => r.ok ? r.json() : null).then(d => {
-      if (d) this.setState({ liveStats: d });
-    }).catch(() => {});
+    Promise.all([
+      fetch('/api/manager/stats').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/orders').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/products').then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([liveStats, liveOrders, liveProducts]) => {
+      this.setState({
+        liveStats,
+        liveOrders: Array.isArray(liveOrders) ? liveOrders : (Array.isArray(liveOrders?.orders) ? liveOrders.orders : []),
+        liveProducts: Array.isArray(liveProducts) ? liveProducts : (Array.isArray(liveProducts?.products) ? liveProducts.products : []),
+      });
+    });
   }
   renderVals() {
     const st = this.state, mob = !!this.props.mobile;
@@ -299,9 +307,19 @@ class Component extends DCLogic {
         note: est ? "" : few ? "Too early to compare" : emptyNote };
     });
 
-    const needs = est ? [["red", "circle-alert", "1 order is running late", "#1044 · Delivery · 12 min over", "Open", "orders"], ["amber", "package-x", "2 products are out of stock", "BBQ Chicken, Lotus Crêpe", "Restock", "products"], ["grey", "calendar-clock", "Special hours on 22 Nov", "Independence Day. Are you open?", "Check", "hours"]]
-      : few ? [["amber", "image-plus", "6 products have no photo", "Customers order more when they can see it", "Add", "products"], ["grey", "badge-percent", "Bring your first customers back", "Create a promotion in a minute", "Create", "promotions"]]
-      : [["grey", "send", "Share your storefront", "Customers can't order until they have your link", "Share", "share"]];
+    const needs = (() => {
+      const items = [];
+      const oList = Array.isArray(st.liveOrders) ? st.liveOrders : [];
+      const pList = Array.isArray(st.liveProducts) ? st.liveProducts : [];
+      const pending = oList.filter(o => (o.status || '').toLowerCase() === 'pending');
+      if (pending.length > 0) items.push(["red", "circle-alert", `${pending.length} pending order${pending.length > 1 ? 's' : ''}`, "Waiting to be accepted", "Open", "orders"]);
+      const out = pList.filter(x => x.isAvailable === false);
+      if (out.length > 0) items.push(["amber", "package-x", `${out.length} product${out.length > 1 ? 's' : ''} out of stock`, out.slice(0, 2).map(x => typeof x.name === 'object' ? (x.name.en || Object.values(x.name)[0]) : x.name).join(", "), "Restock", "products"]);
+      const noPhoto = pList.filter(x => !x.image && !x.imageUrl);
+      if (noPhoto.length > 0) items.push(["amber", "image-plus", `${noPhoto.length} product${noPhoto.length > 1 ? 's have' : ' has'} no photo`, "Customers order more when they can see it", "Add", "products"]);
+      if (items.length === 0 && oList.length === 0) items.push(["grey", "send", "Share your storefront", "Customers can't order until they have your link", "Share", "share"]);
+      return items;
+    })();
 
     const mtop = Array.isArray(p.top) ? p.top.map(([name, n]) => [name, n, 0]) : [];
     const mview = Array.isArray(st.liveStats?.productInsights) ? st.liveStats.productInsights.map(x => [x.name, x.views, 0, x.pct]) : [];
@@ -332,16 +350,15 @@ class Component extends DCLogic {
       kpis: kpis.map((k, i) => ({ ...k, span: mob && kpis.length % 2 && i === kpis.length - 1 ? "1 / -1" : "auto" })),
       goHours: go("hours"), goOrders: go("orders"), goHistory: go("history"), goAnalysis: go("analysis"), goCustomers: go("customers"), share, testOrder,
       salesCaption: est ? p.label + " · " + money(p.sales) : few ? money(FEW.sales) + " so far" : "",
-      chartReady: est,
-      chartE: est ? null : few ? { icon: "chart-line", title: "Your sales chart is warming up", sub: `It fills in once you have ${NEED} orders, so the trend means something. Come back after a few more.`, ...prog(FEW.orders) }
-        : { icon: "chart-line", title: "Your first sale will show up here", sub: "Once orders come in, you'll see how sales move day by day.", cta: "Share your storefront", act: share },
+      chartReady: p.orders > 0,
+      chartE: p.orders > 0 ? null : { icon: "chart-line", title: "Your first sale will show up here", sub: "Once orders come in, you'll see how sales move day by day.", cta: "Share your storefront", act: share },
       linePath: d, areaPath: d + ` L100,100 L0,100 Z`,
-      yTicks: [4, 3, 2, 1, 0].map(i => ({ f: (4 - i) / 4, label: "$" + Math.round((max * i) / 4).toLocaleString("en-US") })),
+      yTicks: [4, 3, 2, 1, 0].map(i => ({ f: (4 - i) / 4, label: (window.__dlCurrency || "€") + Math.round((max * i) / 4).toLocaleString("en-US") })),
       xTicks: p.x.map((label, i) => ({ label, f: i / (p.x.length - 1) })),
       hi, zones: p.pts.map((_, i) => ({ l: Math.max(0, xy[i][0] - zw / 2), w: i === 0 || i === n - 1 ? zw / 2 : zw, enter: () => st.hi !== i && this.setState({ hi: i }) })),
       clearHi: () => st.hi != null && this.setState({ hi: null }),
-      orderCountLabel: nOrders === 1 ? "1 order" : nOrders + " orders", salesShort: "$" + Math.round(p.sales).toLocaleString("en-US"),
-      splitReady: est, splitE: est ? null : few ? { title: "Not enough orders yet", sub: `After ${NEED} orders you'll see which order types bring in the most.` } : { title: "No orders yet", sub: "You'll see how customers like to order: delivery, pickup or dine-in." },
+      orderCountLabel: nOrders === 1 ? "1 order" : nOrders + " orders", salesShort: (window.__dlCurrency || "€") + Math.round(p.sales).toLocaleString("en-US"),
+      splitReady: p.orders > 0, splitE: p.orders > 0 ? null : { title: "No orders yet", sub: "You'll see how customers like to order: delivery, pickup or dine-in." },
       donut: `conic-gradient(#FF4A1C 0 ${a}%, #FFC52E ${a}% ${a + b}%, #1F7A4D ${a + b}% 100%)`, channels,
       chTip: st.ch ? { ...channels[st.ch.i], x: st.ch.x, y: st.ch.y } : null,
       donutMove: (e) => {
@@ -351,19 +368,33 @@ class Component extends DCLogic {
         this.setState({ ch: { i: pct < a ? 0 : pct < a + b ? 1 : 2, x: Math.round(x), y: Math.round(y) } });
       },
       donutLeave: () => st.ch && this.setState({ ch: null }),
-      live: est ? [
-        { id: 1048, status: "New", dot: "#FF4A1C", sub: "Rami K. · 3 items · Pickup", total: "$30.00", ago: "now", icon: "shopping-bag", bg: "#FFF0C2", ink: "#7A5300" },
-        { id: 1047, status: "New", dot: "#FF4A1C", sub: "Lina S. · 4 items · Delivery", total: "$52.00", ago: "2m ago", icon: "bike", bg: "#D5EEDD", ink: "#1F7A4D" },
-        { id: 1046, status: "New", dot: "#FF4A1C", sub: "Table 6 · 2 items · Dine-in", total: "$24.00", ago: "4m ago", icon: "utensils", bg: "#F4F4F3", ink: "#14110F" },
-        { id: 1045, status: "Preparing", dot: "#14110F", sub: "Maya R. · 3 items · Delivery", total: "$42.00", ago: "11m ago", icon: "bike", bg: "#D5EEDD", ink: "#1F7A4D" },
-      ] : [],
-      liveE: est ? null : few ? { img: "assets/bill/sleepy.webp", title: "No live orders right now", sub: "New orders show up here and on your Orders board the moment they arrive.", ctas: false }
-        : { img: "assets/bill/waving.webp", title: "No orders yet", sub: "Share your link to get your first order, or place a test order to see how it works.", ctas: true },
+      ...(() => {
+        const active = (Array.isArray(st.liveOrders) ? st.liveOrders : []).filter(o => !['completed','cancelled','delivered'].includes((o.status || '').toLowerCase())).slice(0, 5);
+        const live = active.map(o => {
+          const ot = (o.orderType || 'pickup').toLowerCase();
+          const isDel = ot === 'delivery', isDine = ot === 'dine-in';
+          return {
+            id: o.orderNumber || String(o._id || '').slice(-4),
+            status: o.status || 'New',
+            dot: (o.status || '').toLowerCase() === 'pending' ? '#FF4A1C' : '#14110F',
+            sub: `${o.customerName || 'Guest'} · ${(o.items || []).length} items · ${o.orderType || 'Pickup'}`,
+            total: money(o.total || 0),
+            ago: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now',
+            icon: isDel ? 'bike' : isDine ? 'utensils' : 'shopping-bag',
+            bg: isDel ? '#D5EEDD' : isDine ? '#F4F4F3' : '#FFF0C2',
+            ink: isDel ? '#1F7A4D' : isDine ? '#14110F' : '#7A5300',
+          };
+        });
+        return {
+          live,
+          liveE: live.length > 0 ? null : { img: "assets/bill/sleepy.webp", title: "No live orders right now", sub: "New orders show up here and on your Orders board the moment they arrive.", ctas: false },
+        };
+      })(),
       menuTabs: [["top", "Top sellers"], ["viewed", "Most viewed"]].map(([k, label]) => ({ label, bg: st.menuTab === k ? "#fff" : "transparent", sh: st.menuTab === k ? "0 1px 2px rgba(20,17,15,.12)" : "none", pick: () => this.setState({ menuTab: k }) })),
-      menuRows, menuE: menuReady ? null : isTop ? { icon: "flame", title: few ? "Best sellers need a few more orders" : "No best sellers yet", sub: few ? "Come back after a few more orders to see what customers love." : `Your best sellers appear after ${NEED} orders.`, ...(few ? prog(FEW.orders) : {}) }
+      menuRows, menuE: menuRows.length > 0 ? null : isTop ? { icon: "flame", title: "No best sellers yet", sub: "Your best sellers appear after orders come in." }
         : { icon: "eye", title: "No views yet", sub: "Once customers open your storefront, you'll see which items catch their eye." },
-      custReady: est, cust: { total: cTot.toLocaleString("en-US"), caption: `customers ordered ${p.word}`, ret: cRet + " · " + Math.round((cRet / cTot) * 100) + "%", fresh: (cTot - cRet) + " · " + Math.round(((cTot - cRet) / cTot) * 100) + "%", retW: (cRet / cTot) * 100 + "%" },
-      custE: est ? null : few ? { title: "3 customers, all new", sub: "You'll see who comes back once someone orders a second time." } : { title: "No customers yet", sub: "Everyone who orders shows up here, with how often they come back." },
+      custReady: cTot > 0, cust: { total: cTot.toLocaleString("en-US"), caption: `customers ordered ${p.word}`, ret: cTot ? (cRet + " · " + Math.round((cRet / cTot) * 100) + "%") : "0 · 0%", fresh: cTot ? ((cTot - cRet) + " · " + Math.round(((cTot - cRet) / cTot) * 100) + "%") : "0 · 0%", retW: cTot ? ((cRet / cTot) * 100 + "%") : "0%" },
+      custE: cTot > 0 ? null : { title: "No customers yet", sub: "Everyone who orders shows up here, with how often they come back." },
     };
   }
 }
