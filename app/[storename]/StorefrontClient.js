@@ -79,23 +79,54 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
         ['#14110F', '#FFFFFF', '#FF6A3D'],
         ['#0F1A15', '#EEF3EF', '#7FD1A0'],
       ];
-      let bg = '#FFFFFF', ink = '#14110F', accent = '#C2300B';
-      if (th.mode === 'custom' && th.custom) {
+      let bg = '#FFFFFF', ink = '#14110F', accent = '#C2300B', onAccent = '#FFFFFF', surface = '#F4F5F7';
+      if (th.resolved && th.resolved.bg) {
+        bg = th.resolved.bg;
+        ink = th.resolved.ink || ink;
+        accent = th.resolved.accent || accent;
+        onAccent = th.resolved.onAccent || onAccent;
+        surface = th.resolved.surface || surface;
+      } else if (th.mode === 'custom' && th.custom) {
         bg = th.custom.bg || bg;
         ink = th.custom.ink || ink;
         accent = th.custom.accent || accent;
       } else if (typeof th.preset === 'number' && presets[th.preset]) {
         [bg, ink, accent] = presets[th.preset];
       }
-      document.documentElement.style.setProperty('--dl-bg', bg);
-      document.documentElement.style.setProperty('--dl-ink', ink);
-      document.documentElement.style.setProperty('--dl-accent', accent);
-      document.documentElement.style.setProperty('--bg-main', bg);
-      document.documentElement.style.setProperty('--text-main', ink);
-      document.documentElement.style.setProperty('--brand-red', accent);
-      document.documentElement.style.setProperty('--bg-active-pill', accent);
+      const root = document.documentElement.style;
+      root.setProperty('--dl-bg', bg);
+      root.setProperty('--dl-ink', ink);
+      root.setProperty('--dl-accent', accent);
+      root.setProperty('--dl-on-accent', onAccent);
+      root.setProperty('--dl-surface', surface);
+      root.setProperty('--bg-main', bg);
+      root.setProperty('--bg-secondary', surface);
+      root.setProperty('--text-main', ink);
+      root.setProperty('--brand-red', accent);
+      root.setProperty('--bg-active-pill', accent);
+      root.setProperty('--text-active-pill', onAccent);
+      if (th.resolved?.fontFamily) {
+        root.setProperty('--font-body', th.resolved.fontFamily);
+        root.setProperty('--font-heading', th.resolved.fontFamily);
+        document.body.style.fontFamily = th.resolved.fontFamily;
+      }
+      if (th.resolved?.radius) {
+        root.setProperty('--dl-radius', th.resolved.radius);
+      }
       document.body.style.backgroundColor = bg;
       document.body.style.color = ink;
+
+      let styleEl = document.getElementById('dl-dynamic-theme');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dl-dynamic-theme';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        body, .main-viewport, .header { background-color: var(--bg-main) !important; color: var(--text-main) !important; }
+        .product-card, .cart-sidebar, .mobile-cart-sheet, .modal-content { background-color: var(--bg-secondary) !important; color: var(--text-main) !important; border-radius: var(--dl-radius, 14px) !important; }
+        .category-pill.active, .btn-checkout, .add-btn-primary { background-color: var(--dl-accent) !important; color: var(--dl-on-accent, #fff) !important; }
+      `;
     }
   }, [tenant]);
 

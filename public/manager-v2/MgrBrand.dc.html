@@ -402,7 +402,26 @@ class Component extends DCLogic {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: st.brandName,
-            theme: { mode: st.mode, preset: st.preset, custom: st.custom, layout: st.layout, font: st.font, corners: st.corners, cover: st.cover }
+            businessType: st.kind,
+            theme: {
+              mode: st.mode,
+              preset: st.preset,
+              logoIdx: st.logoIdx,
+              custom: st.custom,
+              layout: st.layout,
+              font: st.font,
+              corners: st.corners,
+              cover: st.cover,
+              resolved: {
+                bg: th.bg,
+                ink: th.ink,
+                accent: th.accent,
+                onAccent: th.onAccent,
+                surface: th.surface,
+                fontFamily: FONTS[st.font]?.[1] || undefined,
+                radius: r,
+              }
+            }
           })
         }).then(r => {
           if (r.ok) { this.setState({ pub: PICK(st), pvOpen: false }); this.t("Branding published to your storefront"); }

@@ -173,6 +173,8 @@ export async function PUT(request) {
     if (body.theme !== undefined) updateObj.theme = body.theme;
     if (body.businessType !== undefined) updateObj.businessType = body.businessType;
     if (body.pin !== undefined) updateObj.pin = body.pin;
+    if (body.lat !== undefined) updateObj.lat = Number(body.lat);
+    if (body.lng !== undefined) updateObj.lng = Number(body.lng);
     if (body.tips !== undefined) updateObj.tips = Boolean(body.tips);
     if (body.paymentMethods !== undefined) updateObj.paymentMethods = body.paymentMethods;
     if (openingHours !== undefined) updateObj.openingHours = openingHours;

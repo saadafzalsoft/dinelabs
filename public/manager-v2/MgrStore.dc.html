@@ -28,7 +28,8 @@
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:16px 20px;border-bottom:1px solid #EAEAE8"><i class="icon-map-pin" style="font-size:18px"></i><b style="font-size:15px;font-weight:600">Address</b></div>
     <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:16px">
       <div style="display:flex;flex-direction:column;gap:12px"><label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500">Google Maps link<span style="display:flex;align-items:center;gap:8px;height:44px;border:1px solid #DADAD7;border-radius:10px;padding:0 12px;background:#fff"><i class="icon-map-pin" style="font-size:16px;color:{{ linkIc }}"></i><input data-bare="" type="url" inputmode="url" value="{{ mapLink }}" onChange="{{ onMapLink }}" placeholder="https://maps.app.goo.gl/…" spellcheck="false" style="flex:1;min-width:0;height:100%;border:0;background:none;font-size:{{ ui.fs }};font-weight:400"></span></label><span style="font-size:12px;color:#5A5A57;line-height:1.5;text-wrap:pretty">{{ linkErr }}In Google Maps, find your store, tap Share and paste the link here. Then fine-tune the pin on the map. Delivery distances are measured from it.</span></div>
-      <div onPointerDown="{{ pinDownG }}" onPointerMove="{{ pinMove }}" onPointerUp="{{ pinUp }}" style="position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;border:1px solid #EAEAE8;background:url(assets/beirut-map.jpg) 30% 45%/180%;cursor:{{ pinCursor }};touch-action:none;user-select:none">
+      <div onPointerDown="{{ pinDownG }}" onPointerMove="{{ pinMove }}" onPointerUp="{{ pinUp }}" style="position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;border:1px solid #EAEAE8;background:#F4F4F3;cursor:{{ pinCursor }};touch-action:none;user-select:none">
+        <sc-if value="{{ hasMapCoords }}"><iframe src="{{ mapEmbedUrl }}" style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none" loading="lazy"></iframe></sc-if>
         <sc-if value="{{ noLoc }}"><div style="position:absolute;inset:0;z-index:4;background:rgba(250,250,250,.82);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:20px;pointer-events:none"><span style="width:40px;height:40px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,17,15,.12);display:grid;place-items:center"><i class="icon-map-pin-plus" style="font-size:19px"></i></span><b style="font-size:14px;font-weight:600">Paste your Google Maps link</b><span style="font-size:12px;color:#5A5A57;max-width:220px">Your pin shows here, then you can fine-tune it.</span></div></sc-if><span style="position:absolute;left:{{ pinX }}%;top:{{ pinY }}%;width:14px;height:6px;margin-block:-3px 0;margin-inline:-7px 0;border-radius:50%;background:rgba(20,17,15,.3);filter:blur(1px);transform:scale({{ pinShadow }});transition:transform .18s"></span>
         <span style="position:absolute;left:{{ pinX }}%;top:{{ pinY }}%;transform:translate(-50%,calc(-100% - 6px - {{ pinLift }}px));transition:transform .18s cubic-bezier(.32,.72,0,1);pointer-events:none"><span style="display:grid;place-items:center;width:36px;height:36px;border-radius:99px 99px 99px 0;rotate:-45deg;background:#FF4A1C;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.25)"><span style="width:13px;height:13px;border-radius:99px;background:#fff"></span></span></span>
         <span style="position:absolute;inset-inline-start:12px;bottom:12px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(20,17,15,.15);font-size:12px;font-weight:600;pointer-events:none"><i class="icon-hand" style="font-size:14px"></i>{{ pinHint }}</span>
@@ -119,11 +120,12 @@ const CUR_OLD = { "Lebanon": ["US dollar (USD)", "Lebanese pound (LBP)"], "Unite
 class Component extends DCLogic {
   locOk() { const v = this.state.mapLink || ""; return /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); }
   pinAt(e) { const r = e.currentTarget.getBoundingClientRect(); const c = v => Math.max(4, Math.min(96, v)); this.setState({ pin: [c(((e.clientX - r.left) / r.width) * 100), c(((e.clientY - r.top) / r.height) * 100)] }); }
-  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "", slug: "", instagram: "", facebook: "", tiktok: "", youtube: "", mapLink: "", pinSaved: null };
+  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "", slug: "", instagram: "", facebook: "", tiktok: "", youtube: "", mapLink: "", pinSaved: null, lat: null, lng: null };
   componentDidMount() {
     fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
       if (!raw) return;
       const curr = raw.baseCurrency || raw.currency || "EUR";
+      const mapUrl = raw.googleMapsLink || raw.mapLink || "";
       this.setState({
         storeName: raw.name || raw.restaurantName || "",
         phone: raw.whatsappNumber || raw.phoneNumber || raw.phone || "",
@@ -131,7 +133,9 @@ class Component extends DCLogic {
         slug: raw.slug || "",
         country: raw.country || "Germany",
         currencyCode: curr,
-        mapLink: raw.googleMapsLink || raw.mapLink || "",
+        mapLink: mapUrl,
+        lat: typeof raw.lat === 'number' ? raw.lat : null,
+        lng: typeof raw.lng === 'number' ? raw.lng : null,
         pinSaved: Array.isArray(raw.pin) ? raw.pin : null,
         tips: raw.tips !== false,
         card: raw.paymentMethods ? raw.paymentMethods.card !== false : true,
@@ -141,7 +145,21 @@ class Component extends DCLogic {
         tiktok: raw.tiktok || "",
         youtube: raw.youtube || "",
       });
+      if (mapUrl && (typeof raw.lat !== 'number' || typeof raw.lng !== 'number')) {
+        this.resolveMapLink(mapUrl, false);
+      }
     }).catch(() => {});
+  }
+  resolveMapLink(url, notify = true) {
+    fetch('/api/geo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d && typeof d.lat === 'number' && typeof d.lng === 'number') {
+          this.setState({ lat: d.lat, lng: d.lng, pinSaved: [50, 50], pin: null });
+          fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ googleMapsLink: url, lat: d.lat, lng: d.lng, pin: [50, 50] }) }).catch(() => {});
+          if (notify) this.t("Location found on map");
+        }
+      }).catch(() => {});
   }
   t(m) { this.props.toast && this.props.toast(m); }
   renderVals() {
@@ -207,16 +225,18 @@ class Component extends DCLogic {
           currencies: opts.map(o => ({ value: o, label: o })), currency: cur, setCurrency: (e) => this.setState({ currency: e && e.target ? e.target.value : e }),
           curNote: opts.length > 1 ? `Prices show in this currency. ${ctry} supports ${opts.length} options.` : `Set by your country, ${ctry}.` }; })(),
       mapLink: st.mapLink ?? "",
-      onMapLink: (e) => { const v = e.target.value; this.setState({ mapLink: v }); const ok = /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); if (ok) { fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ googleMapsLink: v.trim() }) }).catch(() => {}); if (this.props.onLocation) this.props.onLocation(true); this.t("Location found. Your pin is on the map."); } },
+      hasMapCoords: typeof st.lat === 'number' && typeof st.lng === 'number',
+      mapEmbedUrl: typeof st.lat === 'number' && typeof st.lng === 'number' ? `https://www.openstreetmap.org/export/embed.html?bbox=${(st.lng - 0.005).toFixed(6)}%2C${(st.lat - 0.005).toFixed(6)}%2C${(st.lng + 0.005).toFixed(6)}%2C${(st.lat + 0.005).toFixed(6)}&layer=mapnik` : "",
+      onMapLink: (e) => { const v = e.target.value; this.setState({ mapLink: v }); const ok = /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); if (ok) { this.resolveMapLink(v.trim(), true); if (this.props.onLocation) this.props.onLocation(true); } },
       noLoc: !this.locOk(), linkIc: this.locOk() ? "#FF4A1C" : "#5A5A57",
       linkErr: (st.mapLink || "").trim() && !this.locOk() ? "That doesn't look like a Google Maps link. " : "",
       pinDownG: (e) => { if (!this.locOk()) return; e.currentTarget.setPointerCapture(e.pointerId); this.pinAt(e); this.setState({ pinDrag: true }); },
-      pinX: (st.pin || st.pinSaved || [50, 52])[0], pinY: (st.pin || st.pinSaved || [50, 52])[1], pinLift: st.pinDrag ? 10 : 0, pinShadow: st.pinDrag ? 0.7 : 1, pinCursor: st.pinDrag ? "grabbing" : "crosshair",
+      pinX: (st.pin || st.pinSaved || [50, 50])[0], pinY: (st.pin || st.pinSaved || [50, 50])[1], pinLift: st.pinDrag ? 10 : 0, pinShadow: st.pinDrag ? 0.7 : 1, pinCursor: st.pinDrag ? "grabbing" : "crosshair",
       pinDirty: !!st.pin && !st.pinDrag, pinHint: st.pinDrag ? "Drop on your door" : "Click or drag to move the pin",
       pinDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.pinAt(e); this.setState({ pinDrag: true }); },
       pinMove: (e) => { if (this.state.pinDrag) this.pinAt(e); },
       pinUp: () => { if (this.state.pinDrag) this.setState({ pinDrag: false }); },
-      stopPin: (e) => e.stopPropagation(), pinCancel: () => this.setState({ pin: null }), pinSave: () => { const p = this.state.pin; this.setState(s => ({ pinSaved: s.pin, pin: null })); fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: p, googleMapsLink: this.state.mapLink || undefined }) }).then(r => this.t(r.ok ? "Pin saved. Delivery distances use the new spot." : "Could not save pin")).catch(() => this.t("Could not save pin")); },
+      stopPin: (e) => e.stopPropagation(), pinCancel: () => this.setState({ pin: null }), pinSave: () => { const p = this.state.pin || [50, 50]; const d = 0.005; const hasLL = typeof this.state.lat === 'number' && typeof this.state.lng === 'number'; const nLat = hasLL ? this.state.lat + (50 - p[1]) * (2 * d / 100) : null; const nLng = hasLL ? this.state.lng + (p[0] - 50) * (2 * d / 100) : null; this.setState({ pinSaved: hasLL ? [50, 50] : p, pin: null, ...(hasLL ? { lat: nLat, lng: nLng } : {}) }); fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: hasLL ? [50, 50] : p, ...(hasLL ? { lat: nLat, lng: nLng } : {}), googleMapsLink: this.state.mapLink || undefined }) }).then(r => this.t(r.ok ? "Pin saved. Delivery distances use the new spot." : "Could not save pin")).catch(() => this.t("Could not save pin")); },
       countries: (window.DL_COUNTRIES || [{ value: "Lebanon", label: "Lebanon" }]).map(c => ({ value: c.value, label: c.label, flag: c.flag })),
       ...(() => { const pl = this.props.plan || (this.props.trial ? "trial" : "premium"), ar = this.props.lang === "ar", fd = (m, d) => new Date(2026, m, d).toLocaleDateString(ar ? "ar-LB-u-nu-latn" : "en-GB", { day: "numeric", month: "short" });
         const bPlan = { trial: "Premium trial", premium: "Premium", free: "Free", suspended: "Suspended" }[pl];
