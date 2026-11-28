@@ -12,7 +12,7 @@
 </helmet>
 <sc-if value="{{ isHours }}">
 <div data-screen-label="Opening hours" style="display:flex;flex-direction:column;gap:16px">
-  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Opening hours</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">When your storefront takes orders. Beirut time.</p></div>
+  <div><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.03em">Opening hours</h1><p style="margin:4px 0 0;font-size:14px;color:#5A5A57">When your storefront takes orders.</p></div>
   <section style="background:#fff;border:1px solid #EAEAE8;border-radius:14px">
     <div style="display:{{ hHeadD }};grid-template-columns:{{ hCols }};gap:12px 16px;align-items:center;padding:12px 20px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5A5A57">
       <span>Day</span><span>From</span><span>To</span><span></span><span style="text-align:end">Open</span>
@@ -317,17 +317,50 @@ class Component extends DCLogic {
   componentDidMount() {
     fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
       if (!raw) return;
+      const DAYS_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      let loadedHours = null;
+      if (Array.isArray(raw.openingHours) && raw.openingHours.length > 0) {
+        loadedHours = DAYS_ORDER.map((dayName, i) => {
+          const h = raw.openingHours.find(x => x.day === dayName) || raw.openingHours[i];
+          if (!h) return H0[i];
+          const is24 = !!(h.is24Hours || h.mode === '24h' || (h.open === '00:00' && (h.close === '23:59' || h.close === '24:00' || h.close === '00:00')));
+          return {
+            mode: h.isOpen === false ? 'closed' : is24 ? '24h' : 'open',
+            shifts: [[h.open || '11:00', h.close || '22:00']],
+          };
+        });
+      }
       this.setState({
         del: raw.enabledModes?.delivery ?? true,
         pick: raw.enabledModes?.pickup ?? true,
         dine: raw.enabledModes?.dineIn ?? true,
         zones: Array.isArray(raw.deliveryZones) && raw.deliveryZones.length > 0 ? raw.deliveryZones : this.state.zones,
+        ...(loadedHours ? { hours: loadedHours } : {}),
       });
     }).catch(() => {});
     fetch('/api/tables').then(r => r.ok ? r.json() : []).then(tbls => {
       if (Array.isArray(tbls) && tbls.length > 0) {
         this.setState({ tables: tbls.map((t, i) => Number(t.tableNo || t.number || i + 1)) });
       }
+    }).catch(() => {});
+  }
+  saveHours(hours) {
+    const DAYS_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const openingHours = DAYS_ORDER.map((day, idx) => {
+      const h = hours[idx] || { mode: 'open', shifts: [['11:00', '22:00']] };
+      const is24 = h.mode === '24h';
+      return {
+        day,
+        isOpen: h.mode !== 'closed',
+        is24Hours: is24,
+        open: is24 ? '00:00' : (h.shifts?.[0]?.[0] || '11:00'),
+        close: is24 ? '23:59' : (h.shifts?.[0]?.[1] || '22:00'),
+      };
+    });
+    fetch('/api/tenant/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ openingHours })
     }).catch(() => {});
   }
   saveModes(next) {
@@ -339,7 +372,7 @@ class Component extends DCLogic {
   }
   renderVals() {
     const st = this.state, scr = this.props.screen;
-    const setH = (i, v) => this.setState(s => ({ hours: s.hours.map((h, j) => j === i ? v : h) }));
+    const setH = (i, v) => this.setState(s => { const next = s.hours.map((h, j) => j === i ? v : h); this.saveHours(next); return { hours: next }; });
     const dayHrs = (h) => h.mode === "24h" ? 24 : h.mode === "open" ? h.shifts.reduce((a, [f, to]) => a + hrs(f, to), 0) : 0;
     const openDays = st.hours.filter(h => h.mode !== "closed").length, total = st.hours.reduce((a, h) => a + dayHrs(h), 0);
     const now = new Date(), today = (now.getDay() + 6) % 7, nowM = now.getHours() * 60 + now.getMinutes();
@@ -352,7 +385,7 @@ class Component extends DCLogic {
       storeAddress: window.__dlTenant?.address || "Your store location",
       storeSlug: window.__dlTenant?.slug || "store",
       isHours: scr === "hours", isDelivery: scr === "delivery", isPickup: scr === "pickup", isDinein: scr === "dinein",
-      copyMonday: () => { const m0 = st.hours[0]; this.setState(s => ({ hours: s.hours.map(() => ({ mode: m0.mode, shifts: m0.shifts.map(p => [...p]) })) })); this.t("Monday's hours copied to every day"); },
+      copyMonday: () => { const m0 = st.hours[0]; this.setState(s => { const next = s.hours.map(() => ({ mode: m0.mode, shifts: m0.shifts.map(p => [...p]) })); this.saveHours(next); return { hours: next }; }); this.t("Monday's hours copied to every day"); },
       weekSummary: `${openDays} of 7 days · ${Math.round(total)} hrs a week`,
       nowLabel: openNow ? (th.mode === "24h" ? "Open now · 24 hours" : `Open now · until ${curShift[1]}`) : nextShift ? `Closed · opens ${nextShift[0]}` : "Closed now",
       nowBg: openNow ? "#D5EEDD" : "#F4F4F3", nowInk: openNow ? "#1F7A4D" : "#5A5A57", nowDot: openNow ? "#1F7A4D" : "#9A9A96",
