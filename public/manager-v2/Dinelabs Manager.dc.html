@@ -735,7 +735,7 @@ class Component extends DCLogic {
       branchPage: !BRAND_WIDE.includes(scr),
       switcherLabel: st.tenant?.name || st.tenant?.restaurantName || "My Store",
       switcherLogoBg: st.tenant?.logoUrl ? `url(${st.tenant.logoUrl}) center/cover` : "#F4F4F3",
-      storeLink: `dinelabs.co/store/${st.tenant?.slug || ""}`,
+      storeLink: `dinelabs.co/${st.tenant?.slug || ""}`,
       userName: st.tenant?.ownerEmail ? st.tenant.ownerEmail.split("@")[0] : (st.tenant?.name || "Manager"),
       userInitials: (st.tenant?.name || "DL").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase(),
       unread: st.unread, markRead: () => this.setState({ unread: false }),
@@ -751,7 +751,7 @@ class Component extends DCLogic {
       isPaused: !!paused,
       resume: () => { this.setState({ paused: null, modal: null }); this.toast("New orders are back on"); },
       confirmPause: () => { const w = st.pw === 0 ? "" : WHICH[st.pw].toLowerCase() + " "; const f = FOR[st.pf]; this.setState({ paused: st.pf === 4 ? "until resumed" : f.toLowerCase(), modal: null }); this.toast(`New ${w}orders paused`); },
-      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (st.tenant?.slug || "")); } catch (e) {} this.toast("Link copied"); },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/" + (st.tenant?.slug || "")); } catch (e) {} this.toast("Link copied"); },
       downloadQr: () => this.toast("QR code downloaded"),
       toastMsg: st.toastMsg,
     };

@@ -117,9 +117,9 @@ const PLAN = [["Products", "Up to 50", "Unlimited"], ["Menu languages", "2", "Un
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
 const CUR_OLD = { "Lebanon": ["US dollar (USD)", "Lebanese pound (LBP)"], "United Arab Emirates": ["UAE dirham (AED)"], "Saudi Arabia": ["Saudi riyal (SAR)"], "Qatar": ["Qatari riyal (QAR)"], "Kuwait": ["Kuwaiti dinar (KWD)"], "Bahrain": ["Bahraini dinar (BHD)"], "Oman": ["Omani rial (OMR)"], "Jordan": ["Jordanian dinar (JOD)"], "Egypt": ["Egyptian pound (EGP)"], "Iraq": ["Iraqi dinar (IQD)", "US dollar (USD)"], "Syria": ["Syrian pound (SYP)", "US dollar (USD)"], "Cyprus": ["Euro (EUR)"], "France": ["Euro (EUR)"], "Germany": ["Euro (EUR)"], "Italy": ["Euro (EUR)"], "Spain": ["Euro (EUR)"], "Greece": ["Euro (EUR)"], "Netherlands": ["Euro (EUR)"], "Belgium": ["Euro (EUR)"], "Portugal": ["Euro (EUR)"], "Ireland": ["Euro (EUR)"], "Austria": ["Euro (EUR)"], "United Kingdom": ["British pound (GBP)"], "United States": ["US dollar (USD)"], "Canada": ["Canadian dollar (CAD)"], "Australia": ["Australian dollar (AUD)"], "Turkey": ["Turkish lira (TRY)"], "Morocco": ["Moroccan dirham (MAD)"], "Tunisia": ["Tunisian dinar (TND)"], "Algeria": ["Algerian dinar (DZD)"], "Switzerland": ["Swiss franc (CHF)"] };
 class Component extends DCLogic {
-  locOk() { const v = this.state.mapLink ?? (this.props.newUser ? "" : "x"); return v === "x" || /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); }
+  locOk() { const v = this.state.mapLink || ""; return /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); }
   pinAt(e) { const r = e.currentTarget.getBoundingClientRect(); const c = v => Math.max(4, Math.min(96, v)); this.setState({ pin: [c(((e.clientX - r.left) / r.width) * 100), c(((e.clientY - r.top) / r.height) * 100)] }); }
-  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "", slug: "", instagram: "", facebook: "", tiktok: "", youtube: "" };
+  state = { lang: 0, email: true, card: true, cash: true, tips: true, storeName: "", phone: "", address: "", slug: "", instagram: "", facebook: "", tiktok: "", youtube: "", mapLink: "", pinSaved: null };
   componentDidMount() {
     fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
       if (!raw) return;
@@ -132,7 +132,10 @@ class Component extends DCLogic {
         country: raw.country || "Germany",
         currencyCode: curr,
         mapLink: raw.googleMapsLink || raw.mapLink || "",
+        pinSaved: Array.isArray(raw.pin) ? raw.pin : null,
         tips: raw.tips !== false,
+        card: raw.paymentMethods ? raw.paymentMethods.card !== false : true,
+        cash: raw.paymentMethods ? raw.paymentMethods.cash !== false : true,
         instagram: raw.instagram || "",
         facebook: raw.facebook || "",
         tiktok: raw.tiktok || "",
@@ -149,7 +152,7 @@ class Component extends DCLogic {
       isProfile: scr === "profile", isNotifications: scr === "notifications", isPayments: scr === "payments", isPlan: scr === "plan",
       storeName: st.storeName, onStoreName: (e) => this.setState({ storeName: e.target.value }),
       storePhone: st.phone, onStorePhone: (e) => this.setState({ phone: e.target.value }),
-      storeLink: `dinelabs.co/store/${st.slug || window.__dlTenant?.slug || ""}`,
+      storeLink: `dinelabs.co/${st.slug || window.__dlTenant?.slug || ""}`,
       save: () => {
         const cMatch = (st.currency || "").match(/\(([A-Z]{3})\)/);
         const baseCurrency = cMatch ? cMatch[1] : (st.currencyCode || "EUR");
@@ -165,7 +168,9 @@ class Component extends DCLogic {
             country: st.country || undefined,
             baseCurrency,
             googleMapsLink: st.mapLink || undefined,
+            pin: st.pin || st.pinSaved || undefined,
             tips: st.tips,
+            paymentMethods: { card: st.card, cash: st.cash },
             instagram: st.instagram,
             facebook: st.facebook,
             tiktok: st.tiktok,
@@ -175,15 +180,15 @@ class Component extends DCLogic {
           this.t(r.ok ? "Store profile saved" : "Could not save store profile");
         }).catch(() => this.t("Could not save store profile"));
       },
-      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/store/" + (st.slug || window.__dlTenant?.slug || "")); } catch (e) {} this.t("Link copied"); },
+      copyLink: () => { try { navigator.clipboard.writeText("https://dinelabs.co/" + (st.slug || window.__dlTenant?.slug || "")); } catch (e) {} this.t("Link copied"); },
       langs: ["English", "العربية"].map((label, i) => ({ label, pick: () => { this.setState({ lang: i }); this.props.setLang && this.props.setLang(i === 1 ? "ar" : "en"); }, bg: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#fff" : "transparent", color: (this.props.lang ? (this.props.lang === "ar" ? 1 : 0) : st.lang) === i ? "#14110F" : "#14110F" })),
       socials: [["instagram", "Instagram", "@yourstore"], ["facebook", "Facebook", "facebook.com/yourstore"], ["tiktok", "TikTok", "@yourstore"], ["youtube", "YouTube", "youtube.com/@yourstore"]].map(([k, label, ph]) => ({ label, v: st[k] || "", ph, onChange: (e) => this.setState({ [k]: e.target.value }) })),
       openApp: () => this.props.openApp && this.props.openApp(),
       testSound: () => this.t("Playing the new-order sound"),
       emailOn: st.email, emailSw: sw(st.email)[0], emailJ: sw(st.email)[1], toggleEmail: () => this.setState({ email: !st.email }), sendTest: () => this.t("Test email sent to " + (window.__dlTenant?.ownerEmail || "your email")),
       disconnect: () => this.t("Talk to us on WhatsApp to change your payment account"),
-      methods: [["card", "credit-card", "Card", "Visa and Mastercard through your areeba account"], ["cash", "banknote", "Cash", "Paid on delivery or at the counter"]].map(([k, icon, label, sub]) => ({ icon, label, sub, sw: sw(st[k])[0], j: sw(st[k])[1], toggle: () => this.setState({ [k]: !st[k] }) })),
-      tipsSw: sw(st.tips)[0], tipsJ: sw(st.tips)[1], toggleTips: () => this.setState({ tips: !st.tips }), tipPcts: ["10", "15", "20"],
+      methods: [["card", "credit-card", "Card", "Visa and Mastercard"], ["cash", "banknote", "Cash", "Paid on delivery or at the counter"]].map(([k, icon, label, sub]) => ({ icon, label, sub, sw: sw(st[k])[0], j: sw(st[k])[1], toggle: () => { const next = !st[k]; this.setState({ [k]: next }); fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentMethods: { card: k === 'card' ? next : st.card, cash: k === 'cash' ? next : st.cash } }) }).catch(() => {}); } })),
+      tipsSw: sw(st.tips)[0], tipsJ: sw(st.tips)[1], toggleTips: () => { const next = !st.tips; this.setState({ tips: next }); fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tips: next }) }).catch(() => {}); }, tipPcts: ["10", "15", "20"],
       planRows: PLAN.map(([f, free, prem]) => ({ f, free, prem, freeCheck: free === "✓", freeDash: free === "—", freeText: free !== "✓" && free !== "—", premCheck: prem === "✓", premDash: prem === "—", premText: prem !== "✓" && prem !== "—" })),
       talk: () => this.t("Opening WhatsApp with Dinelabs sales"),
       goBranding: (e) => { e.preventDefault(); this.props.go && this.props.go("branding"); },
@@ -201,8 +206,8 @@ class Component extends DCLogic {
         return { country: ctry, setCountry: (e) => { const v = e && e.target ? e.target.value : e; this.setState({ country: v, currency: null }); },
           currencies: opts.map(o => ({ value: o, label: o })), currency: cur, setCurrency: (e) => this.setState({ currency: e && e.target ? e.target.value : e }),
           curNote: opts.length > 1 ? `Prices show in this currency. ${ctry} supports ${opts.length} options.` : `Set by your country, ${ctry}.` }; })(),
-      mapLink: st.mapLink ?? (this.props.newUser ? "" : "https://maps.app.goo.gl/Hk3vBq7Rz2pXyN8a9"),
-      onMapLink: (e) => { const v = e.target.value; this.setState({ mapLink: v }); const ok = /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); if (ok && this.props.onLocation) { this.props.onLocation(true); this.t("Location found. Your pin is on the map."); } },
+      mapLink: st.mapLink ?? "",
+      onMapLink: (e) => { const v = e.target.value; this.setState({ mapLink: v }); const ok = /^(https?:\/\/)?(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps)/i.test(v.trim()); if (ok) { fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ googleMapsLink: v.trim() }) }).catch(() => {}); if (this.props.onLocation) this.props.onLocation(true); this.t("Location found. Your pin is on the map."); } },
       noLoc: !this.locOk(), linkIc: this.locOk() ? "#FF4A1C" : "#5A5A57",
       linkErr: (st.mapLink || "").trim() && !this.locOk() ? "That doesn't look like a Google Maps link. " : "",
       pinDownG: (e) => { if (!this.locOk()) return; e.currentTarget.setPointerCapture(e.pointerId); this.pinAt(e); this.setState({ pinDrag: true }); },
@@ -211,7 +216,7 @@ class Component extends DCLogic {
       pinDown: (e) => { e.currentTarget.setPointerCapture(e.pointerId); this.pinAt(e); this.setState({ pinDrag: true }); },
       pinMove: (e) => { if (this.state.pinDrag) this.pinAt(e); },
       pinUp: () => { if (this.state.pinDrag) this.setState({ pinDrag: false }); },
-      stopPin: (e) => e.stopPropagation(), pinCancel: () => this.setState({ pin: null }), pinSave: () => { this.setState(s => ({ pinSaved: s.pin, pin: null })); this.t("Pin saved. Delivery distances use the new spot."); },
+      stopPin: (e) => e.stopPropagation(), pinCancel: () => this.setState({ pin: null }), pinSave: () => { const p = this.state.pin; this.setState(s => ({ pinSaved: s.pin, pin: null })); fetch('/api/tenant/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: p, googleMapsLink: this.state.mapLink || undefined }) }).then(r => this.t(r.ok ? "Pin saved. Delivery distances use the new spot." : "Could not save pin")).catch(() => this.t("Could not save pin")); },
       countries: (window.DL_COUNTRIES || [{ value: "Lebanon", label: "Lebanon" }]).map(c => ({ value: c.value, label: c.label, flag: c.flag })),
       ...(() => { const pl = this.props.plan || (this.props.trial ? "trial" : "premium"), ar = this.props.lang === "ar", fd = (m, d) => new Date(2026, m, d).toLocaleDateString(ar ? "ar-LB-u-nu-latn" : "en-GB", { day: "numeric", month: "short" });
         const bPlan = { trial: "Premium trial", premium: "Premium", free: "Free", suspended: "Suspended" }[pl];

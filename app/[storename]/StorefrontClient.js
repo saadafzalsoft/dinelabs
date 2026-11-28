@@ -90,6 +90,10 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
       document.documentElement.style.setProperty('--dl-bg', bg);
       document.documentElement.style.setProperty('--dl-ink', ink);
       document.documentElement.style.setProperty('--dl-accent', accent);
+      document.documentElement.style.setProperty('--bg-main', bg);
+      document.documentElement.style.setProperty('--text-main', ink);
+      document.documentElement.style.setProperty('--brand-red', accent);
+      document.documentElement.style.setProperty('--bg-active-pill', accent);
       document.body.style.backgroundColor = bg;
       document.body.style.color = ink;
     }
@@ -930,6 +934,11 @@ export default function StorefrontClient({ tenant, initialProducts, initialCateg
               : 'var(--header-height)'
         }}
       >
+        {tenant.coverUrl && tenant.theme?.cover !== false && (
+          <div style={{ width: '100%', maxHeight: '220px', overflow: 'hidden', borderRadius: '14px', margin: '12px auto 0', maxWidth: '1200px' }}>
+            <img src={tenant.coverUrl} alt={tenant.name} style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }} />
+          </div>
+        )}
         {/* Left catalog panel */}
         <main className="left-panel">
 

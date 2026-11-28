@@ -169,6 +169,12 @@ export async function PUT(request) {
     }
     if (name !== undefined) updateObj.name = name;
     if (logoUrl !== undefined) updateObj.logoUrl = logoUrl;
+    if (body.coverUrl !== undefined) updateObj.coverUrl = body.coverUrl;
+    if (body.theme !== undefined) updateObj.theme = body.theme;
+    if (body.businessType !== undefined) updateObj.businessType = body.businessType;
+    if (body.pin !== undefined) updateObj.pin = body.pin;
+    if (body.tips !== undefined) updateObj.tips = Boolean(body.tips);
+    if (body.paymentMethods !== undefined) updateObj.paymentMethods = body.paymentMethods;
     if (openingHours !== undefined) updateObj.openingHours = openingHours;
     if (waitTimes !== undefined) updateObj.waitTimes = waitTimes;
     if (baseCurrency !== undefined) updateObj.baseCurrency = baseCurrency;

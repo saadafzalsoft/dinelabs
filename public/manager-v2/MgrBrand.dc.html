@@ -270,7 +270,7 @@ const ITEMS = { en: [["Pepperoni Party", "Double pepperoni, mozzarella, basil", 
   ar: [["بيبروني بارتي", "بيبروني مضاعف، موزاريلا، ريحان", "$10.00"], ["فيلي ستيك", "لحم بقري، فلفل، بروفولون", "$12.00"], ["طماطم وجبنة", "طماطم سان مارزانو، جبنة طازجة", "$14.00"], ["كريب نوتيلا", "شوكولا بالبندق، موز، سكر ناعم", "$7.00"], ["كريب لوتس", "كريمة لوتس، بسكويت مطحون", "$8.00"]] };
 const UI = (m) => m ? { place: "end stretch", pad: "0", radius: "20px 20px 0 0", anim: "sheetup .45s cubic-bezier(.32,.72,0,1) both", safe: "env(safe-area-inset-bottom)", fs: "16px" } : { place: "center", pad: "24px", radius: "16px", anim: "rise .3s cubic-bezier(.22,1,.36,1) both", safe: "0", fs: "14px" };
 class Component extends DCLogic {
-  state = { ...DEF, pub: PICK(DEF), hex: {}, touched: false, role: "accent", drag: null, logoCols: ["#C2300B", "#E3A21A", "#56702F"], ar: false, pvOpen: false, req: false, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra", fbName: "Hamra", brandName: "Block Party", kind: "Restaurant", added: [] };
+  state = { ...DEF, pub: PICK(DEF), hex: {}, touched: false, role: "accent", drag: null, logoCols: ["#C2300B", "#E3A21A", "#56702F"], ar: false, pvOpen: false, req: false, nbName: "", nbAddr: "", nbCountry: "Germany", nbCopy: true, nbFrom: "", fbName: "", brandName: "My Store", kind: "Restaurant", added: [] };
   rootRef = (el) => { if (el === this.el) return; this.ro && this.ro.disconnect(); this.el = el; if (el && window.ResizeObserver) { this.ro = new ResizeObserver(([e]) => { const n = e.contentRect.width < 820; if (n !== this.state.narrow) this.setState({ narrow: n, pvOpen: false }); }); this.ro.observe(el); } };
   componentDidMount() {
     this.onR = () => this.state.pvOpen && this.forceUpdate();
@@ -279,19 +279,24 @@ class Component extends DCLogic {
     fetch('/api/tenant/settings').then(r => r.ok ? r.json() : null).then(raw => {
       if (!raw) return;
       const th = raw.theme || {};
-      this.setState(s => ({
-        brandName: raw.name || raw.restaurantName || s.brandName,
-        storeAddress: raw.address || '',
-        logoUrl: raw.logoUrl || '',
-        coverUrl: raw.coverUrl || '',
-        ...(th.mode ? { mode: th.mode } : {}),
-        ...(th.preset !== undefined ? { preset: th.preset } : {}),
-        ...(th.custom ? { custom: th.custom } : {}),
-        ...(th.layout ? { layout: th.layout } : {}),
-        ...(th.font ? { font: th.font } : {}),
-        ...(th.corners ? { corners: th.corners } : {}),
-        ...(th.cover !== undefined ? { cover: th.cover } : {}),
-      }));
+      this.setState(s => {
+        const next = {
+          ...s,
+          brandName: raw.name || raw.restaurantName || s.brandName,
+          storeAddress: raw.address || '',
+          logoUrl: raw.logoUrl || '',
+          coverUrl: raw.coverUrl || '',
+          ...(th.mode ? { mode: th.mode } : {}),
+          ...(th.preset !== undefined ? { preset: th.preset } : {}),
+          ...(th.custom ? { custom: th.custom } : {}),
+          ...(th.layout ? { layout: th.layout } : {}),
+          ...(th.font ? { font: th.font } : {}),
+          ...(th.corners ? { corners: th.corners } : {}),
+          ...(th.cover !== undefined ? { cover: th.cover } : {}),
+        };
+        next.pub = PICK(next);
+        return next;
+      });
     }).catch(() => {});
     Promise.all([
       fetch('/api/categories').then(r => r.ok ? r.json() : []),
@@ -356,14 +361,14 @@ class Component extends DCLogic {
       branchCols: SORTCOLS([["name", "Branch", "left", "asc"], ["status", "Status", "left", "asc"], ["orders", "Orders", "right"], ["sales", "Sales", "right"]], st.bSort || "sales", st.bDir || "desc", (bSort, bDir) => this.setState({ bSort, bDir }), "20px"),
       branches: SORTBY([...(st.liveBranches || (this.props.oneBranch ? [{ ...B[0], name: st.firstNamed ? st.fbName : "My Store" }] : B)), ...st.added], { name: x => x.name, status: x => x.status, orders: x => x.orders, sales: x => parseFloat(String(x.sales).replace(/[^0-9.]/g, "")) || 0 }[st.bSort || "sales"], st.bDir || "desc").map(b => ({ ...b, border: b.here ? "#14110F" : "#EAEAE8", cta: this.props.lang === "ar" ? (b.here ? "أنت هنا · فتح" : "فتح") : (b.here ? "You're here · Open" : "Open"),
         stBg: b.status === "Open" ? "#F4F4F3" : "#FFF0C2", stInk: b.status === "Open" ? "#14110F" : "#7A5300", stDot: b.status === "Open" ? "#FF4A1C" : "#FFC52E",
-        link: b.slug ? `dinelabs.co/store/${b.slug}` : `dinelabs.co/store/${b.name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
-        open: () => { this.props.go && this.props.go("home"); if (!b.here) this.t(`Switched to ${b.name}`); }, copy: () => { try { navigator.clipboard.writeText("https://" + (b.slug ? `dinelabs.co/store/${b.slug}` : "")); } catch (e) {} this.t(`${b.name} link copied`); } })),
-      openRequest: () => this.setState({ req: true, nbName: "", nbAddr: "", nbCountry: "Lebanon", nbCopy: true, nbFrom: "Hamra" }), req: st.req, closeReq: () => this.setState({ req: false }),
+        link: b.slug ? `dinelabs.co/${b.slug}` : `dinelabs.co/${b.name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
+        open: () => { this.props.go && this.props.go("home"); if (!b.here) this.t(`Switched to ${b.name}`); }, copy: () => { try { navigator.clipboard.writeText("https://" + (b.slug ? `dinelabs.co/${b.slug}` : "")); } catch (e) {} this.t(`${b.name} link copied`); } })),
+      openRequest: () => this.setState({ req: true, nbName: "", nbAddr: "", nbCountry: "Germany", nbCopy: true, nbFrom: "" }), req: st.req, closeReq: () => this.setState({ req: false }),
       nbName: st.nbName, nbAddr: st.nbAddr, setNbName: (e) => this.setState({ nbName: e.target.value }), setNbAddr: (e) => this.setState({ nbAddr: e.target.value }),
-      nbLink: "dinelabs.co/blockparty-" + ((st.nbName.trim() || "mar mikhael").toLowerCase().replace(/[^a-z0-9]+/g, "")),
+      nbLink: "dinelabs.co/" + ((st.nbName.trim() || "branch").toLowerCase().replace(/[^a-z0-9]+/g, "")),
       nbPlan: this.props.trial ? "Covered by your Premium trial until it ends. Then it moves to Free." : "Starts on Free. Talk to sales to switch it to Premium.",
       nbCursor: st.nbName.trim() ? "pointer" : "default", nbOp: st.nbName.trim() ? 1 : 0.4,
-      askFirst: !!this.props.oneBranch && !st.firstNamed && st.added.length === 0, fbName: st.fbName, setFbName: (e) => this.setState({ fbName: e.target.value }), firstLink: "dinelabs.co/blockparty",
+      askFirst: !!this.props.oneBranch && !st.firstNamed && st.added.length === 0, fbName: st.fbName, setFbName: (e) => this.setState({ fbName: e.target.value }), firstLink: `dinelabs.co/${window.__dlTenant?.slug || "store"}`,
       countryOpts: (window.DL_COUNTRIES || [{ value: "Lebanon", label: "Lebanon" }]).map(c => ({ value: c.value, label: c.label, flag: c.flag })), nbCountry: st.nbCountry, setNbCountry: (e) => this.setState({ nbCountry: e.target.value }),
       nbCurNote: "Currency: " + (((window.DL_CURRENCY || {})[st.nbCountry]) || [["USD", "US dollar"]]).map(([c, n]) => n + " (" + c + ")").join(" or "),
       nbCopy: st.nbCopy, toggleCopy: () => this.setState({ nbCopy: !st.nbCopy }), copyBd: st.nbCopy ? "#14110F" : "#DADAD7", copyBg: st.nbCopy ? "#14110F" : "#fff", copyOp: st.nbCopy ? 1 : 0,
